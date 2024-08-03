@@ -19,7 +19,7 @@ CREATE TABLE IF NOT EXISTS `mythicplus_classlevelstats` (
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci
 ;
 
-INSERT IGNORE INTO acore_world.mythicplus_classlevelstats (class, `level`, basehp0, basehp1, basehp2,
+INSERT IGNORE INTO mythicplus_classlevelstats (class, `level`, basehp0, basehp1, basehp2,
 basemana, basearmor, attackpower, rangedattackpower, damage_base, damage_exp1, damage_exp2) VALUES
 (1, 81, 5489.19, 9449.55, 12640.32, 0.00, 10033.36, 714.66, 111.97, 47.9043, 131.5509, 166.3098),
 (1, 82, 5641.53, 9700.79, 12855.00, 0.00, 10337.65, 790.54, 121.09, 48.5708, 131.9685, 169.2029),
