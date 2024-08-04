@@ -14,34 +14,43 @@ public:
 
     void OnCreateMap(Map* map)
     {
-        // LOG_DEBUG("module.MythicPlus", "MythicPlus_AllMapScript::OnCreateMap(): {}", map->GetMapName());
+        static MythicPlus* mp = MythicPlus::getInstance();
+        mp->debug("AllMapScript::OnCreateMap(): {}", map->GetMapName());
 
-        // if (!map->IsDungeon() && !map->IsRaid())
-        //     return;
+        if (!mp->IsMapEligible(map)) {
+            return;
+        }
+
 
     }
 
     void OnPlayerEnterAll(Map* map, Player* player)
     {
-        // LOG_DEBUG("module.MythicPlus", "MythicPlus_AllMapScript::OnPlayerEnterAll(): {}", map->GetMapName());
+        static MythicPlus* mp = MythicPlus::getInstance();
+        mp->debug("AllMapScript::OnPlayerEnterAll(): {}", map->GetMapName());
 
-        // if (!map->IsDungeon() && !map->IsRaid())
-        //     return;
+        if (!mp->IsMapEligible(map)) {
+            return;
+        }
 
-        // if (player->IsGameMaster())
-        //     return;
     }
 
     void OnPlayerLeaveAll(Map* map, Player* player)
     {
-        // LOG_DEBUG("module.MythicPlus", "MythicPlus_AllMapScript::OnPlayerLeaveAll(): {}", map->GetMapName());
+        static MythicPlus* mp = MythicPlus::getInstance();
+        mp->debug("AllMapScript::OnPlayerLeaveAll(): {}", map->GetMapName());
 
-        // if (!sMythicPlus->EnableGlobal)
-        //     return;
+        if (!mp->IsMapEligible(map)) {
+            return;
+        }
+
+
    }
 };
 
-void AddAllMapScripts()
+void Add_MP_AllMapScripts()
 {
+    static MythicPlus* mp = MythicPlus::getInstance();
+    mp->debug("Add_MP_AllMapScripts()");
     new MythicPlus_AllMapScript();
 }

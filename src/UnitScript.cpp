@@ -14,7 +14,9 @@ public:
 
 };
 
-void AddUnitScripts()
+void Add_MP_UnitScripts()
 {
+    static MythicPlus* mp = MythicPlus::getInstance();
+    mp->debug("Add_MP_UnitScripts()");
     new MythicPlus_UnitScript();
 }

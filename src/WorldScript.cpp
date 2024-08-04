@@ -26,7 +26,9 @@ public:
     }
 };
 
-void AddWorldScripts()
+void Add_MP_WorldScripts()
 {
+    static MythicPlus* mp = MythicPlus::getInstance();
+    mp->debug("Add_MP_WorldScripts()");
     new MythicPlus_WorldScript();
 }

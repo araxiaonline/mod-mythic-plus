@@ -25,7 +25,9 @@ public:
 
 };
 
-void AddGlobalScripts()
+void Add_MP_GlobalScripts()
 {
+    static MythicPlus* mp = MythicPlus::getInstance();
+    mp->debug("Add_MP_GlobalScripts()");
     new MythicPlus_GlobalScript();
 }

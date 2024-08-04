@@ -28,7 +28,9 @@ class MythicPlus_GroupScript : public GroupScript
     }
 };
 
-void AddGroupScripts()
+void Add_MP_GroupScripts()
 {
+    static MythicPlus* mp = MythicPlus::getInstance();
+    mp->debug("Add_MP_GroupScripts()");
     new MythicPlus_GroupScript();
 }

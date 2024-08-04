@@ -1,0 +1,4 @@
+
+Appender.MythicPlusLog=2,5,0,mod-mythic-plus.log,w
+Appender.MythicPlusConsole=1,5,0,"1 9 3 6 5 8"
+Logger.module.MythicPlus=5,MythicPlusLog MythicPlusConsole

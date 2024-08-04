@@ -12,16 +12,22 @@ public:
 
     void OnCreatureAddWorld(Creature* creature) override
     {
-        // if (creature->GetMap()->IsDungeon() || creature->GetMap()->IsRaid())
-        //     LOG_DEBUG("module.MythicPlus",
-        //         "MythicPlus_AllCreatureScript::OnCreatureAddWorld(): {} ({})",
-        //         creature->GetName(),
-        //         creature->GetLevel()
-        //     );
+        MythicPlus* mp = MythicPlus::getInstance();
+        if(!mp->IsMapEligible(creature->GetMap())) {
+            return;
+        }
+
+        mp->debug("OnCreatureAddWorld({}, {})", creature->GetName(), creature->GetLevel());
+
     }
 
     void OnCreatureRemoveWorld(Creature* creature) override
     {
+        MythicPlus* mp = MythicPlus::getInstance();
+        if(!mp->IsMapEligible(creature->GetMap())) {
+            return;
+        }
+
         // if (creature->GetMap()->IsDungeon() || creature->GetMap()->IsRaid())
         //     LOG_DEBUG("module.MythicPlus",
         //         "MythicPlus_AllCreatureScript::OnCreatureRemoveWorld(): {} ({})",
@@ -35,6 +41,8 @@ public:
 
     void OnAllCreatureUpdate(Creature* creature, uint32 /*diff*/) override
     {
+        MythicPlus* mp = MythicPlus::getInstance();
+
         // If the config is out of date and the creature was reset, run modify against it
         // if (ResetCreatureIfNeeded(creature))
         // {
@@ -54,7 +62,9 @@ public:
 
 };
 
-void AddAllCreatureScripts()
+void Add_MP_AllCreatureScripts()
 {
+    static MythicPlus* mp = MythicPlus::getInstance();
+    mp->debug("Add_MP_AllCreatureScripts()");
     new MythicPlus_AllCreatureScript();
 }

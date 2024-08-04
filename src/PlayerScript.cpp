@@ -50,7 +50,9 @@ public:
     }
 };
 
-void AddPlayerScripts()
+void Add_MP_PlayerScripts()
 {
+    static MythicPlus* mp = MythicPlus::getInstance();
+    mp->debug("Add_MP_PlayerScripts()");
     new MythicPlus_PlayerScript();
 }

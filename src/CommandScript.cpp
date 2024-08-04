@@ -5,12 +5,17 @@
 class MythicPlus_CommandScript : public CommandScript
 {
 public:
+    MythicPlus_CommandScript() : CommandScript("MythicPlus_CommandScript")
+    {
+    }
 
 
 
 };
 
-void AddCommandScripts()
+void Add_MP_CommandScripts()
 {
+    static MythicPlus* mp = MythicPlus::getInstance();
+    mp->debug("Add_MP_CommandScripts()");
 
 }
