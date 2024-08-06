@@ -1,6 +1,6 @@
-#include "ScriptMgr.h"
-#include "MythicPlus.h"
+#include "MpLogger.h"
 #include "Player.h"
+#include "ScriptMgr.h"
 
 class MythicPlus_UnitScript : public UnitScript
 {
@@ -16,7 +16,6 @@ public:
 
 void Add_MP_UnitScripts()
 {
-    static MythicPlus* mp = MythicPlus::getInstance();
-    mp->debug("Add_MP_UnitScripts()");
+    MpLogger::debug("Add_MP_UnitScripts()");
     new MythicPlus_UnitScript();
 }

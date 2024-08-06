@@ -1,6 +1,7 @@
 
+#include "MpDataStore.h"
+#include "MpLogger.h"
 #include "ScriptMgr.h"
-#include "MythicPlus.h"
 
 // this handles updating custom group difficulties used in auto balancing mobs and
 // scripts that enable buffs on mobs randomly
@@ -18,6 +19,9 @@ class MythicPlus_GroupScript : public GroupScript
             return;
         }
 
+        MpDataStore* mpds = MpDataStore::getInstance();
+        GroupData gd = { group, MP_DIFFICULTY_NORMAL };
+        mpds->AddGroupData(group->GetGUID(), gd);
     }
 
     void OnDisband(Group* group) override {
@@ -25,12 +29,13 @@ class MythicPlus_GroupScript : public GroupScript
             return;
         }
 
+        MpDataStore* mpds = MpDataStore::getInstance();
+        mpds->RemoveGroupData(group->GetGUID());
     }
 };
 
 void Add_MP_GroupScripts()
 {
-    static MythicPlus* mp = MythicPlus::getInstance();
-    mp->debug("Add_MP_GroupScripts()");
+    MpLogger::debug("Add_MP_GroupScripts()");
     new MythicPlus_GroupScript();
 }

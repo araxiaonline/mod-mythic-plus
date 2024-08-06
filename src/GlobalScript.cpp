@@ -1,4 +1,4 @@
-#include "MythicPlus.h"
+#include "MpLogger.h"
 #include "ScriptMgr.h"
 
 class MythicPlus_GlobalScript : public GlobalScript
@@ -27,7 +27,6 @@ public:
 
 void Add_MP_GlobalScripts()
 {
-    static MythicPlus* mp = MythicPlus::getInstance();
-    mp->debug("Add_MP_GlobalScripts()");
+    MpLogger::debug("Add_MP_GlobalScripts()");
     new MythicPlus_GlobalScript();
 }

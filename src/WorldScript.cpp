@@ -1,7 +1,7 @@
-#include "ScriptMgr.h"
-#include "MythicPlus.h"
 #include "Config.h"
+#include "MpLogger.h"
 #include "Player.h"
+#include "ScriptMgr.h"
 
 class MythicPlus_WorldScript : public WorldScript
 {
@@ -28,7 +28,6 @@ public:
 
 void Add_MP_WorldScripts()
 {
-    static MythicPlus* mp = MythicPlus::getInstance();
-    mp->debug("Add_MP_WorldScripts()");
+    MpLogger::debug("Add_MP_WorldScripts()");
     new MythicPlus_WorldScript();
 }

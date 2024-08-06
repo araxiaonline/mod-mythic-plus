@@ -1,4 +1,4 @@
-#include "MythicPlus.h"
+#include "MpLogger.h"
 #include "ScriptMgr.h"
 
 // make sure this is the new way to do this, i think it's the old busted shit
@@ -15,7 +15,5 @@ public:
 
 void Add_MP_CommandScripts()
 {
-    static MythicPlus* mp = MythicPlus::getInstance();
-    mp->debug("Add_MP_CommandScripts()");
-
+    MpLogger::debug("Add_MP_CommandScripts()");
 }

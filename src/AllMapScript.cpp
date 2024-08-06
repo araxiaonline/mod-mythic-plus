@@ -1,9 +1,10 @@
-#include "ScriptMgr.h"
-#include "Log.h"
-#include "Player.h"
-#include "MythicPlus.h"
 #include "Chat.h"
+#include "Log.h"
 #include "MapMgr.h"
+#include "MpLogger.h"
+#include "MythicPlus.h"
+#include "Player.h"
+#include "ScriptMgr.h"
 
 class MythicPlus_AllMapScript : public AllMapScript
 {
@@ -15,7 +16,7 @@ public:
     void OnCreateMap(Map* map)
     {
         static MythicPlus* mp = MythicPlus::getInstance();
-        mp->debug("AllMapScript::OnCreateMap(): {}", map->GetMapName());
+        MpLogger::debug("AllMapScript::OnCreateMap(): {}", map->GetMapName());
 
         if (!mp->IsMapEligible(map)) {
             return;
@@ -27,7 +28,7 @@ public:
     void OnPlayerEnterAll(Map* map, Player* player)
     {
         static MythicPlus* mp = MythicPlus::getInstance();
-        mp->debug("AllMapScript::OnPlayerEnterAll(): {}", map->GetMapName());
+        MpLogger::debug("AllMapScript::OnPlayerEnterAll(): {}", map->GetMapName());
 
         if (!mp->IsMapEligible(map)) {
             return;
@@ -38,7 +39,7 @@ public:
     void OnPlayerLeaveAll(Map* map, Player* player)
     {
         static MythicPlus* mp = MythicPlus::getInstance();
-        mp->debug("AllMapScript::OnPlayerLeaveAll(): {}", map->GetMapName());
+        MpLogger::debug("AllMapScript::OnPlayerLeaveAll(): {}", map->GetMapName());
 
         if (!mp->IsMapEligible(map)) {
             return;
@@ -50,7 +51,6 @@ public:
 
 void Add_MP_AllMapScripts()
 {
-    static MythicPlus* mp = MythicPlus::getInstance();
-    mp->debug("Add_MP_AllMapScripts()");
+    MpLogger::debug("Add_MP_AllMapScripts()");
     new MythicPlus_AllMapScript();
 }
