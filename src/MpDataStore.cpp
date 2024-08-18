@@ -11,41 +11,50 @@ MpDataStore::~MpDataStore() {
 }
 
 void MpDataStore::AddGroupData(ObjectGuid guid, GroupData gd) {
-    MpLogger::debug("Adding group data for group %u", guid.GetCounter());
-    groupData[guid] = gd;
+    MpLogger::debug("AddGroupData for group {}", guid.GetCounter());
+    groupData->insert({guid, gd});
 }
 
 void MpDataStore::RemoveGroupData(ObjectGuid guid) {
-    MpLogger::debug("Removing group data for group %u", guid.GetCounter());
-    groupData.erase(guid);
+    MpLogger::debug("RemoveGroupData for group {}", guid.GetCounter());
+    groupData->erase(guid);
 }
 
 void MpDataStore::AddPlayerData(ObjectGuid guid, PlayerData pd) {
-    MpLogger::debug("Adding player data for player %u", guid.GetCounter());
-    playerData[guid] = pd;
+    MpLogger::debug("AddPlayerData for player {}", guid.GetCounter());
+    playerData->insert({guid, pd});
+}
+
+const PlayerData* MpDataStore::GetPlayerData() {
+    return playerData;
+}
+
+void MpDataStore::SetPlayerDifficulty(ObjectGuid guid, uint8 difficulty) {
+    MpLogger::debug("SetPlayerDifficulty for player {}", guid.GetCounter());
+    playerData->at(guid).difficulty = difficulty;
 }
 
 void MpDataStore::RemovePlayerData(ObjectGuid guid) {
-    MpLogger::debug("Removing player data for player %u", guid.GetCounter());
-    playerData.erase(guid);
+    MpLogger::debug("RemovePlayerData for player {}", guid.GetCounter());
+    playerData->erase(guid);
 }
 
 void MpDataStore::AddInstanceData(ObjectGuid guid, MapData md) {
-    MpLogger::debug("Adding instance data for instance %u", guid.GetCounter());
-    instanceData[guid] = md;
+    MpLogger::debug("AddInstanceData for instance {}", guid.GetCounter());
+    instanceData->insert({guid, md});
 }
 
 void MpDataStore::RemoveInstanceData(ObjectGuid guid) {
-    MpLogger::debug("Removing instance data for instance %u", guid.GetCounter());
-    instanceData.erase(guid);
+    MpLogger::debug("RemoveInstanceData for instance {}", guid.GetCounter());
+    instanceData->erase(guid);
 }
 
 void MpDataStore::AddInstanceCreatureData(ObjectGuid guid, MapCreatureData mcd) {
-    MpLogger::debug("Adding instance creature data for creature %u", guid.GetCounter());
-    instanceCreatureData[guid] = mcd;
+    MpLogger::debug("AddInstanceCreatureData for creature {}", guid.GetCounter());
+    instanceCreatureData->insert({guid, mcd});
 }
 
 void MpDataStore::RemoveInstanceCreatureData(ObjectGuid guid) {
-    MpLogger::debug("Removing instance creature data for creature %u", guid.GetCounter());
-    instanceCreatureData.erase(guid);
+    MpLogger::debug("RemoveInstanceCreatureData data for creature {}", guid.GetCounter());
+    instanceCreatureData->erase(guid);
 }

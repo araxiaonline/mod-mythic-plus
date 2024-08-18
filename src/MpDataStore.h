@@ -23,6 +23,7 @@ struct GroupData
 struct PlayerData
 {
     Player* player;
+    uint8 difficulty;
 };
 
 struct MapData
@@ -41,22 +42,27 @@ private:
     MpDataStore();
     ~MpDataStore();
 
-    std::map<ObjectGuid, GroupData> groupData;
-    std::map<ObjectGuid, PlayerData> playerData;
-    std::map<ObjectGuid, MapData> instanceData;
-    std::map<ObjectGuid, MapCreatureData> instanceCreatureData;
+    std::map<ObjectGuid, GroupData>* groupData;
+    std::map<ObjectGuid, PlayerData>* playerData;
+    std::map<ObjectGuid, MapData>* instanceData;
+    std::map<ObjectGuid, MapCreatureData>* instanceCreatureData;
 
 public:
     void AddGroupData(ObjectGuid guid, GroupData gd);
     void RemoveGroupData(ObjectGuid guid);
+
     void AddPlayerData(ObjectGuid guid, PlayerData pd);
     void RemovePlayerData(ObjectGuid guid);
+    void SetPlayerDifficulty(ObjectGuid guid, uint8 difficulty);
+    const PlayerData* GetPlayerData();
+
     void AddInstanceData(ObjectGuid guid, MapData md);
     void RemoveInstanceData(ObjectGuid guid);
+
     void AddInstanceCreatureData(ObjectGuid guid, MapCreatureData mcd);
     void RemoveInstanceCreatureData(ObjectGuid guid);
 
-    static MpDataStore * getInstance() {
+    static MpDataStore* getInstance() {
         static MpDataStore instance;
         return &instance;
     }
