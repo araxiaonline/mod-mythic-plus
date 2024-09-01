@@ -3,6 +3,7 @@
 
 #include "Group.h"
 #include "MapMgr.h"
+#include "Player.h"
 
 enum MpDifficulty {
     MP_DIFFICULTY_NORMAL    = 0,
@@ -52,13 +53,31 @@ public:
     MpDataStore(const MpDataStore&) = delete;
     MpDataStore& operator=(const MpDataStore&) = delete;
 
-    void AddGroupData(ObjectGuid guid, GroupData gd);
-    void RemoveGroupData(ObjectGuid guid);
+    const PlayerData* GetPlayerData(ObjectGuid guid) const {
+        try {
+            return &playerData->at(guid);
+        } catch (const std::out_of_range& oor) {
+            return nullptr;
+        }
+    }
+
+    const GroupData* GetGroupData(ObjectGuid guid) const {
+        try {
+            return &groupData->at(guid);
+        } catch (const std::out_of_range& oor) {
+            return nullptr;
+        }
+    }
+    const GroupData* GetGroupData(Player *player) const {
+        return GetGroupData(player->GetGroup()->GetGUID());
+    };
+
+    void AddGroupData(Group *group, int8 difficulty);
+    void RemoveGroupData(Group *group);
 
     void AddPlayerData(ObjectGuid guid, PlayerData pd);
     void RemovePlayerData(ObjectGuid guid);
-    void SetPlayerDifficulty(ObjectGuid guid, uint8 difficulty);
-    const PlayerData* GetPlayerData();
+    void SetGroupDifficulty(ObjectGuid guid, uint8 difficulty);
 
     void AddInstanceData(ObjectGuid guid, MapData md);
     void RemoveInstanceData(ObjectGuid guid);

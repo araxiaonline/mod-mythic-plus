@@ -1,6 +1,7 @@
 
 #include "MpDataStore.h"
 #include "MpLogger.h"
+#include "Player.h"
 
 MpDataStore::MpDataStore() {
     // constructor
@@ -10,28 +11,29 @@ MpDataStore::~MpDataStore() {
     // destructor
 }
 
-void MpDataStore::AddGroupData(ObjectGuid guid, GroupData gd) {
-    MpLogger::debug("AddGroupData for group {}", guid.GetCounter());
-    groupData->insert({guid, gd});
+// Adds an entry for the group difficult to memory and updats database
+void MpDataStore::AddGroupData(Group *group, int8 difficulty) {
+    ObjectGuid guid = group->GetGUID();
+
+    if (!guid) {
+        MpLogger::error("AddGroupData called with invalid group GUID");
+        return;
+    }
+    MpLogger::debug("Add Group difficulty for group {} to {}", guid.GetCounter());
+
+    CharacterDatabase.Execute("REPLACE INTO group_difficulty (guid, difficulty) VALUES ({},{}) ", guid.GetCounter(), difficulty);
 }
 
-void MpDataStore::RemoveGroupData(ObjectGuid guid) {
-    MpLogger::debug("RemoveGroupData for group {}", guid.GetCounter());
-    groupData->erase(guid);
+void MpDataStore::RemoveGroupData(Group *group) {
+    MpLogger::debug("RemoveGroupData for group {}", group->GetGUID().GetCounter());
+    groupData->erase(group->GetGUID());
+
+    CharacterDatabase.Execute("DELETE FROM group_difficulty WHERE guid = {}) ", group->GetGUID().GetCounter());
 }
 
 void MpDataStore::AddPlayerData(ObjectGuid guid, PlayerData pd) {
     MpLogger::debug("AddPlayerData for player {}", guid.GetCounter());
     playerData->insert({guid, pd});
-}
-
-const PlayerData* MpDataStore::GetPlayerData() {
-    return playerData;
-}
-
-void MpDataStore::SetPlayerDifficulty(ObjectGuid guid, uint8 difficulty) {
-    MpLogger::debug("SetPlayerDifficulty for player {}", guid.GetCounter());
-    playerData->at(guid).difficulty = difficulty;
 }
 
 void MpDataStore::RemovePlayerData(ObjectGuid guid) {

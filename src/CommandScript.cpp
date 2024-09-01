@@ -1,5 +1,7 @@
+
 #include "Chat.h"
 #include "MpDataStore.h"
+#include "MythicPlus.h"
 #include "MpLogger.h"
 #include "Player.h"
 #include "ScriptMgr.h"
@@ -18,14 +20,16 @@ public:
     {
         static ChatCommandTable commandTableSet =
         {
-            {"mythic", HandleSet, SEC_PLAYER, Console::No},
-            {"", HandleSet, SEC_PLAYER, Console::No},
+            {"mythic", HandleSetMythic, SEC_PLAYER, Console::No},
+            {"3", HandleSetMythic, SEC_PLAYER, Console::No},
         };
 
         static ChatCommandTable commandTableMain =
         {
+            {"", HandleHelp, SEC_PLAYER, Console::No},
             {"status", HandleStatus, SEC_PLAYER, Console::Yes},
-            {"set", commandTableSet}
+            {"mythic",HandleSetMythic, SEC_PLAYER, Console::No},
+            {"set", commandTableSet},
         };
 
         static ChatCommandTable commandTable =
@@ -44,29 +48,49 @@ public:
         return true;
     }
 
-    static bool HandleSet(ChatHandler* handler, const std::vector<std::string>& args)
+    static bool HandleHelp(ChatHandler* handler, const std::vector<std::string>& /*args*/)
     {
-        MpLogger::debug("HandleSet()");
-        MpDataStore* mpds = MpDataStore::getInstance();
-        const PlayerData* players = mpds->GetPlayerData();
+        std::string helpText = "Mythic+ Commands:\n"
+            "  .mp status - show current global settings of Mythic+ mod\n"
+            "  .mp [mythic,legendary,ascendant] - Shortcode to set Mythic+ difficulty to level for your group. \n"
+            "  .mp set [mythic,legendary,ascendant] - Set Mythic+ difficulty to Mythic can also used (3,4,5)\n"
+            "  .mp [enable,disable] - enable or disable this mod\n"
+            "  .mp - Show this help message\n";
+        handler->PSendSysMessage(helpText);
+        return true;
+    }
 
+    static bool HandleSetMythic(ChatHandler* handler, const std::vector<std::string>& /*args*/)
+    {
         Player* player = handler->GetSession()->GetPlayer();
-        MpLogger::debug("HandleSet() player: {}", player->GetName());
 
-        mpds->SetPlayerDifficulty(player->GetGUID(), MP_DIFFICULTY_MYTHIC);
+        if (!player->GetGroup()) {
+            MpLogger::debug("HandleSetMythic() No Group for player: {}", player->GetName());
+            handler->PSendSysMessage("You must be in a group to be able to set a Mythic+ difficulty.");
+            return true;
+        }
 
-        handler->SendSysMessage("Hello World from MythicPlus! ({})", args.size());
+        MpLogger::debug("HandleSetMythic() Set difficulty player: {}", player->GetName());
+
+
+
         return true;
     }
 
     static bool HandleStatus(ChatHandler* handler)
     {
         MpLogger::debug("HandleStatus()");
-        MpDataStore* mpds = MpDataStore::getInstance();
-        const PlayerData* players = mpds->GetPlayerData();
+        std::string status = Acore::StringFormat(
+            "Mythic+ Status:\n"
+            "  Mythic+ Enabled: %s\n"
+            "  Mythic+ Item Rewards: %s\n"
+            "  Mythic+ DeathLimits: %s\n",
+            sMythicPlus->Enabled ? "Yes" : "No",
+            sMythicPlus->EnableItemRewards ? "Yes" : "No",
+            sMythicPlus->EnableDeathLimits ? "Yes" : "No");
 
 
-        handler->SendSysMessage("Hello World from MythicPlus! ()");
+        handler->PSendSysMessage(status);
         return true;
     }
 
