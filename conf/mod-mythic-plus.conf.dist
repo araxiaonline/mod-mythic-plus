@@ -1,4 +1,94 @@
+[worldserver]
+
+##########################################################
+#
+#  Logging Configuration
+#
+##########################################################
 
 Appender.MythicPlusLog=2,5,0,mod-mythic-plus.log,w
 Appender.MythicPlusConsole=1,5,0,"1 9 3 6 5 8"
 Logger.module.MythicPlus=5,MythicPlusLog MythicPlusConsole
+
+##########################################################
+#
+# Mythic+ Global Settings
+#
+##########################################################
+MythicPlus.Enabled = 1
+MythicPlus.Debug = 0
+MythicPlus.EnableItemRewards = 1
+MythicPlus.EnableDeathLimits = 1
+
+##########################################################
+#
+# Mythic+ Difficulty Modifiers By Difficuty
+#   - These values are used to adjust the difficulty of enemies and bosses base
+#     stats based on the difficulty of the dungeon.
+#   - Bosses will only receive their multiplier not the Dungeon multiplier to prevent multiplicative scaling.
+#
+##########################################################
+
+MythicPlus.Mythic.DungeonHealth = 1.25
+MythicPlus.Mythic.DungeonMelee = 1.25
+MythicPlus.Mythic.DungeonSpell = 1.15
+MythicPlus.Mythic.DungeonArmor = 1.25
+MythicPlus.Mythic.DungeonAvgLevel = 83
+
+MythicPlus.Mythic.DungeonBossHealth = 1.50
+MythicPlus.Mythic.DungeonBossMelee = 1.35
+MythicPlus.Mythic.DungeonBossSpell = 1.25
+MythicPlus.Mythic.DungeonBossArmor = 1.35
+MythicPlus.Mythic.DungeonBossLevel = 85
+
+MythicPlus.Legendary.DungeonHealth = 2.25
+MythicPlus.Legendary.DungeonMelee = 2.25
+MythicPlus.Legendary.DungeonSpell = 2.25
+MythicPlus.Legendary.DungeonArmor = 2.25
+MythicPlus.Legendary.DungeonAvgLevel = 85
+
+MythicPlus.Legendary.DungeonBossHealth = 2.25
+MythicPlus.Legendary.DungeonBossMelee = 2.25
+MythicPlus.Legendary.DungeonBossSpell = 2.25
+MythicPlus.Legendary.DungeonBossArmor = 3.25
+MythicPlus.Legendary.DungeonBossLevel = 87
+
+MythicPlus.Legendary.DungeonHealth = 3.25
+MythicPlus.Legendary.DungeonMelee = 3.25
+MythicPlus.Legendary.DungeonSpell = 3.25
+MythicPlus.Legendary.DungeonArmor = 3.25
+MythicPlus.Legendary.DungeonAvgLevel = 87
+
+MythicPlus.Legendary.DugeonBossHealth = 3.25
+MythicPlus.Legendary.DugeonBossMelee = 3.25
+MythicPlus.Legendary.DugeonBossSpell = 3.25
+MythicPlus.Legendary.DugeonBossArmor = 3.25
+MythicPlus.Legendary.DugeonBossLevel = 90
+
+##########################################################
+#
+# Mythic+ Gameplay Settings
+# - If Death limit mode is enabled the below numbers set the max number of total deaths before players are kicked out and the
+#   that instance of the dungeon is failed.
+#
+##########################################################
+
+MythicPlus.Mythic.DeathAllowance = 1000 // Number of deaths allowed before the dungeon is failed. (1000 = Unlimited)
+MythicPlus.Legendary.DeathAllowance = 30 // Number of deaths allowed before the dungeon is failed and requires restart. (1000 = Unlimited)
+MythicPlus.Ascendant.DeathAllowance = 15 // Number of deaths allowed before the dungeon is failed. (1000 = Unlimited)
+
+##########################################################
+#
+# Itemization Settings
+#   - These values are used to set the offset to where items per difficulty will map to.
+#   - Item drops in this mode use the original item entry + on offset to determine the new item entry reward.
+#   - This enables a fast lookup at loot drop time as it is just an addition operation.
+#   - If using the base geneated sql the settings below will map to it.  If the offset is incorrect,
+#     the item will not be found and the original low level item will be rewarded.
+#
+##########################################################
+
+MythicPlus.Mythic.ItemOffset = 20000000
+MythicPlus.Legendary.ItemOffset = 21000000
+MythicPlus.Ascendant.ItemOffset = 22000000
+
