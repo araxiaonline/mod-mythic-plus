@@ -2,6 +2,7 @@
 #include "Log.h"
 #include "MapMgr.h"
 #include "MpLogger.h"
+#include "MpDataStore.h"
 #include "MythicPlus.h"
 #include "Player.h"
 #include "ScriptMgr.h"
@@ -15,10 +16,9 @@ public:
 
     void OnCreateMap(Map* map)
     {
-        static MythicPlus* mp = MythicPlus::getInstance();
         MpLogger::debug("AllMapScript::OnCreateMap(): {}", map->GetMapName());
 
-        if (!mp->IsMapEligible(map)) {
+        if (!sMythicPlus->IsMapEligible(map)) {
             return;
         }
 
@@ -27,10 +27,9 @@ public:
 
     void OnPlayerEnterAll(Map* map, Player* player)
     {
-        static MythicPlus* mp = MythicPlus::getInstance();
         MpLogger::debug("AllMapScript::OnPlayerEnterAll(): {}", map->GetMapName());
 
-        if (!mp->IsMapEligible(map)) {
+        if (!sMythicPlus->IsMapEligible(map)) {
             return;
         }
 
@@ -38,10 +37,9 @@ public:
 
     void OnPlayerLeaveAll(Map* map, Player* player)
     {
-        static MythicPlus* mp = MythicPlus::getInstance();
         MpLogger::debug("AllMapScript::OnPlayerLeaveAll(): {}", map->GetMapName());
 
-        if (!mp->IsMapEligible(map)) {
+        if (!sMythicPlus->IsMapEligible(map)) {
             return;
         }
 

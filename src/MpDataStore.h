@@ -8,10 +8,9 @@ enum MpDifficulty {
     MP_DIFFICULTY_NORMAL    = 0,
     MP_DIFFICULTY_HEROIC    = 1,
     MP_DIFFICULTY_EPIC      = 2,
-    MP_DIFFICULTY_HEROIC_25 = 3,
-    MP_DIFFICULTY_MYTHIC    = 4,
-    MP_DIFFICULTY_LEGENDARY = 8,
-    MP_DIFFICULTY_ASCENDANT = 12
+    MP_DIFFICULTY_MYTHIC    = 3,
+    MP_DIFFICULTY_LEGENDARY = 4,
+    MP_DIFFICULTY_ASCENDANT = 5
 };
 
 struct GroupData
@@ -48,6 +47,11 @@ private:
     std::map<ObjectGuid, MapCreatureData>* instanceCreatureData;
 
 public:
+
+    // ensure we only ever have one instance of this class
+    MpDataStore(const MpDataStore&) = delete;
+    MpDataStore& operator=(const MpDataStore&) = delete;
+
     void AddGroupData(ObjectGuid guid, GroupData gd);
     void RemoveGroupData(ObjectGuid guid);
 
@@ -62,11 +66,12 @@ public:
     void AddInstanceCreatureData(ObjectGuid guid, MapCreatureData mcd);
     void RemoveInstanceCreatureData(ObjectGuid guid);
 
-    static MpDataStore* getInstance() {
+    static MpDataStore* instance() {
         static MpDataStore instance;
         return &instance;
     }
 };
 
-#endif // MYTHICPLUS_DATASTORE_H
+#define sMpDataStore MpDataStore::instance()
 
+#endif // MpDataStore_DATASTORE_H

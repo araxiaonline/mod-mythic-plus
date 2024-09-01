@@ -12,10 +12,13 @@ public:
 
     }
 
+    void Creature_SelectLevel(const CreatureTemplate* /*creatureTemplate*/, Creature* creature) override {
+
+    }
+
     void OnCreatureAddWorld(Creature* creature) override
     {
-        MythicPlus* mp = MythicPlus::getInstance();
-        if(!mp->IsMapEligible(creature->GetMap())) {
+        if(!sMythicPlus->IsMapEligible(creature->GetMap())) {
             return;
         }
 
@@ -25,8 +28,7 @@ public:
             creature->GetMap()->GetMapName()
         );
 
-        MpDataStore* mpds = MpDataStore::getInstance();
-        mpds->AddInstanceCreatureData(
+        sMpDataStore->AddInstanceCreatureData(
             creature->GetGUID(),
             {
                 creature,
@@ -42,15 +44,13 @@ public:
 
     void OnCreatureRemoveWorld(Creature* creature) override
     {
-        MythicPlus* mp = MythicPlus::getInstance();
-        if(!mp->IsMapEligible(creature->GetMap())) {
+        if(!sMythicPlus->IsMapEligible(creature->GetMap())) {
             return;
         }
 
         MpLogger::debug("AllCreatureScript::OnCreatureRemoveWorld({}, {})", creature->GetName(), creature->GetLevel());
 
-        MpDataStore* mpds = MpDataStore::getInstance();
-        mpds->RemoveInstanceCreatureData(creature->GetGUID());
+        sMpDataStore->RemoveInstanceCreatureData(creature->GetGUID());
 
         MpLogger::debug("Removed creature {} from instance data for instance {}",
             creature->GetName(),
@@ -60,8 +60,6 @@ public:
 
     void OnAllCreatureUpdate(Creature* creature, uint32 /*diff*/) override
     {
-        MythicPlus* mp = MythicPlus::getInstance();
-
         // If the config is out of date and the creature was reset, run modify against it
         // if (ResetCreatureIfNeeded(creature))
         // {
@@ -78,32 +76,30 @@ public:
         // }
     }
 
-bool UpdateCreature(Creature* creature)
-{
-    MythicPlus* mp = MythicPlus::getInstance();
+    bool UpdateCreature(Creature* creature)
+    {
+        // make sure we have a creature and that it's assigned to a map
+        if (!creature || !creature->GetMap())
+            return false;
 
-    // make sure we have a creature and that it's assigned to a map
-    if (!creature || !creature->GetMap())
-        return false;
+        // if this isn't a dungeon or a battleground, make no changes
+        if (!sMythicPlus->IsMapEligible(creature->GetMap()))
+            return false;
 
-    // if this isn't a dungeon or a battleground, make no changes
-    if (!mp->IsMapEligible(creature->GetMap()))
-        return false;
+        // if this is a pet or summon controlled by the player, make no changes
+        if ((creature->IsHunterPet() || creature->IsPet() || creature->IsSummon()) && creature->IsControlledByPlayer())
+            return false;
 
-    // if this is a pet or summon controlled by the player, make no changes
-    if ((creature->IsHunterPet() || creature->IsPet() || creature->IsSummon()) && creature->IsControlledByPlayer())
-        return false;
+        // if this is a non-relevant creature, skip
+        if (creature->IsCritter() || creature->IsTotem() || creature->IsTrigger())
+            return false;
 
-    // if this is a non-relevant creature, skip
-    if (creature->IsCritter() || creature->IsTotem() || creature->IsTrigger())
-        return false;
+        if (creature->GetMap()->GetEntry()) {
 
-    if (creature->GetMap()->GetEntry()) {
+        }
 
-    }    
-
-    return true;
-}
+        return true;
+    }
 
 };
 
