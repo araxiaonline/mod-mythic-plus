@@ -18,34 +18,23 @@ public:
 
     ChatCommandTable GetCommands() const override
     {
-        static ChatCommandTable commandTableSet =
-        {
-            {"mythic", HandleSetMythic, SEC_PLAYER, Console::No},
-            {"3", HandleSetMythic, SEC_PLAYER, Console::No},
-        };
-
         static ChatCommandTable commandTableMain =
         {
             {"", HandleHelp, SEC_PLAYER, Console::No},
-            {"status", HandleStatus, SEC_PLAYER, Console::Yes},
-            {"mythic",HandleSetMythic, SEC_PLAYER, Console::No},
-            {"set", commandTableSet},
+            {"status", HandleStatus, SEC_PLAYER, Console::No},
+            {"mythic",HandleMythic, SEC_PLAYER, Console::No},
+            {"set", HandleSetDifficulty, SEC_PLAYER, Console::No},
+            {"disable", HandleDisable, SEC_ADMINISTRATOR, Console::Yes},
+            {"enable", HandleEnable, SEC_ADMINISTRATOR, Console::Yes}
         };
 
         static ChatCommandTable commandTable =
         {
             {"mp", commandTableMain},
-            {"mythicplus", HandleConsoleCommand, SEC_CONSOLE, Console::Yes},
+            {"mythicplus", commandTableMain}
         };
 
-
         return commandTable;
-    }
-
-    static bool HandleConsoleCommand(ChatHandler* handler, const std::vector<std::string>& args)
-    {
-        handler->SendSysMessage("Hello Console from MythicPlus! ({})", args.size());
-        return true;
     }
 
     static bool HandleHelp(ChatHandler* handler, const std::vector<std::string>& /*args*/)
@@ -60,8 +49,10 @@ public:
         return true;
     }
 
-    static bool HandleSetMythic(ChatHandler* handler, const std::vector<std::string>& /*args*/)
+    // sets the difficluty for the group
+    static bool HandleSetDifficulty(ChatHandler* handler, const std::vector<std::string>& args)
     {
+
         Player* player = handler->GetSession()->GetPlayer();
 
         if (!player->GetGroup()) {
@@ -70,11 +61,44 @@ public:
             return true;
         }
 
-        MpLogger::debug("HandleSetMythic() Set difficulty player: {}", player->GetName());
+        if (args.empty()) {
+            handler->PSendSysMessage("You must specify a difficulty level. Expected values are 'mythic', 'legendary', or 'ascendant'.");
+            return true;
+        }
 
+        std::string difficulty = args[0];
+        if (difficulty == "mythic" || difficulty == "3") {
+            sMpDataStore->AddGroupData(player->GetGroup(), 3);
+        }
+        else if (difficulty == "legendary" || difficulty == "4") {
+            sMpDataStore->AddGroupData(player->GetGroup(), 4);
+        }
+        else if (difficulty == "ascendant" || difficulty == "5") {
+            sMpDataStore->AddGroupData(player->GetGroup(), 5);
+        }
+        else {
+            handler->PSendSysMessage("Invalid difficulty level. Expected values are 'mythic', 'legendary', or 'ascendant'.");
+            return true;
+        }
 
+        MpLogger::debug("HandleSetMythic() Set difficulty player: {} {}", player->GetName(), difficulty);
 
         return true;
+    }
+
+    static bool HandleMythic(ChatHandler* handler, const std::vector<std::string>& args)
+    {
+        return HandleSetDifficulty(handler, std::vector<std::string>{"mythic"});
+    }
+
+    static bool HandleLegendary(ChatHandler* handler, const std::vector<std::string>& args)
+    {
+        return HandleSetDifficulty(handler, std::vector<std::string>{"legendary"});
+    }
+
+    static bool HandleAscendant(ChatHandler* handler, const std::vector<std::string>& args)
+    {
+        return HandleSetDifficulty(handler, std::vector<std::string>{"ascendant"});
     }
 
     static bool HandleStatus(ChatHandler* handler)
@@ -91,6 +115,22 @@ public:
 
 
         handler->PSendSysMessage(status);
+        return true;
+    }
+
+    static bool HandleDisable(ChatHandler* handler)
+    {
+        MpLogger::debug("HandleDisable()");
+        sMythicPlus->Enabled = false;
+        handler->SendSysMessage("Mythic+ mod has been disabled.");
+        return true;
+    }
+
+    static bool HandleEnable(ChatHandler* handler)
+    {
+        MpLogger::debug("HandleEnable()");
+        sMythicPlus->Enabled = false;
+        handler->SendSysMessage("Mythic+ mod has been enabled.");
         return true;
     }
 
