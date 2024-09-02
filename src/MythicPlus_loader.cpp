@@ -13,7 +13,6 @@ void Add_MP_WorldScripts();
 
 void Addmod_mythic_plusScripts()
 {
-    LOG_DEBUG("module.MythicPlus", "[MythicPlus] Initializing scripts.");
     Add_MP_AllCreatureScripts();
     Add_MP_AllMapScripts();
     Add_MP_CommandScripts();

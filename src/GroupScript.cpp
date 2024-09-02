@@ -19,9 +19,7 @@ class MythicPlus_GroupScript : public GroupScript
             return;
         }
 
-        MpDataStore* mpds = MpDataStore::getInstance();
-        GroupData gd = { group, MP_DIFFICULTY_NORMAL };
-        mpds->AddGroupData(group->GetGUID(), gd);
+        // sMpDataStore->AddGroupData(group->GetGUID(), gd);
     }
 
     void OnDisband(Group* group) override {
@@ -29,8 +27,8 @@ class MythicPlus_GroupScript : public GroupScript
             return;
         }
 
-        MpDataStore* mpds = MpDataStore::getInstance();
-        mpds->RemoveGroupData(group->GetGUID());
+        // MpDataStore* mpds = MpDataStore::instance();
+        // mpds->RemoveGroupData(group->GetGUID());
     }
 };
 

@@ -24,6 +24,7 @@ void MpDataStore::AddGroupData(Group *group, int8 difficulty) {
     CharacterDatabase.Execute("REPLACE INTO group_difficulty (guid, difficulty) VALUES ({},{}) ", guid.GetCounter(), difficulty);
 }
 
+// This clears out any group data from memory and the database
 void MpDataStore::RemoveGroupData(Group *group) {
     MpLogger::debug("RemoveGroupData for group {}", group->GetGUID().GetCounter());
     groupData->erase(group->GetGUID());

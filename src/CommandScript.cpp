@@ -88,17 +88,17 @@ public:
         return true;
     }
 
-    static bool HandleMythic(ChatHandler* handler, const std::vector<std::string>& args)
+    static bool HandleMythic(ChatHandler* handler, const std::vector<std::string>& /*args*/)
     {
         return HandleSetDifficulty(handler, std::vector<std::string>{"mythic"});
     }
 
-    static bool HandleLegendary(ChatHandler* handler, const std::vector<std::string>& args)
+    static bool HandleLegendary(ChatHandler* handler, const std::vector<std::string>& /*args*/)
     {
         return HandleSetDifficulty(handler, std::vector<std::string>{"legendary"});
     }
 
-    static bool HandleAscendant(ChatHandler* handler, const std::vector<std::string>& args)
+    static bool HandleAscendant(ChatHandler* handler, const std::vector<std::string>& /*args*/)
     {
         return HandleSetDifficulty(handler, std::vector<std::string>{"ascendant"});
     }

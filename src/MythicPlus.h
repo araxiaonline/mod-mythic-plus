@@ -2,6 +2,7 @@
 #define MYTHICPLUS_H
 
 #include "Define.h"
+#include "Map.h"
 #include <map>
 #include <string>
 

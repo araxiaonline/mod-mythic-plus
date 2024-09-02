@@ -32,3 +32,7 @@ public:
     }
 
 };
+void Add_MP_UnitScripts()
+{
+    new MythicPlus_UnitScript();
+}

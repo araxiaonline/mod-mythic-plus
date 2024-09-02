@@ -53,17 +53,17 @@ MythicPlus.Legendary.DungeonBossSpell = 2.25
 MythicPlus.Legendary.DungeonBossArmor = 3.25
 MythicPlus.Legendary.DungeonBossLevel = 87
 
-MythicPlus.Legendary.DungeonHealth = 3.25
-MythicPlus.Legendary.DungeonMelee = 3.25
-MythicPlus.Legendary.DungeonSpell = 3.25
-MythicPlus.Legendary.DungeonArmor = 3.25
-MythicPlus.Legendary.DungeonAvgLevel = 87
+MythicPlus.Ascendant.DungeonHealth = 3.25
+MythicPlus.Ascendant.DungeonMelee = 3.25
+MythicPlus.Ascendant.DungeonSpell = 3.25
+MythicPlus.Ascendant.DungeonArmor = 3.25
+MythicPlus.Ascendant.DungeonAvgLevel = 87
 
-MythicPlus.Legendary.DugeonBossHealth = 3.25
-MythicPlus.Legendary.DugeonBossMelee = 3.25
-MythicPlus.Legendary.DugeonBossSpell = 3.25
-MythicPlus.Legendary.DugeonBossArmor = 3.25
-MythicPlus.Legendary.DugeonBossLevel = 90
+MythicPlus.Ascendant.DugeonBossHealth = 3.25
+MythicPlus.Ascendant.DugeonBossMelee = 3.25
+MythicPlus.Ascendant.DugeonBossSpell = 3.25
+MythicPlus.Ascendant.DugeonBossArmor = 3.25
+MythicPlus.Ascendant.DugeonBossLevel = 90
 
 ##########################################################
 #
