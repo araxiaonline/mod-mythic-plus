@@ -23,6 +23,8 @@ public:
             {"", HandleHelp, SEC_PLAYER, Console::No},
             {"status", HandleStatus, SEC_PLAYER, Console::No},
             {"mythic",HandleMythic, SEC_PLAYER, Console::No},
+            {"legendary",HandleLegendary, SEC_PLAYER, Console::No},
+            {"ascendant",HandleAscendant, SEC_PLAYER, Console::No},
             {"set", HandleSetDifficulty, SEC_PLAYER, Console::No},
             {"disable", HandleDisable, SEC_ADMINISTRATOR, Console::Yes},
             {"enable", HandleEnable, SEC_ADMINISTRATOR, Console::Yes}
