@@ -44,7 +44,7 @@ public:
         std::string helpText = "Mythic+ Commands:\n"
             "  .mp status - show current global settings of Mythic+ mod\n"
             "  .mp [mythic,legendary,ascendant] - Shortcode to set Mythic+ difficulty to level for your group. \n"
-            "  .mp set [mythic,legendary,ascendant] - Set Mythic+ difficulty to Mythic can also used (3,4,5)\n"
+            "  .mp set [mythic,legendary,ascendant] - Set Mythic+ difficulty\n"
             "  .mp [enable,disable] - enable or disable this mod\n"
             "  .mp - Show this help message\n";
         handler->PSendSysMessage(helpText);
@@ -56,30 +56,45 @@ public:
     {
 
         Player* player = handler->GetSession()->GetPlayer();
+        Group* group = player->GetGroup();
 
-        if (!player->GetGroup()) {
+        if (!group) {
             MpLogger::debug("HandleSetMythic() No Group for player: {}", player->GetName());
-            handler->PSendSysMessage("You must be in a group to be able to set a Mythic+ difficulty.");
+            handler->PSendSysMessage("|cFFFF0000 You must be in a group to be able to set a Mythic+ difficulty.");
             return true;
         }
 
         if (args.empty()) {
-            handler->PSendSysMessage("You must specify a difficulty level. Expected values are 'mythic', 'legendary', or 'ascendant'.");
+            handler->PSendSysMessage("|cFFFF0000 You must specify a difficulty level. Expected values are 'mythic', 'legendary', or 'ascendant'.");
             return true;
         }
 
         std::string difficulty = args[0];
-        if (difficulty == "mythic" || difficulty == "3") {
-            sMpDataStore->AddGroupData(player->GetGroup(), 3);
+        if(sMythicPlus->IsDifficultyEnabled(difficulty)) {
+            handler->PSendSysMessage("|cFFFF0000 The difficulty level you have selected is not enabled.");
+            return true;
         }
-        else if (difficulty == "legendary" || difficulty == "4") {
-            sMpDataStore->AddGroupData(player->GetGroup(), 4);
+
+        if (difficulty == "mythic") {
+            sMpDataStore->AddGroupData(group, {
+                .group = group,
+                .difficulty = MP_DIFFICULTY_MYTHIC
+            });
         }
-        else if (difficulty == "ascendant" || difficulty == "5") {
-            sMpDataStore->AddGroupData(player->GetGroup(), 5);
+        else if (difficulty == "legendary") {
+            sMpDataStore->AddGroupData(group,{
+                .group = group,
+                .difficulty = MP_DIFFICULTY_LEGENDARY
+            });
+        }
+        else if (difficulty == "ascendant") {
+            sMpDataStore->AddGroupData(group, {
+                .group = group,
+                .difficulty = MP_DIFFICULTY_ASCENDANT
+            });
         }
         else {
-            handler->PSendSysMessage("Invalid difficulty level. Expected values are 'mythic', 'legendary', or 'ascendant'.");
+            handler->PSendSysMessage("|cFFFF0000 Invalid difficulty level. Expected values are 'mythic', 'legendary', or 'ascendant'.");
             return true;
         }
 

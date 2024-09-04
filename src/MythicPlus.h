@@ -3,6 +3,7 @@
 
 #include "Define.h"
 #include "Map.h"
+#include "MpDataStore.h"
 #include <map>
 #include <string>
 
@@ -21,24 +22,22 @@ public:
     MythicPlus(const MythicPlus&) = delete;
     MythicPlus& operator=(const MythicPlus&) = delete;
 
-    // Methods to clear and load settings
-    void ClearSettings();
-
-    // Check if a map is eligible for Mythic+ modifications
-    bool IsMapEligible(Map* map);
-
     // Global Settings
     bool Enabled;
-    bool Debug;
     bool EnableItemRewards;
     bool EnableDeathLimits;
 
-    // Difficulty Modifiers
-    std::map<std::string, float> mythicDungeonModifiers;
-    std::map<std::string, float> mythicBossModifiers;
+    // Turn off specific features of mythic+
+    std::vector<std::string> enabledDifficulties;
+    std::vector<uint32> disabledDungeons;
 
-    std::map<std::string, float> legendaryDungeonModifiers;
-    std::map<std::string, float> legendaryBossModifiers;
+    // Difficulty Modifiers
+    MpMultipliers mythicDungeonModifiers;
+    MpMultipliers mythicBossModifiers;
+    MpMultipliers legendaryDungeonModifiers;
+    MpMultipliers legendaryBossModifiers;
+    MpMultipliers ascendantDungeonModifiers;
+    MpMultipliers ascendantBossModifiers;
 
     // Death Allowances
     uint32 mythicDeathAllowance;
@@ -49,6 +48,11 @@ public:
     uint32 mythicItemOffset;
     uint32 legendaryItemOffset;
     uint32 ascendantItemOffset;
+
+    bool IsMapEligible(Map* map);
+    bool IsDifficultyEnabled(std::string difficulty);
+    bool IsDungeonDisabled(uint32 dungeonId);
+
 
     private:
         MythicPlus() { }

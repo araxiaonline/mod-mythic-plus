@@ -13,16 +13,31 @@ Logger.module.MythicPlus=5,MythicPlusLog MythicPlusConsole
 ##########################################################
 #
 # Mythic+ Global Settings
+#   - These settings are used to enable or disable the Mythic+ system and set the global settings for the system.
+#
+#   Enabled: 1 = Enabled, 0 = Disabled - Enables the Mythic+ system.
+#   EnableItemRewards: 1 = Enabled, 0 = Disabled - Enables the reward system for Mythic+ dungeons.
+#   EnableDeathLimits: 1 = Enabled, 0 = Disabled - Enables the death limit system for Mythic+ dungeons.
+#   EnabledDifficulties: A comma separated list of difficulties that are enabled for Mythic+ dungeons.
+#   DisabledDungeons: A comma separated list of dungeons that are disabled for Mythic+ dungeons.
 #
 ##########################################################
 MythicPlus.Enabled = 1
-MythicPlus.Debug = 0
 MythicPlus.EnableItemRewards = 1
 MythicPlus.EnableDeathLimits = 1
 
 ##########################################################
 #
-# Mythic+ Difficulty Modifiers By Difficuty
+# Enabled difficulty settings
+#
+##########################################################
+# MythicPlus.EnabledDifficulties = 3,4,5
+# MythicPlus.DisabledDungeons =
+
+
+##########################################################
+#
+# Mythic+ Stat Modifiers By Difficuty
 #   - These values are used to adjust the difficulty of enemies and bosses base
 #     stats based on the difficulty of the dungeon.
 #   - Bosses will only receive their multiplier not the Dungeon multiplier to prevent multiplicative scaling.

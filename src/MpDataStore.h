@@ -13,22 +13,63 @@ enum MpDifficulty {
     MP_DIFFICULTY_LEGENDARY = 4,
     MP_DIFFICULTY_ASCENDANT = 5
 };
-
-struct GroupData
+struct MpGroupData
 {
     Group* group;
-    uint8 difficulty;
+    MpDifficulty difficulty;
+    uint32 deaths;
+
+    std::vector<std::pair<uint32,uint32>> instanceDataKeys;
 };
 
-struct PlayerData
+struct MpPlayerData
 {
     Player* player;
     uint8 difficulty;
+    uint32 deaths;
 };
 
-struct MapData
+struct MpMultipliers
 {
-    Map* instance;
+    float health;
+    float melee;
+    float spell;
+    float armor;
+    uint avgLevel;
+
+    std::string ToString() const {
+    return "MpMultipliers: { health: " + std::to_string(health) +
+            ", melee: " + std::to_string(melee) +
+            ", spell: " + std::to_string(spell) +
+            ", armor: " + std::to_string(armor) +
+            ", avgLevel: " + std::to_string(avgLevel) + " }";
+    }
+};
+
+struct MpInstanceData
+{
+    InstanceMap* instance;
+    MpDifficulty difficulty;
+
+    // Enemy data
+    MpMultipliers boss;
+    MpMultipliers creature;
+
+    // Instance Settings
+    bool itemRewards;
+    uint32 deathLimits;
+    uint32 itemOffset;
+
+    std::string ToString() const {
+        return "MpInstanceData: { " +
+               std::string("instance: ") + (instance ? "valid instance" : "nullptr") +
+               ", boss: " + boss.ToString() +
+               ", creature: " + creature.ToString() +
+               ", itemRewards: " + (itemRewards ? "true" : "false") +
+               ", deathLimits: " + std::to_string(deathLimits) +
+               ", itemOffset: " + std::to_string(itemOffset) + " }";
+    }
+
 };
 
 struct MapCreatureData
@@ -42,10 +83,10 @@ private:
     MpDataStore();
     ~MpDataStore();
 
-    std::map<ObjectGuid, GroupData>* groupData;
-    std::map<ObjectGuid, PlayerData>* playerData;
-    std::map<ObjectGuid, MapData>* instanceData;
-    std::map<ObjectGuid, MapCreatureData>* instanceCreatureData;
+    std::map<ObjectGuid, MpGroupData>* _groupData;
+    std::map<ObjectGuid, MpPlayerData>* _playerData;
+    std::map<std::pair<uint32,uint32>,MpInstanceData>* _instanceData;
+    std::map<ObjectGuid, MapCreatureData>* _instanceCreatureData;
 
 public:
 
@@ -53,37 +94,43 @@ public:
     MpDataStore(const MpDataStore&) = delete;
     MpDataStore& operator=(const MpDataStore&) = delete;
 
-    const PlayerData* GetPlayerData(ObjectGuid guid) const {
+    const MpPlayerData* GetPlayerData(ObjectGuid guid) const {
         try {
-            return &playerData->at(guid);
+            return &_playerData->at(guid);
         } catch (const std::out_of_range& oor) {
             return nullptr;
         }
     }
 
-    const GroupData* GetGroupData(ObjectGuid guid) const {
+    const MpGroupData* GetGroupData(ObjectGuid guid) const {
         try {
-            return &groupData->at(guid);
+            return &_groupData->at(guid);
         } catch (const std::out_of_range& oor) {
             return nullptr;
         }
     }
-    const GroupData* GetGroupData(Player *player) const {
+    const MpGroupData* GetGroupData(Player *player) const {
         return GetGroupData(player->GetGroup()->GetGUID());
     };
 
-    void AddGroupData(Group *group, int8 difficulty);
+    // Set and remove difficluty settig for a group
+    void AddGroupData(Group *group, MpGroupData gd);
     void RemoveGroupData(Group *group);
+    void PushGroupInstanceKey(Group *group, uint32 mapId, uint32 instanceId);
 
-    void AddPlayerData(ObjectGuid guid, PlayerData pd);
+    void AddPlayerData(ObjectGuid guid, MpPlayerData pd);
     void RemovePlayerData(ObjectGuid guid);
-    void SetGroupDifficulty(ObjectGuid guid, uint8 difficulty);
 
-    void AddInstanceData(ObjectGuid guid, MapData md);
-    void RemoveInstanceData(ObjectGuid guid);
+    void AddInstanceData(uint32 mapId, uint32 instanceId, MpInstanceData );
+    void RemoveInstanceData(uint32 mapId, uint32 instanceId);
 
     void AddInstanceCreatureData(ObjectGuid guid, MapCreatureData mcd);
     void RemoveInstanceCreatureData(ObjectGuid guid);
+
+    // creates a unique instance key into the instance data store
+    auto GetInstanceDataKey(uint32 mapId, uint32 instanceId) {
+        return std::make_pair(mapId, instanceId);
+    }
 
     static MpDataStore* instance() {
         static MpDataStore instance;

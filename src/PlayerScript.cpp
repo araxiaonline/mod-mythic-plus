@@ -14,6 +14,14 @@ public:
         // }
     }
 
+    // virtual void OnPlayerEnterMap(Player* player, Map* map) override
+    // {
+    //     // if (!map || !map->IsDungeon())
+    //     //     return;
+
+    //     // sMythicPlus->UpdateMapPlayerStats(map);
+    // }
+
     virtual void OnLevelChanged(Player* player, uint8 oldlevel) override
     {
         // Map* map = player->GetMap();
@@ -25,7 +33,7 @@ public:
         // sMythicPlus->UpdateMapPlayerStats(map);
 
         // // schedule all creatures for an update
-        // sMythicPlus->lastConfigTime = 
+        // sMythicPlus->lastConfigTime =
         //     std::chrono::duration_cast<std::chrono::microseconds>(
         //         std::chrono::system_clock::now().time_since_epoch()
         //     ).count();

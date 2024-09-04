@@ -22,9 +22,11 @@ public:
             return;
         }
 
-
     }
 
+    /**
+     * When a player enters the map check it needs to set up the instance data
+     */
     void OnPlayerEnterAll(Map* map, Player* player)
     {
         MpLogger::debug("AllMapScript::OnPlayerEnterAll(): {}", map->GetMapName());
@@ -33,6 +35,63 @@ public:
             return;
         }
 
+        Group* group = player->GetGroup();
+        if (group) {
+            MpLogger::debug("Player {} entered map {} in groupLeader {}", player->GetName(), map->GetMapName(), group->GetLeaderName());
+        } else {
+            return;
+        }
+
+        // if there is not any group data for this group then just bail
+        const MpGroupData* groupData = sMpDataStore->GetGroupData(group->GetGUID());
+        if (!groupData) {
+            return;
+        }
+
+        // look to see if the settings for this map instance have been created.
+
+        uint8 avgLevel = 0;
+        MpInstanceData instanceData;
+        switch(groupData->difficulty) {
+            case MP_DIFFICULTY_MYTHIC:
+                MpLogger::debug("Setting up Mythic instance data for group {}", group->GetGUID().GetCounter());
+                instanceData.boss = sMythicPlus->mythicBossModifiers;
+                instanceData.creature = sMythicPlus->mythicDungeonModifiers;
+                instanceData.itemRewards = sMythicPlus->EnableItemRewards;
+                instanceData.deathLimits = sMythicPlus->mythicDeathAllowance;
+                instanceData.itemOffset = sMythicPlus->mythicItemOffset;
+                break;
+            case MP_DIFFICULTY_LEGENDARY:
+                MpLogger::debug("Setting up Legendary instance data for group {}", group->GetGUID().GetCounter());
+                instanceData.boss = sMythicPlus->legendaryBossModifiers;
+                instanceData.creature = sMythicPlus->legendaryDungeonModifiers;
+                instanceData.itemRewards = sMythicPlus->EnableItemRewards;
+                instanceData.deathLimits = sMythicPlus->legendaryDeathAllowance;
+                instanceData.itemOffset = sMythicPlus->legendaryItemOffset;
+                break;
+            case MP_DIFFICULTY_ASCENDANT:
+                MpLogger::debug("Setting up Ascendant instance data for group {}", group->GetGUID().GetCounter());
+                instanceData.boss = sMythicPlus->ascendantBossModifiers;
+                instanceData.creature = sMythicPlus->ascendantDungeonModifiers;
+                instanceData.itemRewards = sMythicPlus->EnableItemRewards;
+                instanceData.deathLimits = sMythicPlus->ascendantDeathAllowance;
+                instanceData.itemOffset = sMythicPlus->ascendantItemOffset;
+                break;
+            default:
+                MpLogger::debug("No difficulty set for group {}", group->GetGUID().GetCounter());
+                return;
+        }
+
+        instanceData.difficulty = groupData->difficulty;
+        instanceData.instance = (InstanceMap*)sMapMgr->FindMap(map->GetId(), map->GetInstanceId());
+
+        MpLogger::debug("Setting up instance data for group {} for map {} instance {} data {}",
+            group->GetGUID().GetCounter(),
+            map->GetMapName(),
+            map->GetInstanceId(),
+            instanceData.ToString()
+        );
+        sMpDataStore->AddInstanceData(map->GetId(), map->GetInstanceId(), instanceData);
     }
 
     void OnPlayerLeaveAll(Map* map, Player* player)
@@ -42,9 +101,7 @@ public:
         if (!sMythicPlus->IsMapEligible(map)) {
             return;
         }
-
-
-   }
+    }
 };
 
 void Add_MP_AllMapScripts()
