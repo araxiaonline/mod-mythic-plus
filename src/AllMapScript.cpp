@@ -17,7 +17,6 @@ public:
     void OnCreateMap(Map* map)
     {
         MpLogger::debug("AllMapScript::OnCreateMap(): {}", map->GetMapName());
-
         if (!sMythicPlus->IsMapEligible(map)) {
             return;
         }

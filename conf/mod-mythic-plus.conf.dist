@@ -74,11 +74,11 @@ MythicPlus.Ascendant.DungeonSpell = 3.25
 MythicPlus.Ascendant.DungeonArmor = 3.25
 MythicPlus.Ascendant.DungeonAvgLevel = 87
 
-MythicPlus.Ascendant.DugeonBossHealth = 3.25
-MythicPlus.Ascendant.DugeonBossMelee = 3.25
-MythicPlus.Ascendant.DugeonBossSpell = 3.25
-MythicPlus.Ascendant.DugeonBossArmor = 3.25
-MythicPlus.Ascendant.DugeonBossLevel = 90
+MythicPlus.Ascendant.DungeonBossHealth = 3.25
+MythicPlus.Ascendant.DungeonBossMelee = 3.25
+MythicPlus.Ascendant.DungeonBossSpell = 3.25
+MythicPlus.Ascendant.DungeonBossArmor = 3.25
+MythicPlus.Ascendant.DungeonBossLevel = 90
 
 ##########################################################
 #
@@ -88,9 +88,9 @@ MythicPlus.Ascendant.DugeonBossLevel = 90
 #
 ##########################################################
 
-MythicPlus.Mythic.DeathAllowance = 1000 // Number of deaths allowed before the dungeon is failed. (1000 = Unlimited)
-MythicPlus.Legendary.DeathAllowance = 30 // Number of deaths allowed before the dungeon is failed and requires restart. (1000 = Unlimited)
-MythicPlus.Ascendant.DeathAllowance = 15 // Number of deaths allowed before the dungeon is failed. (1000 = Unlimited)
+MythicPlus.Mythic.DeathAllowance = 1000
+MythicPlus.Legendary.DeathAllowance = 30
+MythicPlus.Ascendant.DeathAllowance = 15
 
 ##########################################################
 #

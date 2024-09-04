@@ -53,7 +53,6 @@ public:
     bool IsDifficultyEnabled(std::string difficulty);
     bool IsDungeonDisabled(uint32 dungeonId);
 
-
     private:
         MythicPlus() { }
         ~MythicPlus() { }

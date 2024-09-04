@@ -10,30 +10,9 @@ class MythicPlus_WorldScript : public WorldScript
 public:
     MythicPlus_WorldScript() : WorldScript("MythicPlus_WorldScript") { }
 
-    void OnBeforeConfigLoad(bool /*reload*/) override
+    void OnAfterConfigLoad(bool /*reload*/) override
     {
-        SetInitialWorldSettings();
-        // sMythicPlus->lastConfigTime = std::chrono::duration_cast<std::chrono::microseconds>(std::chrono::system_clock::now().time_since_epoch()).count();
-    }
-
-    void OnStartup() override
-    {
-
-    }
-
-    void SetInitialWorldSettings()
-    {
-        // Clear existing data
-        sMythicPlus->enabledDifficulties.clear();
-        sMythicPlus->disabledDungeons.clear();
-        sMythicPlus->mythicBossModifiers = {};
-        sMythicPlus->mythicDungeonModifiers = {};
-        sMythicPlus->legendaryBossModifiers = {};
-        sMythicPlus->legendaryDungeonModifiers = {};
-        sMythicPlus->ascendantBossModifiers = {};
-        sMythicPlus->ascendantDungeonModifiers = {};
-
-        // Global Settings
+                // Global Settings
         sMythicPlus->Enabled = sConfigMgr->GetOption<bool>("MythicPlus.Enabled", 1);
         sMythicPlus->EnableItemRewards = sConfigMgr->GetOption<bool>("MythicPlus.EnableItemRewards", 1);
         sMythicPlus->EnableDeathLimits = sConfigMgr->GetOption<bool>("MythicPlus.EnableDeathLimits", 1);
@@ -92,7 +71,6 @@ public:
             .avgLevel = sConfigMgr->GetOption<uint32>("MythicPlus.Ascendant.DungeonBossLevel", 90)
         };
 
-
         // Death Allowances
         sMythicPlus->mythicDeathAllowance = sConfigMgr->GetOption<uint32>("MythicPlus.Mythic.DeathAllowance", 1000);
         sMythicPlus->legendaryDeathAllowance = sConfigMgr->GetOption<uint32>("MythicPlus.Legendary.DeathAllowance", 30);
@@ -103,7 +81,6 @@ public:
         sMythicPlus->legendaryItemOffset = sConfigMgr->GetOption<uint32>("MythicPlus.Legendary.ItemOffset", 21000000);
         sMythicPlus->ascendantItemOffset = sConfigMgr->GetOption<uint32>("MythicPlus.Ascendant.ItemOffset", 22000000);
     }
-
 };
 
 void Add_MP_WorldScripts()

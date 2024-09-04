@@ -12,94 +12,97 @@ public:
 
     }
 
-    void Creature_SelectLevel(const CreatureTemplate* /*creatureTemplate*/, Creature* creature) override {
+    // void Creature_SelectLevel(const CreatureTemplate* /*creatureTemplate*/, Creature* creature) override {
 
-    }
 
-    void OnCreatureAddWorld(Creature* creature) override
-    {
-        if(!sMythicPlus->IsMapEligible(creature->GetMap())) {
-            return;
-        }
 
-        MpLogger::debug("OnCreatureAddWorld({}, {}) for instance {}",
-            creature->GetName(),
-            creature->GetLevel(),
-            creature->GetMap()->GetMapName()
-        );
 
-        sMpDataStore->AddInstanceCreatureData(
-            creature->GetGUID(),
-            {
-                creature,
-                const_cast<MapEntry*>(creature->GetMap()->GetEntry())
-            }
-        );
+    // }
 
-        MpLogger::debug("Added creature {} to instance data for instance {}",
-            creature->GetName(),
-            creature->GetMap()->GetMapName()
-        );
-    }
+    // void OnCreatureAddWorld(Creature* creature) override
+    // {
+    //     if(!sMythicPlus->IsMapEligible(creature->GetMap())) {
+    //         return;
+    //     }
 
-    void OnCreatureRemoveWorld(Creature* creature) override
-    {
-        if(!sMythicPlus->IsMapEligible(creature->GetMap())) {
-            return;
-        }
+    //     MpLogger::debug("OnCreatureAddWorld({}, {}) for instance {}",
+    //         creature->GetName(),
+    //         creature->GetLevel(),
+    //         creature->GetMap()->GetMapName()
+    //     );
 
-        MpLogger::debug("AllCreatureScript::OnCreatureRemoveWorld({}, {})", creature->GetName(), creature->GetLevel());
+    //     sMpDataStore->AddInstanceCreatureData(
+    //         creature->GetGUID(),
+    //         {
+    //             creature,
+    //             const_cast<MapEntry*>(creature->GetMap()->GetEntry())
+    //         }
+    //     );
 
-        sMpDataStore->RemoveInstanceCreatureData(creature->GetGUID());
+    //     MpLogger::debug("Added creature {} to instance data for instance {}",
+    //         creature->GetName(),
+    //         creature->GetMap()->GetMapName()
+    //     );
+    // }
 
-        MpLogger::debug("Removed creature {} from instance data for instance {}",
-            creature->GetName(),
-            creature->GetMap()->GetMapName()
-        );
-    }
+    // void OnCreatureRemoveWorld(Creature* creature) override
+    // {
+    //     if(!sMythicPlus->IsMapEligible(creature->GetMap())) {
+    //         return;
+    //     }
 
-    void OnAllCreatureUpdate(Creature* creature, uint32 /*diff*/) override
-    {
-        // If the config is out of date and the creature was reset, run modify against it
-        // if (ResetCreatureIfNeeded(creature))
-        // {
-        //     LOG_DEBUG("module.MythicPlus",
-        //         "MythicPlus_AllCreatureScript::OnAllCreatureUpdate(): Creature {} ({}) is reset to its original stats.",
-        //         creature->GetName(),
-        //         creature->GetLevel()
-        //     );
+    //     MpLogger::debug("AllCreatureScript::OnCreatureRemoveWorld({}, {})", creature->GetName(), creature->GetLevel());
 
-        //     // Update the map's level if it is out of date
-        //     sMythicPlus->UpdateMapLevelIfNeeded(creature->GetMap());
+    //     sMpDataStore->RemoveInstanceCreatureData(creature->GetGUID());
 
-        //     ModifyCreatureAttributes(creature);
-        // }
-    }
+    //     MpLogger::debug("Removed creature {} from instance data for instance {}",
+    //         creature->GetName(),
+    //         creature->GetMap()->GetMapName()
+    //     );
+    // }
 
-    bool UpdateCreature(Creature* creature)
-    {
-        // make sure we have a creature and that it's assigned to a map
-        if (!creature || !creature->GetMap())
-            return false;
+    // void OnAllCreatureUpdate(Creature* creature, uint32 /*diff*/) override
+    // {
+    //     // If the config is out of date and the creature was reset, run modify against it
+    //     // if (ResetCreatureIfNeeded(creature))
+    //     // {
+    //     //     LOG_DEBUG("module.MythicPlus",
+    //     //         "MythicPlus_AllCreatureScript::OnAllCreatureUpdate(): Creature {} ({}) is reset to its original stats.",
+    //     //         creature->GetName(),
+    //     //         creature->GetLevel()
+    //     //     );
 
-        // if this isn't a dungeon or a battleground, make no changes
-        if (!sMythicPlus->IsMapEligible(creature->GetMap()))
-            return false;
+    //     //     // Update the map's level if it is out of date
+    //     //     sMythicPlus->UpdateMapLevelIfNeeded(creature->GetMap());
 
-        // if this is a pet or summon controlled by the player, make no changes
-        if ((creature->IsHunterPet() || creature->IsPet() || creature->IsSummon()) && creature->IsControlledByPlayer())
-            return false;
+    //     //     ModifyCreatureAttributes(creature);
+    //     // }
+    // }
 
-        // if this is a non-relevant creature, skip
-        if (creature->IsCritter() || creature->IsTotem() || creature->IsTrigger())
-            return false;
+    // bool UpdateCreature(Creature* creature)
+    // {
+    //     // make sure we have a creature and that it's assigned to a map
+    //     if (!creature || !creature->GetMap())
+    //         return false;
 
-        if (creature->GetMap()->GetEntry()) {
+    //     // if this isn't a dungeon or a battleground, make no changes
+    //     if (!sMythicPlus->IsMapEligible(creature->GetMap()))
+    //         return false;
 
-        }
+    //     // if this is a pet or summon controlled by the player, make no changes
+    //     if ((creature->IsHunterPet() || creature->IsPet() || creature->IsSummon()) && creature->IsControlledByPlayer())
+    //         return false;
 
-        return true;
-    }
+    //     // if this is a non-relevant creature, skip
+    //     if (creature->IsCritter() || creature->IsTotem() || creature->IsTrigger())
+    //         return false;
+
+    //     if (creature->GetMap()->GetEntry()) {
+
+    //     }
+
+    //     return true;
+    // }
 
 };
 
