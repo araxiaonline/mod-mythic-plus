@@ -12,7 +12,7 @@ public:
 
     void OnAfterConfigLoad(bool /*reload*/) override
     {
-                // Global Settings
+        // Global Settings
         sMythicPlus->Enabled = sConfigMgr->GetOption<bool>("MythicPlus.Enabled", 1);
         sMythicPlus->EnableItemRewards = sConfigMgr->GetOption<bool>("MythicPlus.EnableItemRewards", 1);
         sMythicPlus->EnableDeathLimits = sConfigMgr->GetOption<bool>("MythicPlus.EnableDeathLimits", 1);

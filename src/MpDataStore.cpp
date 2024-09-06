@@ -4,11 +4,17 @@
 #include "Player.h"
 
 MpDataStore::MpDataStore() {
-    // constructor
+    _groupData = new std::map<ObjectGuid, MpGroupData>();
+    _playerData = new std::map<ObjectGuid, MpPlayerData>();
+    _instanceData = new std::map<std::pair<uint32, uint32>, MpInstanceData>();
+    _instanceCreatureData = new std::map<ObjectGuid, MapCreatureData>();
 }
 
 MpDataStore::~MpDataStore() {
-    // destructor
+    delete _groupData;
+    delete _playerData;
+    delete _instanceData;
+    delete _instanceCreatureData;
 }
 
 // Adds an entry for the group difficult to memory and updats database
@@ -85,6 +91,16 @@ void MpDataStore::RemovePlayerData(ObjectGuid guid) {
 
 void MpDataStore::AddInstanceData(uint32 mapId, uint32 instanceId, MpInstanceData instanceSettings) {
     _instanceData->insert({GetInstanceDataKey(mapId, instanceId), instanceSettings});
+}
+
+MpInstanceData* MpDataStore::GetInstanceData(uint32 mapId, uint32 instanceId) {
+
+    if (!_instanceData->contains(GetInstanceDataKey(mapId, instanceId))) {
+        MpLogger::debug("No instance data found for map {} instance {}", mapId, instanceId);
+        return nullptr;
+    }
+
+    return &_instanceData->at(GetInstanceDataKey(mapId, instanceId));
 }
 
 void MpDataStore::RemoveInstanceData(uint32 mapId, uint32 instanceId) {

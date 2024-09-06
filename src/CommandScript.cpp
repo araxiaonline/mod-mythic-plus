@@ -2,6 +2,7 @@
 #include "Chat.h"
 #include "MpDataStore.h"
 #include "MythicPlus.h"
+#include "MpDataStore.h"
 #include "MpLogger.h"
 #include "Player.h"
 #include "ScriptMgr.h"
@@ -98,6 +99,8 @@ public:
             return true;
         }
 
+
+        handler->PSendSysMessage("Mythic+ difficulty set to: " + difficulty);
         MpLogger::debug("HandleSetMythic() Set difficulty player: {} {}", player->GetName(), difficulty);
 
         return true;
@@ -105,22 +108,23 @@ public:
 
     static bool HandleMythic(ChatHandler* handler, const std::vector<std::string>& /*args*/)
     {
-        return HandleSetDifficulty(handler, std::vector<std::string>{"mythic"});
+        return HandleSetDifficulty(handler, {"mythic"});
     }
 
     static bool HandleLegendary(ChatHandler* handler, const std::vector<std::string>& /*args*/)
     {
-        return HandleSetDifficulty(handler, std::vector<std::string>{"legendary"});
+        return HandleSetDifficulty(handler, {"legendary"});
     }
 
     static bool HandleAscendant(ChatHandler* handler, const std::vector<std::string>& /*args*/)
     {
-        return HandleSetDifficulty(handler, std::vector<std::string>{"ascendant"});
+        return HandleSetDifficulty(handler, {"ascendant"});
     }
 
     static bool HandleStatus(ChatHandler* handler)
     {
-        MpLogger::debug("HandleStatus()");
+        Player* player = handler->GetPlayer();
+
         std::string status = Acore::StringFormat(
             "Mythic+ Status:\n"
             "  Mythic+ Enabled: %s\n"
@@ -129,6 +133,17 @@ public:
             sMythicPlus->Enabled ? "Yes" : "No",
             sMythicPlus->EnableItemRewards ? "Yes" : "No",
             sMythicPlus->EnableDeathLimits ? "Yes" : "No");
+
+        if (player->GetGroup()) {
+            auto groupData = sMpDataStore->GetGroupData(player->GetGroup()->GetGUID());
+            if (groupData) {
+                status += Acore::StringFormat(
+                    "  Group Difficulty: %u\n"
+                    "  Group Deaths: %u\n",
+                    groupData->difficulty,
+                    groupData->deaths);
+            }
+        }
 
 
         handler->PSendSysMessage(status);

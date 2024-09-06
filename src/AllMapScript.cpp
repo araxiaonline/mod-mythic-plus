@@ -47,8 +47,6 @@ public:
             return;
         }
 
-        // look to see if the settings for this map instance have been created.
-
         uint8 avgLevel = 0;
         MpInstanceData instanceData;
         switch(groupData->difficulty) {
@@ -93,13 +91,15 @@ public:
         sMpDataStore->AddInstanceData(map->GetId(), map->GetInstanceId(), instanceData);
     }
 
-    void OnPlayerLeaveAll(Map* map, Player* player)
+    // When an instance is destroyed remove the instance data from the data store
+    virtual void OnDestroyInstance(MapInstanced* /*mapInstanced*/, Map* map)
     {
-        MpLogger::debug("AllMapScript::OnPlayerLeaveAll(): {}", map->GetMapName());
-
         if (!sMythicPlus->IsMapEligible(map)) {
             return;
         }
+
+        MpLogger::debug("AllMapScript::OnDestroyInstance(): {}", map->GetMapName());
+        sMpDataStore->RemoveInstanceData(map->GetId(), map->GetInstanceId());
     }
 };
 

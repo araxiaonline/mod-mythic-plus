@@ -49,9 +49,17 @@ public:
     uint32 legendaryItemOffset;
     uint32 ascendantItemOffset;
 
+    // Map is eligible for mythic+ scaling
     bool IsMapEligible(Map* map);
+
+    // Check is difficulty is enabled in the configuration
     bool IsDifficultyEnabled(std::string difficulty);
+
+    // if configuration has disabled the specific dungeon return false
     bool IsDungeonDisabled(uint32 dungeonId);
+
+    // The creature should be given Mythic+ scaling and powers check for pets, npcs, etc
+    bool IsCreatureEligible(Creature* creature);
 
     private:
         MythicPlus() { }

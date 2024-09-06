@@ -20,6 +20,12 @@ struct MpGroupData
     uint32 deaths;
 
     std::vector<std::pair<uint32,uint32>> instanceDataKeys;
+
+    std::string ToString() const {
+        return "MpGroupData: { group: " + std::to_string(group->GetGUID().GetCounter()) +
+               ", difficulty: " + std::to_string(difficulty) +
+               ", deaths: " + std::to_string(deaths) + " }";
+    }
 };
 
 struct MpPlayerData
@@ -35,7 +41,7 @@ struct MpMultipliers
     float melee;
     float spell;
     float armor;
-    uint avgLevel;
+    uint8 avgLevel;
 
     std::string ToString() const {
     return "MpMultipliers: { health: " + std::to_string(health) +
@@ -103,11 +109,13 @@ public:
     }
 
     const MpGroupData* GetGroupData(ObjectGuid guid) const {
-        try {
+
+        if (_groupData->contains(guid)) {
             return &_groupData->at(guid);
-        } catch (const std::out_of_range& oor) {
+        } else {
             return nullptr;
         }
+
     }
     const MpGroupData* GetGroupData(Player *player) const {
         return GetGroupData(player->GetGroup()->GetGUID());
@@ -122,6 +130,7 @@ public:
     void RemovePlayerData(ObjectGuid guid);
 
     void AddInstanceData(uint32 mapId, uint32 instanceId, MpInstanceData );
+    MpInstanceData* GetInstanceData(uint32 mapId, uint32 instanceId);
     void RemoveInstanceData(uint32 mapId, uint32 instanceId);
 
     void AddInstanceCreatureData(ObjectGuid guid, MapCreatureData mcd);

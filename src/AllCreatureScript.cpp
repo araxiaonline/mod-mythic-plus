@@ -3,6 +3,7 @@
 #include "MpLogger.h"
 #include "MythicPlus.h"
 #include "ScriptMgr.h"
+#include "Log.h"
 
 class MythicPlus_AllCreatureScript : public AllCreatureScript
 {
@@ -12,12 +13,39 @@ public:
 
     }
 
-    // void Creature_SelectLevel(const CreatureTemplate* /*creatureTemplate*/, Creature* creature) override {
+    void OnBeforeCreatureSelectLevel(const CreatureTemplate* /*creatureTemplate*/, Creature* creature, uint8& level) override {
 
+        LOG_DEBUG("OnBeforeCreatureSelectLevel({}, {}) for instance {}", creature->GetName(), level, creature->GetMap()->GetMapName());
 
+        Map* map = creature->GetMap();
+        if (!sMythicPlus->IsMapEligible(map)) {
+            return;
+        }
 
+        // bail if the creature is not eligible to be scaled
+        if (!sMythicPlus->IsCreatureEligible(creature)) {
+            return;
+        }
 
-    // }
+        // if we have instance data set for this map use it otherwise bail
+        MpInstanceData* instanceData = sMpDataStore->GetInstanceData(map->GetId(), map->GetInstanceId());
+        if(!instanceData) {
+            return;
+        }
+
+        if (creature->IsDungeonBoss()) {
+            level = instanceData->boss.avgLevel;
+        } else {
+            uint8 level = instanceData->creature.avgLevel;
+            level = uint8(irand(level-1, level+1));
+        }
+
+        MpLogger::debug("OnBeforeCreatureSelectLevel({}, {}) for instance {}",
+            creature->GetName(),
+            level,
+            map->GetMapName()
+        );
+    }
 
     // void OnCreatureAddWorld(Creature* creature) override
     // {
