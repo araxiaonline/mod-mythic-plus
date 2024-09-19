@@ -12,24 +12,61 @@ public:
     {
 
     }
+    void Creature_SelectLevel(const CreatureTemplate* /*template*/, Creature* creature) override {
+        // LOG_INFO("module.MythicPlus", "Creature_SelectLevel({}, {}) for instance {}", creature->GetName(), creature->GetLevel(), creature->GetMap()->GetMapName());
+    }
 
     void OnBeforeCreatureSelectLevel(const CreatureTemplate* /*creatureTemplate*/, Creature* creature, uint8& level) override {
-
-        LOG_DEBUG("OnBeforeCreatureSelectLevel({}, {}) for instance {}", creature->GetName(), level, creature->GetMap()->GetMapName());
 
         Map* map = creature->GetMap();
         if (!sMythicPlus->IsMapEligible(map)) {
             return;
         }
 
-        // bail if the creature is not eligible to be scaled
-        if (!sMythicPlus->IsCreatureEligible(creature)) {
+        // // bail if the creature is not eligible to be scaled
+        // if (!sMythicPlus->IsCreatureEligible(creature)) {
+        //     return;
+        // }
+
+        // // if we have instance data set for this map use it otherwise bail
+        // MpInstanceData* instanceData = sMpDataStore->GetInstanceData(map->GetId(), map->GetInstanceId());
+        // if(!instanceData) {
+        //     return;
+        // }
+
+        // if (creature->IsDungeonBoss()) {
+        //     level = instanceData->boss.avgLevel;
+        // } else {
+        //     uint8 level = instanceData->creature.avgLevel;
+        //     level = uint8(irand(level-1, level+1));
+        // }
+
+    //    LOG_DEBUG("module.MythicPlus", "OnBeforeCreatureSelectLevel({}, {}) for instance {}",
+    //         creature->GetName(),
+    //         level,
+    //         map->GetMapName()
+    //     );
+    }
+
+    void OnCreatureAddWorld(Creature* creature) override
+    {
+        uint8 level;
+
+        Map* map = creature->GetMap();
+        if (!sMythicPlus->IsMapEligible(map)) {
+            // MpLogger::debug("Map: {} is not eligible to adjust so creature was skipped: Creature {}", map->GetMapName(), creature->GetName());
             return;
         }
 
-        // if we have instance data set for this map use it otherwise bail
+        // bail if the creature is not eligible to be scaled
+        if (!sMythicPlus->IsCreatureEligible(creature)) {
+            MpLogger::debug("Creature: {} Entry: {} is not eligible to adjust so creature was skipped.", creature->GetName(), creature->GetEntry());
+            return;
+        }
+
         MpInstanceData* instanceData = sMpDataStore->GetInstanceData(map->GetId(), map->GetInstanceId());
         if(!instanceData) {
+            MpLogger::debug("Creature: {} Could not find instance data for Map {} and InstanceId: {}", creature->GetName(), map->GetMapName(), map->GetInstanceId());
             return;
         }
 
@@ -40,12 +77,30 @@ public:
             level = uint8(irand(level-1, level+1));
         }
 
-        MpLogger::debug("OnBeforeCreatureSelectLevel({}, {}) for instance {}",
-            creature->GetName(),
-            level,
-            map->GetMapName()
-        );
+        MpLogger::debug("Setting creature level from {} to {} because {} mode is set", creature->GetLevel(), level, instanceData->difficulty);
+        uint32 diff = getMSTime();
+        creature->SelectLevel(level);
+        creature->UpdateAllStats();
+        creature->UpdateAllResistances();
+        creature->UpdateArmor();
+        creature->Update(diff);
+
+        // creature->SetLevel(level, false);
+        // MpLogger
+        // if (map->IsDungeon()) {
+        //     LOG_INFO("modules", "Creature {} added to map {}", creature->GetName(), map->GetMapName());
+        //     MpLogger::warn("Creature {} added to map {}", creature->GetName(), map->GetMapName());
+        // }
     }
+
+    // void OnCreatureRemoveWorld(Creature* creature) override
+    // {
+    //     Map* map = creature->GetMap();
+    //     if (map->IsDungeon()) {
+    //         LOG_INFO("modules", "Creature {} removed from map {}", creature->GetName(), map->GetMapName());
+    //         MpLogger::warn("Creature {} removed from map {}", creature->GetName(), map->GetMapName());
+    //     }
+    // }
 
     // void OnCreatureAddWorld(Creature* creature) override
     // {
@@ -107,35 +162,35 @@ public:
     //     // }
     // }
 
-    // bool UpdateCreature(Creature* creature)
-    // {
-    //     // make sure we have a creature and that it's assigned to a map
-    //     if (!creature || !creature->GetMap())
-    //         return false;
+    bool UpdateCreature(Creature* creature)
+    {
+        // make sure we have a creature and that it's assigned to a map
+        if (!creature || !creature->GetMap())
+            return false;
 
-    //     // if this isn't a dungeon or a battleground, make no changes
-    //     if (!sMythicPlus->IsMapEligible(creature->GetMap()))
-    //         return false;
+        // if this isn't a dungeon or a battleground, make no changes
+        if (!sMythicPlus->IsMapEligible(creature->GetMap()))
+            return false;
 
-    //     // if this is a pet or summon controlled by the player, make no changes
-    //     if ((creature->IsHunterPet() || creature->IsPet() || creature->IsSummon()) && creature->IsControlledByPlayer())
-    //         return false;
+        // if this is a pet or summon controlled by the player, make no changes
+        if ((creature->IsHunterPet() || creature->IsPet() || creature->IsSummon()) && creature->IsControlledByPlayer())
+            return false;
 
-    //     // if this is a non-relevant creature, skip
-    //     if (creature->IsCritter() || creature->IsTotem() || creature->IsTrigger())
-    //         return false;
+        // if this is a non-relevant creature, skip
+        if (creature->IsCritter() || creature->IsTotem() || creature->IsTrigger())
+            return false;
 
-    //     if (creature->GetMap()->GetEntry()) {
+        if (creature->GetMap()->GetEntry()) {
 
-    //     }
+        }
 
-    //     return true;
-    // }
+        return true;
+    }
 
 };
 
 void Add_MP_AllCreatureScripts()
 {
-    MpLogger::debug("Add_MP_AllCreatureScripts()");
+    MpLogger::debug("Add_MP_AllCreatureScripts");
     new MythicPlus_AllCreatureScript();
 }

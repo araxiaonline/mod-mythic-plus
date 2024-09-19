@@ -59,4 +59,6 @@ bool MythicPlus::IsCreatureEligible(Creature* creature)
         return false;
     }
 
+    return true;
+
 }
