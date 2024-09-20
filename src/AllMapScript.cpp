@@ -16,11 +16,36 @@ public:
 
     void OnCreateMap(Map* map)
     {
-        MpLogger::debug("AllMapScript::OnCreateMap(): {}", map->GetMapName());
         if (!sMythicPlus->IsMapEligible(map)) {
             return;
         }
 
+        // Attempt to cast map to InstanceMap, making sure it is not null
+        InstanceMap* instance = dynamic_cast<InstanceMap*>(sMapMgr->FindMap(map->GetId(), map->GetInstanceId()));
+        if (!instance)
+        {
+            MpLogger::error("Failed to find InstanceMap for map ID {} and instance ID {}.", map->GetId(), map->GetInstanceId());
+            return;
+        }
+
+        Map::PlayerList playerList = instance->GetPlayers();
+
+        if (!playerList.IsEmpty()) {
+            for (auto i = playerList.begin(); i != playerList.end(); ++i) {
+
+                if (Player* iPlayer = i->GetSource()) {
+                    Group* group = iPlayer->GetGroup();
+
+                    if (group) {
+                        MpLogger::debug("Player {} entered map {} in groupLeader {}", iPlayer->GetName(), map->GetMapName(), group->GetLeaderName());
+                    } else {
+                        return;
+                    }
+                }
+            }
+        } else {
+            MpLogger::debug("No players found in map {}", map->GetMapName());
+        }
     }
 
     /**
@@ -80,7 +105,14 @@ public:
         }
 
         instanceData.difficulty = groupData->difficulty;
-        instanceData.instance = (InstanceMap*)sMapMgr->FindMap(map->GetId(), map->GetInstanceId());
+
+        // Attempt to cast map to InstanceMap, making sure it is not null
+        instanceData.instance = dynamic_cast<InstanceMap*>(sMapMgr->FindMap(map->GetId(), map->GetInstanceId()));
+        if (!instanceData.instance)
+        {
+            MpLogger::error("Failed to find InstanceMap for map ID {} and instance ID {}.", map->GetId(), map->GetInstanceId());
+            return;
+        }
 
         MpLogger::debug("Setting up instance data for group {} for map {} instance {} data {}",
             group->GetGUID().GetCounter(),

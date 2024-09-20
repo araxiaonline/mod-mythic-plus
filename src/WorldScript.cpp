@@ -27,7 +27,7 @@ public:
             .melee = sConfigMgr->GetOption<float>("MythicPlus.Mythic.DungeonMelee", 1.25f),
             .spell = sConfigMgr->GetOption<float>("MythicPlus.Mythic.DungeonSpell", 1.15f),
             .armor = sConfigMgr->GetOption<float>("MythicPlus.Mythic.DungeonArmor", 1.25f),
-            .avgLevel = sConfigMgr->GetOption<uint32>("MythicPlus.Mythic.DungeonAvgLevel", 83)
+            .avgLevel = sConfigMgr->GetOption<uint8>("MythicPlus.Mythic.DungeonAvgLevel", 83)
         };
 
         sMythicPlus->mythicBossModifiers = {
@@ -35,7 +35,7 @@ public:
             .melee = sConfigMgr->GetOption<float>("MythicPlus.Mythic.DungeonBossMelee", 1.35f),
             .spell = sConfigMgr->GetOption<float>("MythicPlus.Mythic.DungeonBossSpell", 1.25f),
             .armor = sConfigMgr->GetOption<float>("MythicPlus.Mythic.DungeonBossArmor", 1.35f),
-            .avgLevel = sConfigMgr->GetOption<uint32>("MythicPlus.Mythic.DungeonBossLevel", 85)
+            .avgLevel = sConfigMgr->GetOption<uint8>("MythicPlus.Mythic.DungeonBossLevel", 85)
         };
 
         // Legendary Difficulty Modifiers
@@ -44,7 +44,7 @@ public:
             .melee = sConfigMgr->GetOption<float>("MythicPlus.Legendary.DungeonMelee", 2.25f),
             .spell = sConfigMgr->GetOption<float>("MythicPlus.Legendary.DungeonSpell", 2.25f),
             .armor = sConfigMgr->GetOption<float>("MythicPlus.Legendary.DungeonArmor", 2.25f),
-            .avgLevel = sConfigMgr->GetOption<uint32>("MythicPlus.Legendary.DungeonAvgLevel", 85)
+            .avgLevel = sConfigMgr->GetOption<uint8>("MythicPlus.Legendary.DungeonAvgLevel", 85)
         };
 
         sMythicPlus->legendaryBossModifiers = {
@@ -52,7 +52,7 @@ public:
             .melee = sConfigMgr->GetOption<float>("MythicPlus.Legendary.DungeonBossMelee", 2.25f),
             .spell = sConfigMgr->GetOption<float>("MythicPlus.Legendary.DungeonBossSpell", 2.25f),
             .armor = sConfigMgr->GetOption<float>("MythicPlus.Legendary.DungeonBossArmor", 3.25f),
-            .avgLevel = sConfigMgr->GetOption<uint32>("MythicPlus.Legendary.DungeonBossLevel", 87)
+            .avgLevel = sConfigMgr->GetOption<uint8>("MythicPlus.Legendary.DungeonBossLevel", 87)
         };
 
         sMythicPlus->ascendantDungeonModifiers = {
@@ -60,7 +60,7 @@ public:
             .melee = sConfigMgr->GetOption<float>("MythicPlus.Ascendant.DungeonMelee", 3.25f),
             .spell = sConfigMgr->GetOption<float>("MythicPlus.Ascendant.DungeonSpell", 3.25f),
             .armor = sConfigMgr->GetOption<float>("MythicPlus.Ascendant.DungeonArmor", 3.25f),
-            .avgLevel = sConfigMgr->GetOption<uint32>("MythicPlus.Ascendant.DungeonAvgLevel", 87)
+            .avgLevel = sConfigMgr->GetOption<uint8>("MythicPlus.Ascendant.DungeonAvgLevel", 87)
         };
 
         sMythicPlus->ascendantBossModifiers = {
@@ -68,7 +68,7 @@ public:
             .melee = sConfigMgr->GetOption<float>("MythicPlus.Ascendant.DungeonBossMelee", 3.25f),
             .spell = sConfigMgr->GetOption<float>("MythicPlus.Ascendant.DungeonBossSpell", 3.25f),
             .armor = sConfigMgr->GetOption<float>("MythicPlus.Ascendant.DungeonBossArmor", 3.25f),
-            .avgLevel = sConfigMgr->GetOption<uint32>("MythicPlus.Ascendant.DungeonBossLevel", 90)
+            .avgLevel = sConfigMgr->GetOption<uint8>("MythicPlus.Ascendant.DungeonBossLevel", 90)
         };
 
         // Death Allowances

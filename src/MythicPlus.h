@@ -61,6 +61,9 @@ public:
     // The creature should be given Mythic+ scaling and powers check for pets, npcs, etc
     bool IsCreatureEligible(Creature* creature);
 
+    // Scales the creature based on the level and the creature base stats
+    void ScaleCreature(uint8 level, Creature* creature);
+
     private:
         MythicPlus() { }
         ~MythicPlus() { }

@@ -1,5 +1,6 @@
 #include "MapMgr.h"
 #include "MpDataStore.h"
+#include "ObjectMgr.h"
 #include "MpLogger.h"
 #include "MythicPlus.h"
 #include "ScriptMgr.h"
@@ -12,9 +13,6 @@ public:
     {
 
     }
-    void Creature_SelectLevel(const CreatureTemplate* /*template*/, Creature* creature) override {
-        // LOG_INFO("module.MythicPlus", "Creature_SelectLevel({}, {}) for instance {}", creature->GetName(), creature->GetLevel(), creature->GetMap()->GetMapName());
-    }
 
     void OnBeforeCreatureSelectLevel(const CreatureTemplate* /*creatureTemplate*/, Creature* creature, uint8& level) override {
 
@@ -22,6 +20,21 @@ public:
         if (!sMythicPlus->IsMapEligible(map)) {
             return;
         }
+
+        if (!sMythicPlus->IsCreatureEligible(creature)) {
+            return;
+        }
+
+        MpInstanceData* instanceData = sMpDataStore->GetInstanceData(map->GetId(), map->GetInstanceId());
+        if(!instanceData) {
+            return;
+        }
+
+        MpLogger::debug("OnBeforeCreatureSelectLevel({}, {}) for instance {}",
+            creature->GetName(),
+            level,
+            map->GetMapName()
+        );
 
         // // bail if the creature is not eligible to be scaled
         // if (!sMythicPlus->IsCreatureEligible(creature)) {
@@ -73,17 +86,21 @@ public:
         if (creature->IsDungeonBoss()) {
             level = instanceData->boss.avgLevel;
         } else {
-            uint8 level = instanceData->creature.avgLevel;
-            level = uint8(irand(level-1, level+1));
+            level = uint8(urand(instanceData->creature.avgLevel-1, instanceData->creature.avgLevel+1));
         }
 
-        MpLogger::debug("Setting creature level from {} to {} because {} mode is set", creature->GetLevel(), level, instanceData->difficulty);
-        uint32 diff = getMSTime();
-        creature->SelectLevel(level);
-        creature->UpdateAllStats();
-        creature->UpdateAllResistances();
-        creature->UpdateArmor();
-        creature->Update(diff);
+        // Scale the creature to its new level
+        sMythicPlus->ScaleCreature(level, creature);
+
+
+        MpLogger::debug("SetLevel and Updateded Creature {} Entry {} Id {} level from {} to {}",
+            creature->GetName(),
+            creature->GetEntry(),
+            creature->GetGUID().GetCounter(),
+            creature->GetLevel(),
+            level
+        );
+
 
         // creature->SetLevel(level, false);
         // MpLogger
