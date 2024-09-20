@@ -69,6 +69,7 @@ public:
         ~MythicPlus() { }
 };
 
+float GetHealthModifier(int32 rank);
 
 #define sMythicPlus MythicPlus::instance()
 

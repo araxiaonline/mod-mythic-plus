@@ -71,7 +71,7 @@ void MythicPlus::ScaleCreature(uint8 level, Creature* creature)
         creature->GetCreatureTemplate()->unit_class
     );
 
-    uint32 rank = 0;
+    int32 rank = 0;
     CreatureTemplate const* cInfo = creature->GetCreatureTemplate();
     if(cInfo && cInfo->rank > 0) {
         rank = cInfo->rank;
