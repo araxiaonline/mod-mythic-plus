@@ -78,10 +78,45 @@ struct MpInstanceData
 
 };
 
-struct MapCreatureData
+/**
+ * Simple struct for managing information about creatures that
+ * are in a mythic+ instance.
+ */
+struct MpCreatureData
 {
     Creature* creature;
-    MapEntry* instance;
+    bool scaled;
+
+    // Original information about the creature that was altered.
+    uint8 originalLevel;
+    CreatureBaseStats const* originalStats;
+
+    // Custom difficulty modifiers to creatures at higher difficulties.
+    std::vector<uint32> auras;
+    std::vector<std::string> affixes;
+
+    MpCreatureData(Creature* creature)
+        : creature(creature), scaled(false)
+    {
+        if(creature) {
+            originalLevel = creature->GetLevel();
+
+            CreatureBaseStats const* originalStats = sObjectMgr->GetCreatureBaseStats(
+                originalLevel,
+                creature->GetCreatureTemplate()->unit_class
+            );
+        }
+    }
+
+    void SetScaled(bool scaled) {
+        this->scaled = scaled;
+    }
+
+    bool IsScaled() {
+        return scaled;
+    }
+
+    /**@todo Add Affixes and Aura Spell methods */
 };
 
 class MpDataStore {
@@ -89,10 +124,16 @@ private:
     MpDataStore();
     ~MpDataStore();
 
-    std::map<ObjectGuid, MpGroupData>* _groupData;
-    std::map<ObjectGuid, MpPlayerData>* _playerData;
-    std::map<std::pair<uint32,uint32>,MpInstanceData>* _instanceData;
-    std::map<ObjectGuid, MapCreatureData>* _instanceCreatureData;
+    std::unordered_map<ObjectGuid, MpPlayerData>* _playerData;
+
+    // Instance Data map key is unique instance pair and values are modifiers of instance
+    std::unordered_map<std::pair<uint32,uint32>,MpInstanceData>* _instanceData;
+
+    // Group Data map key is group guid and values are mythic settings set by group leader
+    std::unordered_map<ObjectGuid, MpGroupData>* _groupData;
+
+    // Instance Creature Data map key is creature guid and values are creature itself from a mythic instance
+    std::unordered_map<ObjectGuid, MpCreatureData>* _instanceCreatureData;
 
 public:
 
@@ -122,25 +163,30 @@ public:
     };
 
     // Set and remove difficluty settig for a group
-    void AddGroupData(Group *group, MpGroupData gd);
+    void AddGroupData(Group *group, MpGroupData groupData);
     void RemoveGroupData(Group *group);
+    MpGroupData* GetGroupData(Group *group);
     void PushGroupInstanceKey(Group *group, uint32 mapId, uint32 instanceId);
 
     void AddPlayerData(ObjectGuid guid, MpPlayerData pd);
     void RemovePlayerData(ObjectGuid guid);
 
+    // Each Map/Instance is a unique key that contains scaling information based on difficulty
     void AddInstanceData(uint32 mapId, uint32 instanceId, MpInstanceData );
     MpInstanceData* GetInstanceData(uint32 mapId, uint32 instanceId);
     void RemoveInstanceData(uint32 mapId, uint32 instanceId);
 
-    void AddInstanceCreatureData(ObjectGuid guid, MapCreatureData mcd);
-    void RemoveInstanceCreatureData(ObjectGuid guid);
+    // Methods for interacting with the map of creatures in a mythic instances
+    void AddCreatureData(ObjectGuid guid, MpCreatureData creatureData);
+    MpCreatureData* GetCreatureData(ObjectGuid guid);
+    void RemoveCreatureData(ObjectGuid guid);
 
     // creates a unique instance key into the instance data store
     auto GetInstanceDataKey(uint32 mapId, uint32 instanceId) {
         return std::make_pair(mapId, instanceId);
     }
 
+    // accessor for this singleton
     static MpDataStore* instance() {
         static MpDataStore instance;
         return &instance;

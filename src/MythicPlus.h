@@ -52,6 +52,9 @@ public:
     // Map is eligible for mythic+ scaling
     bool IsMapEligible(Map* map);
 
+    // If a player difficulty is set that is eligible for mythic+ scaling
+    bool IsDifficultySet(Player* player);
+
     // Check is difficulty is enabled in the configuration
     bool IsDifficultyEnabled(std::string difficulty);
 
@@ -60,6 +63,13 @@ public:
 
     // The creature should be given Mythic+ scaling and powers check for pets, npcs, etc
     bool IsCreatureEligible(Creature* creature);
+
+    // Adds the creature if eligible to be scaled
+    void AddCreatureForScaling(Creature* creature);
+
+    // Will make determination on if this creature needs to be scaled and will do so
+    // the diff time is used to determine the last time the creature was modified.
+    void ScaleOnUpdate(Creature* creature, uint32 diff);
 
     // Scales the creature based on the level and the creature base stats
     void ScaleCreature(uint8 level, Creature* creature);

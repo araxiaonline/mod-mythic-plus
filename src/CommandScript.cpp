@@ -142,6 +142,8 @@ public:
                     "  Group Deaths: %u\n",
                     groupData->difficulty,
                     groupData->deaths);
+            } else {
+                status += "  Group Difficulty: Not Set\n";
             }
         }
 

@@ -63,42 +63,35 @@ public:
 
     void OnCreatureAddWorld(Creature* creature) override
     {
-        uint8 level;
-
         Map* map = creature->GetMap();
         if (!sMythicPlus->IsMapEligible(map)) {
             // MpLogger::debug("Map: {} is not eligible to adjust so creature was skipped: Creature {}", map->GetMapName(), creature->GetName());
             return;
         }
 
-        // bail if the creature is not eligible to be scaled
-        if (!sMythicPlus->IsCreatureEligible(creature)) {
-            MpLogger::debug("Creature: {} Entry: {} is not eligible to adjust so creature was skipped.", creature->GetName(), creature->GetEntry());
-            return;
-        }
+        sMythicPlus->AddCreatureForScaling(creature);
 
-        MpInstanceData* instanceData = sMpDataStore->GetInstanceData(map->GetId(), map->GetInstanceId());
-        if(!instanceData) {
-            MpLogger::debug("Creature: {} Could not find instance data for Map {} and InstanceId: {}", creature->GetName(), map->GetMapName(), map->GetInstanceId());
-            return;
-        }
+        // MpInstanceData* instanceData = sMpDataStore->GetInstanceData(map->GetId(), map->GetInstanceId());
+        // if(!instanceData) {
+        //     MpLogger::debug("Creature: {} Could not find instance data for Map {} and InstanceId: {}", creature->GetName(), map->GetMapName(), map->GetInstanceId());
+        //     return;
+        // }
 
-        if (creature->IsDungeonBoss()) {
-            level = instanceData->boss.avgLevel;
-        } else {
-            level = uint8(urand(instanceData->creature.avgLevel-1, instanceData->creature.avgLevel+1));
-        }
+        // if (creature->IsDungeonBoss()) {
+        //     level = instanceData->boss.avgLevel;
+        // } else {
+        //     level = uint8(urand(instanceData->creature.avgLevel-1, instanceData->creature.avgLevel+1));
+        // }
 
-        // Scale the creature to its new level
-        sMythicPlus->ScaleCreature(level, creature);
+        // // Scale the creature to its new level
+        // sMythicPlus->ScaleCreature(level, creature);
 
 
-        MpLogger::debug("SetLevel and Updateded Creature {} Entry {} Id {} level from {} to {}",
+        MpLogger::debug("SetLevel and Updateded Creature {} Entry {} Id {} level from {}",
             creature->GetName(),
             creature->GetEntry(),
             creature->GetGUID().GetCounter(),
-            creature->GetLevel(),
-            level
+            creature->GetLevel()
         );
 
 
@@ -109,6 +102,31 @@ public:
         //     MpLogger::warn("Creature {} added to map {}", creature->GetName(), map->GetMapName());
         // }
     }
+
+    void OnAllCreatureUpdate(Creature* creature, uint32 diff) override
+    {
+        if (!sMythicPlus->IsMapEligible(creature->GetMap())) {
+            return;
+        }
+
+        sMythicPlus->ScaleOnUpdate(creature, diff);
+
+        // If the config is out of date and the creature was reset, run modify against it
+        // if (ResetCreatureIfNeeded(creature))
+        // {
+        //     LOG_DEBUG("module.MythicPlus",
+        //         "MythicPlus_AllCreatureScript::OnAllCreatureUpdate(): Creature {} ({}) is reset to its original stats.",
+        //         creature->GetName(),
+        //         creature->GetLevel()
+        //     );
+
+        //     // Update the map's level if it is out of date
+        //     sMythicPlus->UpdateMapLevelIfNeeded(creature->GetMap());
+
+        //     ModifyCreatureAttributes(creature);
+        // }
+    }
+
 
     // void OnCreatureRemoveWorld(Creature* creature) override
     // {
@@ -161,23 +179,7 @@ public:
     //     );
     // }
 
-    // void OnAllCreatureUpdate(Creature* creature, uint32 /*diff*/) override
-    // {
-    //     // If the config is out of date and the creature was reset, run modify against it
-    //     // if (ResetCreatureIfNeeded(creature))
-    //     // {
-    //     //     LOG_DEBUG("module.MythicPlus",
-    //     //         "MythicPlus_AllCreatureScript::OnAllCreatureUpdate(): Creature {} ({}) is reset to its original stats.",
-    //     //         creature->GetName(),
-    //     //         creature->GetLevel()
-    //     //     );
 
-    //     //     // Update the map's level if it is out of date
-    //     //     sMythicPlus->UpdateMapLevelIfNeeded(creature->GetMap());
-
-    //     //     ModifyCreatureAttributes(creature);
-    //     // }
-    // }
 
     bool UpdateCreature(Creature* creature)
     {

@@ -23,12 +23,7 @@ class MythicPlus_GroupScript : public GroupScript
     }
 
     void OnDisband(Group* group) override {
-        if (!group) {
-            return;
-        }
-
-        // MpDataStore* mpds = MpDataStore::instance();
-        // mpds->RemoveGroupData(group->GetGUID());
+        sMpDataStore->RemoveGroupData(group);
     }
 };
 

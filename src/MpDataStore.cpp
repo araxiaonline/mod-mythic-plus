@@ -4,10 +4,10 @@
 #include "Player.h"
 
 MpDataStore::MpDataStore() {
-    _groupData = new std::map<ObjectGuid, MpGroupData>();
-    _playerData = new std::map<ObjectGuid, MpPlayerData>();
-    _instanceData = new std::map<std::pair<uint32, uint32>, MpInstanceData>();
-    _instanceCreatureData = new std::map<ObjectGuid, MapCreatureData>();
+    _groupData = new std::unordered_map<ObjectGuid, MpGroupData>();
+    _playerData = new std::unordered_map<ObjectGuid, MpPlayerData>();
+    _instanceData = new std::unordered_map<std::pair<uint32, uint32>, MpInstanceData>();
+    _instanceCreatureData = new std::unordered_map<ObjectGuid, MpCreatureData>();
 }
 
 MpDataStore::~MpDataStore() {
@@ -30,7 +30,6 @@ void MpDataStore::AddGroupData(Group *group, MpGroupData groupData) {
         MpLogger::error("AddGroupData called with invalid difficulty");
         return;
     }
-
     // if we already have data override it
     if (_groupData->contains(guid)) {
         _groupData->at(guid) = groupData;
@@ -44,6 +43,13 @@ void MpDataStore::AddGroupData(Group *group, MpGroupData groupData) {
         guid.GetCounter(),
         groupData.difficulty
     );
+}
+
+MpGroupData* MpDataStore::GetGroupData(Group* group) {
+
+    if (auto it = _groupData->find(group->GetGUID()); it != _groupData->end()) {
+        return &(it->second);
+    }
 }
 
 /**
@@ -107,12 +113,21 @@ void MpDataStore::RemoveInstanceData(uint32 mapId, uint32 instanceId) {
     _instanceData->erase(GetInstanceDataKey(mapId, instanceId));
 }
 
-void MpDataStore::AddInstanceCreatureData(ObjectGuid guid, MapCreatureData mcd) {
+void MpDataStore::AddCreatureData(ObjectGuid guid, MpCreatureData creatureData) {
     MpLogger::debug("AddInstanceCreatureData for creature {}", guid.GetCounter());
-    _instanceCreatureData->insert({guid, mcd});
+    _instanceCreatureData->insert({guid, creatureData});
 }
 
-void MpDataStore::RemoveInstanceCreatureData(ObjectGuid guid) {
+MpCreatureData* MpDataStore::GetCreatureData(ObjectGuid guid) {
+    if (!_instanceCreatureData->contains(guid)) {
+        MpLogger::debug("No instance creature data found for creature {}", guid.GetCounter());
+        return nullptr;
+    }
+
+    return &_instanceCreatureData->at(guid);
+}
+
+void MpDataStore::RemoveCreatureData(ObjectGuid guid) {
     MpLogger::debug("RemoveInstanceCreatureData data for creature {}", guid.GetCounter());
     _instanceCreatureData->erase(guid);
 }

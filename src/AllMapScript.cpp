@@ -14,48 +14,18 @@ public:
     {
     }
 
-    void OnCreateMap(Map* map)
-    {
-        if (!sMythicPlus->IsMapEligible(map)) {
-            return;
-        }
-
-        // Attempt to cast map to InstanceMap, making sure it is not null
-        InstanceMap* instance = dynamic_cast<InstanceMap*>(sMapMgr->FindMap(map->GetId(), map->GetInstanceId()));
-        if (!instance)
-        {
-            MpLogger::error("Failed to find InstanceMap for map ID {} and instance ID {}.", map->GetId(), map->GetInstanceId());
-            return;
-        }
-
-        Map::PlayerList playerList = instance->GetPlayers();
-
-        if (!playerList.IsEmpty()) {
-            for (auto i = playerList.begin(); i != playerList.end(); ++i) {
-
-                if (Player* iPlayer = i->GetSource()) {
-                    Group* group = iPlayer->GetGroup();
-
-                    if (group) {
-                        MpLogger::debug("Player {} entered map {} in groupLeader {}", iPlayer->GetName(), map->GetMapName(), group->GetLeaderName());
-                    } else {
-                        return;
-                    }
-                }
-            }
-        } else {
-            MpLogger::debug("No players found in map {}", map->GetMapName());
-        }
-    }
+    void OnCreateMap(Map* map) { }
 
     /**
      * When a player enters the map check it needs to set up the instance data
      */
     void OnPlayerEnterAll(Map* map, Player* player)
     {
-        MpLogger::debug("AllMapScript::OnPlayerEnterAll(): {}", map->GetMapName());
-
         if (!sMythicPlus->IsMapEligible(map)) {
+            return;
+        }
+
+        if(!sMythicPlus->IsDifficultySet(player)) {
             return;
         }
 
@@ -72,11 +42,23 @@ public:
             return;
         }
 
+        // Check if we already have mythic instance data set for this map and group
+        MpInstanceData* existingData = sMpDataStore->GetInstanceData(map->GetId(), map->GetInstanceId());
+        if (existingData) {
+            if(player->GetName() == group->GetLeaderName()) {
+                MpLogger::debug("Instance data already set for Map: {} InstanceId: {} for GroupLeader: {} ",
+                    map->GetMapName(),
+                    map->GetInstanceId(),
+                    group->GetLeaderName()
+                );
+            }
+            return;
+        }
+
         uint8 avgLevel = 0;
         MpInstanceData instanceData;
         switch(groupData->difficulty) {
             case MP_DIFFICULTY_MYTHIC:
-                MpLogger::debug("Setting up Mythic instance data for group {}", group->GetGUID().GetCounter());
                 instanceData.boss = sMythicPlus->mythicBossModifiers;
                 instanceData.creature = sMythicPlus->mythicDungeonModifiers;
                 instanceData.itemRewards = sMythicPlus->EnableItemRewards;
@@ -84,7 +66,6 @@ public:
                 instanceData.itemOffset = sMythicPlus->mythicItemOffset;
                 break;
             case MP_DIFFICULTY_LEGENDARY:
-                MpLogger::debug("Setting up Legendary instance data for group {}", group->GetGUID().GetCounter());
                 instanceData.boss = sMythicPlus->legendaryBossModifiers;
                 instanceData.creature = sMythicPlus->legendaryDungeonModifiers;
                 instanceData.itemRewards = sMythicPlus->EnableItemRewards;
@@ -92,7 +73,6 @@ public:
                 instanceData.itemOffset = sMythicPlus->legendaryItemOffset;
                 break;
             case MP_DIFFICULTY_ASCENDANT:
-                MpLogger::debug("Setting up Ascendant instance data for group {}", group->GetGUID().GetCounter());
                 instanceData.boss = sMythicPlus->ascendantBossModifiers;
                 instanceData.creature = sMythicPlus->ascendantDungeonModifiers;
                 instanceData.itemRewards = sMythicPlus->EnableItemRewards;
@@ -129,8 +109,6 @@ public:
         if (!sMythicPlus->IsMapEligible(map)) {
             return;
         }
-
-        MpLogger::debug("AllMapScript::OnDestroyInstance(): {}", map->GetMapName());
         sMpDataStore->RemoveInstanceData(map->GetId(), map->GetInstanceId());
     }
 };
