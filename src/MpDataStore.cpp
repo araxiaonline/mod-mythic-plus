@@ -3,20 +3,6 @@
 #include "MpLogger.h"
 #include "Player.h"
 
-MpDataStore::MpDataStore() {
-    _groupData = new std::unordered_map<ObjectGuid, MpGroupData>();
-    _playerData = new std::unordered_map<ObjectGuid, MpPlayerData>();
-    _instanceData = new std::unordered_map<std::pair<uint32, uint32>, MpInstanceData>();
-    _instanceCreatureData = new std::unordered_map<ObjectGuid, MpCreatureData>();
-}
-
-MpDataStore::~MpDataStore() {
-    delete _groupData;
-    delete _playerData;
-    delete _instanceData;
-    delete _instanceCreatureData;
-}
-
 // Adds an entry for the group difficult to memory and updats database
 void MpDataStore::AddGroupData(Group *group, MpGroupData groupData) {
     ObjectGuid guid = group->GetGUID();
@@ -50,6 +36,8 @@ MpGroupData* MpDataStore::GetGroupData(Group* group) {
     if (auto it = _groupData->find(group->GetGUID()); it != _groupData->end()) {
         return &(it->second);
     }
+
+    return nullptr;
 }
 
 /**
@@ -102,7 +90,6 @@ void MpDataStore::AddInstanceData(uint32 mapId, uint32 instanceId, MpInstanceDat
 MpInstanceData* MpDataStore::GetInstanceData(uint32 mapId, uint32 instanceId) {
 
     if (!_instanceData->contains(GetInstanceDataKey(mapId, instanceId))) {
-        MpLogger::debug("No instance data found for map {} instance {}", mapId, instanceId);
         return nullptr;
     }
 
@@ -120,12 +107,23 @@ void MpDataStore::AddCreatureData(ObjectGuid guid, MpCreatureData creatureData) 
 
 MpCreatureData* MpDataStore::GetCreatureData(ObjectGuid guid) {
     if (!_instanceCreatureData->contains(guid)) {
-        MpLogger::debug("No instance creature data found for creature {}", guid.GetCounter());
         return nullptr;
     }
 
     return &_instanceCreatureData->at(guid);
 }
+
+ std::vector<MpCreatureData*> MpDataStore::GetUnscaledCreatures(uint32 mapId, uint32 instanceId) {
+    std::vector<MpCreatureData*> creatures;
+    for (auto& [guid, creatureData] : *_instanceCreatureData) {
+        Creature* creature = creatureData.creature;
+
+        if (creature->GetMapId() == mapId && creature->GetInstanceId() == instanceId && !creatureData.IsScaled()) {
+            creatures.push_back(&creatureData);
+        }
+    }
+    return creatures;
+ }
 
 void MpDataStore::RemoveCreatureData(ObjectGuid guid) {
     MpLogger::debug("RemoveInstanceCreatureData data for creature {}", guid.GetCounter());

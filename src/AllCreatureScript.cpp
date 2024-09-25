@@ -14,53 +14,11 @@ public:
 
     }
 
-    void OnBeforeCreatureSelectLevel(const CreatureTemplate* /*creatureTemplate*/, Creature* creature, uint8& level) override {
+    // void OnBeforeCreatureSelectLevel(const CreatureTemplate* /*creatureTemplate*/, Creature* creature, uint8& level) override
+    // {
+    // }
 
-        Map* map = creature->GetMap();
-        if (!sMythicPlus->IsMapEligible(map)) {
-            return;
-        }
-
-        if (!sMythicPlus->IsCreatureEligible(creature)) {
-            return;
-        }
-
-        MpInstanceData* instanceData = sMpDataStore->GetInstanceData(map->GetId(), map->GetInstanceId());
-        if(!instanceData) {
-            return;
-        }
-
-        MpLogger::debug("OnBeforeCreatureSelectLevel({}, {}) for instance {}",
-            creature->GetName(),
-            level,
-            map->GetMapName()
-        );
-
-        // // bail if the creature is not eligible to be scaled
-        // if (!sMythicPlus->IsCreatureEligible(creature)) {
-        //     return;
-        // }
-
-        // // if we have instance data set for this map use it otherwise bail
-        // MpInstanceData* instanceData = sMpDataStore->GetInstanceData(map->GetId(), map->GetInstanceId());
-        // if(!instanceData) {
-        //     return;
-        // }
-
-        // if (creature->IsDungeonBoss()) {
-        //     level = instanceData->boss.avgLevel;
-        // } else {
-        //     uint8 level = instanceData->creature.avgLevel;
-        //     level = uint8(irand(level-1, level+1));
-        // }
-
-    //    LOG_DEBUG("module.MythicPlus", "OnBeforeCreatureSelectLevel({}, {}) for instance {}",
-    //         creature->GetName(),
-    //         level,
-    //         map->GetMapName()
-    //     );
-    }
-
+    // When a new creature is added into a mythic+ map add it to the list of creatures to scale later.
     void OnCreatureAddWorld(Creature* creature) override
     {
         Map* map = creature->GetMap();
@@ -69,143 +27,24 @@ public:
             return;
         }
 
-        sMythicPlus->AddCreatureForScaling(creature);
-
-        // MpInstanceData* instanceData = sMpDataStore->GetInstanceData(map->GetId(), map->GetInstanceId());
-        // if(!instanceData) {
-        //     MpLogger::debug("Creature: {} Could not find instance data for Map {} and InstanceId: {}", creature->GetName(), map->GetMapName(), map->GetInstanceId());
-        //     return;
-        // }
-
-        // if (creature->IsDungeonBoss()) {
-        //     level = instanceData->boss.avgLevel;
-        // } else {
-        //     level = uint8(urand(instanceData->creature.avgLevel-1, instanceData->creature.avgLevel+1));
-        // }
-
-        // // Scale the creature to its new level
-        // sMythicPlus->ScaleCreature(level, creature);
-
-
-        MpLogger::debug("SetLevel and Updateded Creature {} Entry {} Id {} level from {}",
-            creature->GetName(),
-            creature->GetEntry(),
-            creature->GetGUID().GetCounter(),
-            creature->GetLevel()
-        );
-
-
-        // creature->SetLevel(level, false);
-        // MpLogger
-        // if (map->IsDungeon()) {
-        //     LOG_INFO("modules", "Creature {} added to map {}", creature->GetName(), map->GetMapName());
-        //     MpLogger::warn("Creature {} added to map {}", creature->GetName(), map->GetMapName());
-        // }
-    }
-
-    void OnAllCreatureUpdate(Creature* creature, uint32 diff) override
-    {
-        if (!sMythicPlus->IsMapEligible(creature->GetMap())) {
-            return;
+        // if we have instance data about zone then just scale the creature otherwise add to be scaled once we do.
+        MpInstanceData* instanceData = sMpDataStore->GetInstanceData(map->GetId(), map->GetInstanceId());
+        if(instanceData) {
+            sMythicPlus->AddScaledCreature(creature, instanceData);
+        } else {
+            sMythicPlus->AddCreatureForScaling(creature);
         }
-
-        sMythicPlus->ScaleOnUpdate(creature, diff);
-
-        // If the config is out of date and the creature was reset, run modify against it
-        // if (ResetCreatureIfNeeded(creature))
-        // {
-        //     LOG_DEBUG("module.MythicPlus",
-        //         "MythicPlus_AllCreatureScript::OnAllCreatureUpdate(): Creature {} ({}) is reset to its original stats.",
-        //         creature->GetName(),
-        //         creature->GetLevel()
-        //     );
-
-        //     // Update the map's level if it is out of date
-        //     sMythicPlus->UpdateMapLevelIfNeeded(creature->GetMap());
-
-        //     ModifyCreatureAttributes(creature);
-        // }
     }
 
-
-    // void OnCreatureRemoveWorld(Creature* creature) override
+    // void OnAllCreatureUpdate(Creature* creature, uint32 diff) override
     // {
-    //     Map* map = creature->GetMap();
-    //     if (map->IsDungeon()) {
-    //         LOG_INFO("modules", "Creature {} removed from map {}", creature->GetName(), map->GetMapName());
-    //         MpLogger::warn("Creature {} removed from map {}", creature->GetName(), map->GetMapName());
-    //     }
     // }
 
-    // void OnCreatureAddWorld(Creature* creature) override
-    // {
-    //     if(!sMythicPlus->IsMapEligible(creature->GetMap())) {
-    //         return;
-    //     }
-
-    //     MpLogger::debug("OnCreatureAddWorld({}, {}) for instance {}",
-    //         creature->GetName(),
-    //         creature->GetLevel(),
-    //         creature->GetMap()->GetMapName()
-    //     );
-
-    //     sMpDataStore->AddInstanceCreatureData(
-    //         creature->GetGUID(),
-    //         {
-    //             creature,
-    //             const_cast<MapEntry*>(creature->GetMap()->GetEntry())
-    //         }
-    //     );
-
-    //     MpLogger::debug("Added creature {} to instance data for instance {}",
-    //         creature->GetName(),
-    //         creature->GetMap()->GetMapName()
-    //     );
-    // }
-
-    // void OnCreatureRemoveWorld(Creature* creature) override
-    // {
-    //     if(!sMythicPlus->IsMapEligible(creature->GetMap())) {
-    //         return;
-    //     }
-
-    //     MpLogger::debug("AllCreatureScript::OnCreatureRemoveWorld({}, {})", creature->GetName(), creature->GetLevel());
-
-    //     sMpDataStore->RemoveInstanceCreatureData(creature->GetGUID());
-
-    //     MpLogger::debug("Removed creature {} from instance data for instance {}",
-    //         creature->GetName(),
-    //         creature->GetMap()->GetMapName()
-    //     );
-    // }
-
-
-
-    bool UpdateCreature(Creature* creature)
+    // Cleanup the creature from custom data used for mythic+ mod
+    void OnCreatureRemoveWorld(Creature* creature) override
     {
-        // make sure we have a creature and that it's assigned to a map
-        if (!creature || !creature->GetMap())
-            return false;
-
-        // if this isn't a dungeon or a battleground, make no changes
-        if (!sMythicPlus->IsMapEligible(creature->GetMap()))
-            return false;
-
-        // if this is a pet or summon controlled by the player, make no changes
-        if ((creature->IsHunterPet() || creature->IsPet() || creature->IsSummon()) && creature->IsControlledByPlayer())
-            return false;
-
-        // if this is a non-relevant creature, skip
-        if (creature->IsCritter() || creature->IsTotem() || creature->IsTrigger())
-            return false;
-
-        if (creature->GetMap()->GetEntry()) {
-
-        }
-
-        return true;
+        sMythicPlus->RemoveCreature(creature);
     }
-
 };
 
 void Add_MP_AllCreatureScripts()

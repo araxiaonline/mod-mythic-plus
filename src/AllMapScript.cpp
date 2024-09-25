@@ -101,6 +101,9 @@ public:
             instanceData.ToString()
         );
         sMpDataStore->AddInstanceData(map->GetId(), map->GetInstanceId(), instanceData);
+
+        // Once we have instance data set we can scale the remaining characters in our instance
+        sMythicPlus->ScaleRemaining(player, &instanceData);
     }
 
     // When an instance is destroyed remove the instance data from the data store

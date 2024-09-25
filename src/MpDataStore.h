@@ -100,8 +100,7 @@ struct MpCreatureData
     {
         if(creature) {
             originalLevel = creature->GetLevel();
-
-            CreatureBaseStats const* originalStats = sObjectMgr->GetCreatureBaseStats(
+            originalStats = sObjectMgr->GetCreatureBaseStats(
                 originalLevel,
                 creature->GetCreatureTemplate()->unit_class
             );
@@ -121,19 +120,26 @@ struct MpCreatureData
 
 class MpDataStore {
 private:
-    MpDataStore();
-    ~MpDataStore();
+    MpDataStore()
+    : _playerData(std::make_unique<std::unordered_map<ObjectGuid, MpPlayerData>>()),
+      _instanceData(std::make_unique<std::map<std::pair<uint32, uint32>, MpInstanceData>>()),
+      _groupData(std::make_unique<std::unordered_map<ObjectGuid, MpGroupData>>()),
+      _instanceCreatureData(std::make_unique<std::unordered_map<ObjectGuid, MpCreatureData>>()) {};
 
-    std::unordered_map<ObjectGuid, MpPlayerData>* _playerData;
+    inline ~MpDataStore() {
+
+    }
+
+    std::unique_ptr<std::unordered_map<ObjectGuid, MpPlayerData>> _playerData;
 
     // Instance Data map key is unique instance pair and values are modifiers of instance
-    std::unordered_map<std::pair<uint32,uint32>,MpInstanceData>* _instanceData;
+    std::unique_ptr<std::map<std::pair<uint32,uint32>,MpInstanceData>> _instanceData;
 
     // Group Data map key is group guid and values are mythic settings set by group leader
-    std::unordered_map<ObjectGuid, MpGroupData>* _groupData;
+    std::unique_ptr<std::unordered_map<ObjectGuid, MpGroupData>> _groupData;
 
     // Instance Creature Data map key is creature guid and values are creature itself from a mythic instance
-    std::unordered_map<ObjectGuid, MpCreatureData>* _instanceCreatureData;
+    std::unique_ptr<std::unordered_map<ObjectGuid, MpCreatureData>> _instanceCreatureData;
 
 public:
 
@@ -180,6 +186,7 @@ public:
     void AddCreatureData(ObjectGuid guid, MpCreatureData creatureData);
     MpCreatureData* GetCreatureData(ObjectGuid guid);
     void RemoveCreatureData(ObjectGuid guid);
+    std::vector<MpCreatureData*> GetUnscaledCreatures(uint32 mapId, uint32 instanceId);
 
     // creates a unique instance key into the instance data store
     auto GetInstanceDataKey(uint32 mapId, uint32 instanceId) {

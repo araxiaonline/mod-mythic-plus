@@ -17,9 +17,9 @@ bool MythicPlus::IsMapEligible(Map* map)
     return false;
 }
 
-bool MythicPlus::IsDifficultySet(Player* player)
+bool MythicPlus::IsDifficultySet(Player const* player)
 {
-    Group* group = player->GetGroup();
+    Group const* group = player->GetGroup();
     if (!group) {
         return false;
     }
@@ -31,7 +31,6 @@ bool MythicPlus::IsDifficultySet(Player* player)
 
     return true;
 }
-
 
 bool MythicPlus::IsDifficultyEnabled(std::string difficulty)
 {
@@ -94,55 +93,21 @@ void MythicPlus::AddCreatureForScaling(Creature* creature)
     );
 }
 
-void MythicPlus::ScaleOnUpdate(Creature* creature, uint32 diff)
+void MythicPlus::AddScaledCreature(Creature* creature, MpInstanceData* instanceData)
 {
-    // Check to see if the creature is in our list to be scaled to mythic+ levels
-    MpCreatureData* creatureData = sMpDataStore->GetCreatureData(creature->GetGUID());
-    if (!creatureData) {
-        return;
-    }
-
-    // if it has already been scaled then do nothing.
-    if (creatureData->IsScaled()) {
-        MpLogger::debug("Creature {} Entry {} Id {} already scaled in ScaleOnUpdate()",
-            creature->GetName(),
-            creature->GetEntry(),
-            creature->GetGUID().GetCounter()
-        );
-        return;
-    }
-
-    // Otherwise we handle scaling the stats of the creature based on map difficulty set
-    Map* map = creature->GetMap();
-    if(!map) {
-        MpLogger::warn("Map is null for creature {} Entry {} Id {} could not scale in ScaleOnUpdate()",
-            creature->GetName(),
-            creature->GetEntry(),
-            creature->GetGUID().GetCounter()
-        );
-        return;
-    }
-
-    // The instance data for this map determines how to scale the creature by difficulty set
-    MpInstanceData* instanceData = sMpDataStore->GetInstanceData(map->GetId(), map->GetInstanceId());
-    if (!instanceData) {
-        MpLogger::warn("Instance data is null for creature {} Entry {} Id {} could not scale in ScaleOnUpdate()",
-            creature->GetName(),
-            creature->GetEntry(),
-            creature->GetGUID().GetCounter()
-        );
-        return;
-    }
-
     // allow small variance in level for non-boss creatures
     uint8 level = uint8(urand(instanceData->creature.avgLevel - 1, instanceData->creature.avgLevel + 1));
     if(creature->IsDungeonBoss()) {
-        level = instanceData->boss.avgLevel;
+        ScaleCreature(instanceData->boss.avgLevel, creature, &instanceData->boss);
+    } else {
+        ScaleCreature(level, creature, &instanceData->creature);
     }
-    ScaleCreature(level, creature);
-    creatureData->SetScaled(true);  // Since updates happen frequently set the flag so we do not re-scale
 
-    MpLogger::debug("Sca Creature {} Entry {} Id {} level from {} to {}",
+    MpCreatureData creatureData = MpCreatureData(creature);
+    creatureData.SetScaled(true);
+    sMpDataStore->AddCreatureData(creature->GetGUID(), creatureData);
+
+    MpLogger::debug("Scaled Creature {} Entry {} Id {} level from {} to {}",
         creature->GetName(),
         creature->GetEntry(),
         creature->GetGUID().GetCounter(),
@@ -151,7 +116,26 @@ void MythicPlus::ScaleOnUpdate(Creature* creature, uint32 diff)
     );
 }
 
-void MythicPlus::ScaleCreature(uint8 level, Creature* creature)
+void MythicPlus::ScaleRemaining(Player* player, MpInstanceData* instanceData)
+{
+    std::vector<MpCreatureData*> creatures = sMpDataStore->GetUnscaledCreatures(player->GetMapId(), player->GetInstanceId());
+    for (MpCreatureData* creatureData : creatures) {
+        AddScaledCreature(creatureData->creature, instanceData);
+    }
+}
+
+// Perform any memory cleanup when the creature is removed from the world and no longer needed.
+void MythicPlus::RemoveCreature(Creature* creature)
+{
+    MpCreatureData* creatureData = sMpDataStore->GetCreatureData(creature->GetGUID());
+    if (!creatureData) {
+        return;
+    }
+
+    sMpDataStore->RemoveCreatureData(creature->GetGUID());
+}
+
+void MythicPlus::ScaleCreature(uint8 level, Creature* creature, MpMultipliers* multipliers)
 {
     creature->SetLevel(level);
     CreatureBaseStats const* stats = sObjectMgr->GetCreatureBaseStats(
@@ -168,12 +152,13 @@ void MythicPlus::ScaleCreature(uint8 level, Creature* creature)
     // Scales the creatures hitpoints
     float healthmod = GetHealthModifier(rank);
     uint32 basehp = std::max<uint32>(1, stats->GenerateHealth(cInfo));
-    uint32 health = uint32(basehp * healthmod);
+    uint32 health = uint32(basehp * healthmod) * multipliers->health;
 
     creature->SetCreateHealth(health);
     creature->SetMaxHealth(health);
     creature->SetHealth(health);
     creature->ResetPlayerDamageReq();
+    creature->SetArmor(stats->GenerateArmor(cInfo) * multipliers->armor);
 
     // Scales the creatures mana
     uint32 mana = stats->GenerateMana(cInfo);

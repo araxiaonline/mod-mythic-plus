@@ -53,7 +53,7 @@ public:
     bool IsMapEligible(Map* map);
 
     // If a player difficulty is set that is eligible for mythic+ scaling
-    bool IsDifficultySet(Player* player);
+    bool IsDifficultySet(Player const* player);
 
     // Check is difficulty is enabled in the configuration
     bool IsDifficultyEnabled(std::string difficulty);
@@ -67,12 +67,22 @@ public:
     // Adds the creature if eligible to be scaled
     void AddCreatureForScaling(Creature* creature);
 
-    // Will make determination on if this creature needs to be scaled and will do so
-    // the diff time is used to determine the last time the creature was modified.
-    void ScaleOnUpdate(Creature* creature, uint32 diff);
+    // Removes the creature from the scaling list and cleans up memory
+    void RemoveCreature(Creature* creature);
+
+    /**
+     * Creatures are added to an instance before a player enter event is fired
+     * therefore it is necessary to scan the instance creature information and
+     * and scale any creatures that were loaded before the first player using
+     * the instance data from the group settings.
+     */
+    void ScaleRemaining(Player* player, MpInstanceData* instanceData);
+
+    // This will attempt to scale a creature using instancedata
+    void AddScaledCreature(Creature* creature, MpInstanceData* instanceData);
 
     // Scales the creature based on the level and the creature base stats
-    void ScaleCreature(uint8 level, Creature* creature);
+    void ScaleCreature(uint8 level, Creature* creature, MpMultipliers* multipliers);
 
     private:
         MythicPlus() { }
