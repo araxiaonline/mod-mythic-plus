@@ -67,9 +67,13 @@ public:
             return;
         }
 
+        MpLogger::debug("ModifyMeleeDamage: {} reached for attacker {} attacking {} for {} dmg", map->GetMapName(), attacker->GetName(), target->GetName(), damage);
+
         // If the target is the enemy then increase the amount of healing by the instance data modifier for spell output.
         if(target->isType(TYPEID_PLAYER) && attacker->isType(TYPEID_UNIT)) {
             Creature* creature = target->ToCreature();
+
+            MpLogger::debug("ModifyMeleeDamage: {} ", creature->GetName());
             if(!creature || !sMythicPlus->IsCreatureEligible(creature)) {
                 return;
             }
@@ -79,11 +83,14 @@ public:
                 return;
             }
 
+            auto origDamage = damage;
             if(creature->IsDungeonBoss()) {
-                damage = damage * instanceData->boss.melee *10;
+                damage = damage * instanceData->boss.melee * 10;
             } else {
                 damage = damage * instanceData->creature.melee * 10 ;
             }
+
+            MpLogger::debug("ModifyMeleeDamage: from {} to {} ", damage);
         }
 
     }

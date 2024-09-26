@@ -23,9 +23,13 @@ public:
     {
         Map* map = creature->GetMap();
         if (!sMythicPlus->IsMapEligible(map)) {
-            // MpLogger::debug("Map: {} is not eligible to adjust so creature was skipped: Creature {}", map->GetMapName(), creature->GetName());
             return;
         }
+
+        if (!sMythicPlus->IsCreatureEligible(creature)) {
+            return;
+        }
+
 
         // if we have instance data about zone then just scale the creature otherwise add to be scaled once we do.
         MpInstanceData* instanceData = sMpDataStore->GetInstanceData(map->GetId(), map->GetInstanceId());

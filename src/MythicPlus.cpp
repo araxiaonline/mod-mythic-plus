@@ -58,6 +58,7 @@ bool MythicPlus::IsCreatureEligible(Creature* creature)
 
     # if defined(MOD_PRESENT_NPCBOTS)
         if (creature->IsNpcBot()) {
+            MpLogger::debug("Creature {} is an NPC Bot do not scale", creature->GetName());
             return false;
         }
     # endif
@@ -151,8 +152,9 @@ void MythicPlus::ScaleCreature(uint8 level, Creature* creature, MpMultipliers* m
 
     // Scales the creatures hitpoints
     float healthmod = GetHealthModifier(rank);
-    uint32 basehp = std::max<uint32>(1, stats->GenerateHealth(cInfo));
+    uint32 basehp = uint32(std::ceil(stats->BaseHealth[EXPANSION_WRATH_OF_THE_LICH_KING] * cInfo->ModHealth));
     uint32 health = uint32(basehp * healthmod) * multipliers->health;
+
 
     creature->SetCreateHealth(health);
     creature->SetMaxHealth(health);
@@ -161,7 +163,7 @@ void MythicPlus::ScaleCreature(uint8 level, Creature* creature, MpMultipliers* m
     creature->SetArmor(stats->GenerateArmor(cInfo) * multipliers->armor);
 
     // Scales the creatures mana
-    uint32 mana = stats->GenerateMana(cInfo);
+    uint32 mana = uint32(std::ceil(stats->BaseMana * cInfo->ModMana));
     creature->SetCreateMana(mana);
     creature->SetMaxPower(POWER_MANA, mana);
     creature->SetPower(POWER_MANA, mana);
@@ -169,11 +171,11 @@ void MythicPlus::ScaleCreature(uint8 level, Creature* creature, MpMultipliers* m
     creature->SetModifierValue(UNIT_MOD_HEALTH, BASE_VALUE, (float)health);
     creature->SetModifierValue(UNIT_MOD_MANA, BASE_VALUE, (float)mana);
 
-    // Scales the damage
-    float basedamage = stats->GenerateBaseDamage(cInfo);
-
-    float weaponBaseMinDamage = stats->BaseDamage[0] * multipliers->melee;
-    float weaponBaseMaxDamage = stats->BaseDamage[1] * multipliers->melee * 1.5;
+    // Scales the damage based on the melee multiplier
+    float basedamage = uint32(std::ceil(stats->BaseDamage[EXPANSION_WRATH_OF_THE_LICH_KING] * cInfo->DamageModifier));
+    float creatureTypeMult = GetDamageModifier(rank);
+    float weaponBaseMinDamage = basedamage * multipliers->melee * creatureTypeMult;
+    float weaponBaseMaxDamage = basedamage * multipliers->melee * creatureTypeMult * 1.5;
 
     creature->SetBaseWeaponDamage(BASE_ATTACK, MINDAMAGE, weaponBaseMinDamage);
     creature->SetBaseWeaponDamage(BASE_ATTACK, MAXDAMAGE, weaponBaseMaxDamage);
@@ -184,6 +186,9 @@ void MythicPlus::ScaleCreature(uint8 level, Creature* creature, MpMultipliers* m
 
     creature->SetModifierValue(UNIT_MOD_ATTACK_POWER, BASE_VALUE, stats->AttackPower * multipliers->melee);
     creature->SetModifierValue(UNIT_MOD_ATTACK_POWER_RANGED, BASE_VALUE, stats->RangedAttackPower * multipliers->melee);
+    MpLogger::debug("Scaled creature base damage from {} to {}", weaponBaseMinDamage, weaponBaseMaxDamage);
+    MpLogger::debug("Scaled creature reported base damage from {} to {}", creature->GetWeaponDamageRange(BASE_ATTACK, MINDAMAGE), creature->GetWeaponDamageRange(BASE_ATTACK, MAXDAMAGE));
+
 }
 
 /**
@@ -205,5 +210,24 @@ float GetHealthModifier(int32 Rank)
             return sWorld->getRate(RATE_CREATURE_ELITE_RARE_HP);
         default:
             return sWorld->getRate(RATE_CREATURE_ELITE_ELITE_HP);
+    }
+}
+
+float GetDamageModifier(int32 Rank)
+{
+    switch (Rank)
+    {
+        case CREATURE_ELITE_NORMAL:
+            return sWorld->getRate(RATE_CREATURE_NORMAL_DAMAGE);
+        case CREATURE_ELITE_ELITE:
+            return sWorld->getRate(RATE_CREATURE_ELITE_ELITE_DAMAGE);
+        case CREATURE_ELITE_RAREELITE:
+            return sWorld->getRate(RATE_CREATURE_ELITE_RAREELITE_DAMAGE);
+        case CREATURE_ELITE_WORLDBOSS:
+            return sWorld->getRate(RATE_CREATURE_ELITE_WORLDBOSS_DAMAGE);
+        case CREATURE_ELITE_RARE:
+            return sWorld->getRate(RATE_CREATURE_ELITE_RARE_DAMAGE);
+        default:
+            return sWorld->getRate(RATE_CREATURE_ELITE_ELITE_DAMAGE);
     }
 }
