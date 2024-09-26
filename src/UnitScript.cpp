@@ -62,18 +62,23 @@ public:
 
     void ModifyMeleeDamage(Unit* target, Unit* attacker, uint32& damage) override {
 
+        if (!target && !attacker) {
+            return;
+        }
+
         Map *map = target->GetMap();
         if(!sMythicPlus->IsMapEligible(map)) {
             return;
         }
 
-        MpLogger::debug("ModifyMeleeDamage: {} reached for attacker {} attacking {} for {} dmg", map->GetMapName(), attacker->GetName(), target->GetName(), damage);
-
         // If the target is the enemy then increase the amount of healing by the instance data modifier for spell output.
-        if(target->isType(TYPEID_PLAYER) && attacker->isType(TYPEID_UNIT)) {
-            Creature* creature = target->ToCreature();
+        if(sMythicPlus->EligibleTarget(target)) {
 
-            MpLogger::debug("ModifyMeleeDamage: {} ", creature->GetName());
+            if (!attacker->GetTypeId() == TYPEID_UNIT) {
+                return;
+            }
+
+            Creature* creature = attacker->ToCreature();
             if(!creature || !sMythicPlus->IsCreatureEligible(creature)) {
                 return;
             }
@@ -85,12 +90,11 @@ public:
 
             auto origDamage = damage;
             if(creature->IsDungeonBoss()) {
-                damage = damage * instanceData->boss.melee * 10;
+                damage = damage * instanceData->boss.melee * 5;
             } else {
-                damage = damage * instanceData->creature.melee * 10 ;
+                damage = damage * instanceData->creature.melee;
             }
-
-            MpLogger::debug("ModifyMeleeDamage: from {} to {} ", damage);
+            // MpLogger::debug("ModifyMeleeDamage: from {} to {}); ", origDamage, damage);
         }
 
     }
@@ -130,6 +134,21 @@ public:
     // }
 
 };
+
+bool EligibleTarget(Unit* target, Unit* attacker) {
+    if (!target && !attacker) {
+        return false;
+    }
+
+    #define NPCBots
+
+    if (target->GetTypeId() == TYPEID_PLAYER && attacker->GetTypeId() == TYPEID_UNIT) {
+        return true;
+    }
+
+    return false;
+}
+
 void Add_MP_UnitScripts()
 {
     new MythicPlus_UnitScript();

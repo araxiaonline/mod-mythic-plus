@@ -42,6 +42,37 @@ bool MythicPlus::IsDungeonDisabled(uint32 dungeon)
     return std::find(disabledDungeons.begin(), disabledDungeons.end(), dungeon) != disabledDungeons.end();
 }
 
+bool MythicPlus::EligibleTarget(Unit* target)
+{
+    if (!target) {
+        return false;
+    }
+
+MpLogger::debug("EligibleTarget: target: {} BOT?{}", target->GetName(), target->IsNPCBot());
+    if (target->GetTypeId() == TYPEID_PLAYER) {
+        return true;
+    }
+
+    # if defined(MOD_PRESENT_NPCBOTS)
+    MpLogger::debug("IN BOT DEFINED STUFF: target: {} BOT?{}", target->GetName(), target->IsNPCBot());
+        if (target->IsNPCBot()) {
+            MpLogger::debug("Target {} is an NPC eligible to be smacked hard", target->GetName());
+            return true;
+        }
+
+        if ((target->IsPet() || creature->IsSummon() || creature->IsHunterPet()) && target->GetOwner()->IsNPCBot()) {
+            return true;
+        }
+    # endif
+
+    Creature* creature = target->ToCreature();
+    if((creature->IsPet() || creature->IsSummon() || creature->IsHunterPet()) && creature->IsControlledByPlayer()) {
+        return true;
+    }
+
+    return false;
+}
+
 bool MythicPlus::IsCreatureEligible(Creature* creature)
 {
     if (creature->IsDungeonBoss()) {
@@ -152,15 +183,19 @@ void MythicPlus::ScaleCreature(uint8 level, Creature* creature, MpMultipliers* m
 
     // Scales the creatures hitpoints
     float healthmod = GetHealthModifier(rank);
+    // Add some variance to the healthpool so enemies are not all the same
+    float healthVariation = frand(0.85f, 1.15f);
     uint32 basehp = uint32(std::ceil(stats->BaseHealth[EXPANSION_WRATH_OF_THE_LICH_KING] * cInfo->ModHealth));
-    uint32 health = uint32(basehp * healthmod) * multipliers->health;
-
+    uint32 health = uint32(basehp * healthmod * multipliers->health * healthVariation);
 
     creature->SetCreateHealth(health);
     creature->SetMaxHealth(health);
     creature->SetHealth(health);
     creature->ResetPlayerDamageReq();
-    creature->SetArmor(stats->GenerateArmor(cInfo) * multipliers->armor);
+
+    // Scale up the armor with some variance also to make some tougher enemies in the mix
+    uint32 armor = uint32(std::ceil(stats->BaseArmor * cInfo->ModArmor * multipliers->armor));
+    creature->SetArmor(armor);
 
     // Scales the creatures mana
     uint32 mana = uint32(std::ceil(stats->BaseMana * cInfo->ModMana));
@@ -187,7 +222,9 @@ void MythicPlus::ScaleCreature(uint8 level, Creature* creature, MpMultipliers* m
     creature->SetModifierValue(UNIT_MOD_ATTACK_POWER, BASE_VALUE, stats->AttackPower * multipliers->melee);
     creature->SetModifierValue(UNIT_MOD_ATTACK_POWER_RANGED, BASE_VALUE, stats->RangedAttackPower * multipliers->melee);
     MpLogger::debug("Scaled creature base damage from {} to {}", weaponBaseMinDamage, weaponBaseMaxDamage);
+    creature->UpdateAllStats();
     MpLogger::debug("Scaled creature reported base damage from {} to {}", creature->GetWeaponDamageRange(BASE_ATTACK, MINDAMAGE), creature->GetWeaponDamageRange(BASE_ATTACK, MAXDAMAGE));
+
 
 }
 

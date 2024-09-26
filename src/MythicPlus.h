@@ -61,6 +61,9 @@ public:
     // if configuration has disabled the specific dungeon return false
     bool IsDungeonDisabled(uint32 dungeonId);
 
+    // Validates if the target of an attack should receive mythic+ damage/heal/dot scaling
+    bool EligibleTarget(Unit* target);
+
     // The creature should be given Mythic+ scaling and powers check for pets, npcs, etc
     bool IsCreatureEligible(Creature* creature);
 
@@ -90,6 +93,7 @@ public:
 };
 
 float GetHealthModifier(int32 rank);
+float GetDamageModifier(int32 rank);
 
 #define sMythicPlus MythicPlus::instance()
 
