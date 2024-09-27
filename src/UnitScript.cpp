@@ -74,14 +74,7 @@ public:
         // If the target is the enemy then increase the amount of healing by the instance data modifier for spell output.
         if(sMythicPlus->EligibleTarget(target)) {
 
-            if (!attacker->GetTypeId() == TYPEID_UNIT) {
-                return;
-            }
-
             Creature* creature = attacker->ToCreature();
-            if(!creature || !sMythicPlus->IsCreatureEligible(creature)) {
-                return;
-            }
 
             MpInstanceData* instanceData = sMpDataStore->GetInstanceData(map->GetId(), map->GetInstanceId());
             if(!instanceData) {
@@ -94,7 +87,6 @@ public:
             } else {
                 damage = damage * instanceData->creature.melee;
             }
-            // MpLogger::debug("ModifyMeleeDamage: from {} to {}); ", origDamage, damage);
         }
 
     }

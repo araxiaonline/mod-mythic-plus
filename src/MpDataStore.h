@@ -39,6 +39,7 @@ struct MpMultipliers
 {
     float health;
     float melee;
+    float baseDamage;
     float spell;
     float armor;
     uint8 avgLevel;
@@ -46,6 +47,7 @@ struct MpMultipliers
     std::string ToString() const {
     return "MpMultipliers: { health: " + std::to_string(health) +
             ", melee: " + std::to_string(melee) +
+            ", melee: " + std::to_string(baseDamage) +
             ", spell: " + std::to_string(spell) +
             ", armor: " + std::to_string(armor) +
             ", avgLevel: " + std::to_string(avgLevel) + " }";

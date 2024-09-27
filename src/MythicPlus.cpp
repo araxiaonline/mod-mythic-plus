@@ -3,6 +3,7 @@
 #include "MpLogger.h"
 #include "ObjectMgr.h"
 #include "MapMgr.h"
+#include "ScriptMgr.h"
 
 bool MythicPlus::IsMapEligible(Map* map)
 {
@@ -52,6 +53,14 @@ bool MythicPlus::EligibleTarget(Unit* target)
         return true;
     }
 
+    MpLogger::debug("EligibleTarget: target {} is not a player", target->GetName());
+
+    #if defined(NPCBots)
+        MpLogger::debug("MOD_PRESET_NPCBOTS: value {}", MOD_PRESENT_NPCBOTS);
+    #endif
+
+
+
     #if defined(MOD_PRESENT_NPCBOTS)
         MpLogger::debug("IN BOT DEFINED STUFF: target: {} BOT?{}", target->GetName(), target->IsNPCBot());
         if (target->IsNPCBot()) {
@@ -59,7 +68,7 @@ bool MythicPlus::EligibleTarget(Unit* target)
             return true;
         }
 
-        if ((target->IsPet() || creature->IsSummon() || creature->IsHunterPet()) && target->GetOwner()->IsNPCBot()) {
+        if ((target->IsPet() || target->IsSummon() || target->IsHunterPet()) && target->GetOwner()->IsNPCBot()) {
             return true;
         }
     #endif
@@ -87,7 +96,7 @@ bool MythicPlus::IsCreatureEligible(Creature* creature)
     }
 
     # if defined(MOD_PRESENT_NPCBOTS)
-        if (creature->IsNpcBot()) {
+        if (creature->IsNPCBot()) {
             MpLogger::debug("Creature {} is an NPC Bot do not scale", creature->GetName());
             return false;
         }
@@ -168,6 +177,7 @@ void MythicPlus::RemoveCreature(Creature* creature)
 
 void MythicPlus::ScaleCreature(uint8 level, Creature* creature, MpMultipliers* multipliers)
 {
+    uint32 origLevel = creature->GetLevel();
     creature->SetLevel(level);
     CreatureBaseStats const* stats = sObjectMgr->GetCreatureBaseStats(
         level,
@@ -192,12 +202,6 @@ void MythicPlus::ScaleCreature(uint8 level, Creature* creature, MpMultipliers* m
     creature->SetHealth(health);
     creature->ResetPlayerDamageReq();
 
-    // Scale up the armor with some variance also to make some tougher enemies in the mix
-    uint32 armor = uint32(std::ceil(stats->BaseArmor * cInfo->ModArmor * multipliers->armor));
-    creature->SetArmor(armor);
-
-    creature->UpdateArmor();
-
     // Scales the creatures mana
     uint32 mana = uint32(std::ceil(stats->BaseMana * cInfo->ModMana));
     creature->SetCreateMana(mana);
@@ -207,11 +211,19 @@ void MythicPlus::ScaleCreature(uint8 level, Creature* creature, MpMultipliers* m
     creature->SetModifierValue(UNIT_MOD_HEALTH, BASE_VALUE, (float)health);
     creature->SetModifierValue(UNIT_MOD_MANA, BASE_VALUE, (float)mana);
 
-    // Scales the damage based on the melee multiplier
-    float basedamage = uint32(std::ceil(stats->BaseDamage[EXPANSION_WRATH_OF_THE_LICH_KING] * cInfo->DamageModifier));
+    // Normalize the damage from earlier expansions
+    float cTemplateDmgMult = cInfo->DamageModifier;
+    if (origLevel <= 60 && cTemplateDmgMult < 3.0f) {
+        cTemplateDmgMult = 3.0f;
+    }
+    if (origLevel <= 70 && origLevel > 60 && cTemplateDmgMult < 4.0f) {
+        cTemplateDmgMult = 4.0f;
+    }
+
+    float basedamage = uint32(std::ceil(stats->BaseDamage[EXPANSION_WRATH_OF_THE_LICH_KING]));
     float creatureTypeMult = GetDamageModifier(rank);
-    float weaponBaseMinDamage = basedamage * multipliers->melee * creatureTypeMult;
-    float weaponBaseMaxDamage = basedamage * multipliers->melee * creatureTypeMult * 1.5;
+    float weaponBaseMinDamage = basedamage * cTemplateDmgMult * creatureTypeMult * multipliers->baseDamage;
+    float weaponBaseMaxDamage = weaponBaseMinDamage * 1.5f;
 
     creature->SetBaseWeaponDamage(BASE_ATTACK, MINDAMAGE, weaponBaseMinDamage);
     creature->SetBaseWeaponDamage(BASE_ATTACK, MAXDAMAGE, weaponBaseMaxDamage);
@@ -220,9 +232,14 @@ void MythicPlus::ScaleCreature(uint8 level, Creature* creature, MpMultipliers* m
     creature->SetBaseWeaponDamage(RANGED_ATTACK, MINDAMAGE, weaponBaseMinDamage);
     creature->SetBaseWeaponDamage(RANGED_ATTACK, MAXDAMAGE, weaponBaseMaxDamage);
 
-    creature->SetModifierValue(UNIT_MOD_ATTACK_POWER, BASE_VALUE, stats->AttackPower * multipliers->melee);
-    creature->SetModifierValue(UNIT_MOD_ATTACK_POWER_RANGED, BASE_VALUE, stats->RangedAttackPower * multipliers->melee);
     creature->UpdateAllStats();
+
+    // Scale up the armor with some variance also to make some tougher enemies in the mix
+    uint32 armor = uint32(std::ceil(stats->BaseArmor * multipliers->armor));
+    creature->SetArmor(armor);
+    // creature->SetModifierValue(UNIT_MOD_ATTACK_POWER, BASE_VALUE, stats->AttackPower * multipliers->melee);
+    // creature->SetModifierValue(UNIT_MOD_ATTACK_POWER_RANGED, BASE_VALUE, stats->RangedAttackPower * multipliers->melee);
+
 
     MpLogger::debug("Scaled creature reported base damage from {} to {}", creature->GetWeaponDamageRange(BASE_ATTACK, MINDAMAGE), creature->GetWeaponDamageRange(BASE_ATTACK, MAXDAMAGE));
     MpLogger::debug("Scaled creature {} armor to {}", creature->GetName(), creature->GetArmor());
