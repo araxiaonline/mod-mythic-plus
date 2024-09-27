@@ -48,13 +48,12 @@ bool MythicPlus::EligibleTarget(Unit* target)
         return false;
     }
 
-MpLogger::debug("EligibleTarget: target: {} BOT?{}", target->GetName(), target->IsNPCBot());
     if (target->GetTypeId() == TYPEID_PLAYER) {
         return true;
     }
 
-    # if defined(MOD_PRESENT_NPCBOTS)
-    MpLogger::debug("IN BOT DEFINED STUFF: target: {} BOT?{}", target->GetName(), target->IsNPCBot());
+    #if defined(MOD_PRESENT_NPCBOTS)
+        MpLogger::debug("IN BOT DEFINED STUFF: target: {} BOT?{}", target->GetName(), target->IsNPCBot());
         if (target->IsNPCBot()) {
             MpLogger::debug("Target {} is an NPC eligible to be smacked hard", target->GetName());
             return true;
@@ -63,7 +62,7 @@ MpLogger::debug("EligibleTarget: target: {} BOT?{}", target->GetName(), target->
         if ((target->IsPet() || creature->IsSummon() || creature->IsHunterPet()) && target->GetOwner()->IsNPCBot()) {
             return true;
         }
-    # endif
+    #endif
 
     Creature* creature = target->ToCreature();
     if((creature->IsPet() || creature->IsSummon() || creature->IsHunterPet()) && creature->IsControlledByPlayer()) {
@@ -197,6 +196,8 @@ void MythicPlus::ScaleCreature(uint8 level, Creature* creature, MpMultipliers* m
     uint32 armor = uint32(std::ceil(stats->BaseArmor * cInfo->ModArmor * multipliers->armor));
     creature->SetArmor(armor);
 
+    creature->UpdateArmor();
+
     // Scales the creatures mana
     uint32 mana = uint32(std::ceil(stats->BaseMana * cInfo->ModMana));
     creature->SetCreateMana(mana);
@@ -221,11 +222,10 @@ void MythicPlus::ScaleCreature(uint8 level, Creature* creature, MpMultipliers* m
 
     creature->SetModifierValue(UNIT_MOD_ATTACK_POWER, BASE_VALUE, stats->AttackPower * multipliers->melee);
     creature->SetModifierValue(UNIT_MOD_ATTACK_POWER_RANGED, BASE_VALUE, stats->RangedAttackPower * multipliers->melee);
-    MpLogger::debug("Scaled creature base damage from {} to {}", weaponBaseMinDamage, weaponBaseMaxDamage);
     creature->UpdateAllStats();
+
     MpLogger::debug("Scaled creature reported base damage from {} to {}", creature->GetWeaponDamageRange(BASE_ATTACK, MINDAMAGE), creature->GetWeaponDamageRange(BASE_ATTACK, MAXDAMAGE));
-
-
+    MpLogger::debug("Scaled creature {} armor to {}", creature->GetName(), creature->GetArmor());
 }
 
 /**
