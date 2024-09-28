@@ -64,7 +64,6 @@ public:
             MpLogger::info("LootStoreItem is not valid after updating itemid to {} in OnBeforeDropAddItem()", newItemId);
             return;
         }
-
     }
 
 };

@@ -49,6 +49,14 @@ public:
     uint32 legendaryItemOffset;
     uint32 ascendantItemOffset;
 
+    enum MP_UNIT_EVENT_TYPE
+    {
+        UNIT_EVENT_MELEE,
+        UNIT_EVENT_HEAL,
+        UNIT_EVENT_DOT,
+        UNIT_EVENT_SPELL
+    };
+
     // Map is eligible for mythic+ scaling
     bool IsMapEligible(Map* map);
 
@@ -61,8 +69,11 @@ public:
     // if configuration has disabled the specific dungeon return false
     bool IsDungeonDisabled(uint32 dungeonId);
 
+    // Is it a scaled creature that is being healed
+    bool EligibleHealTarget(Unit* target);
+
     // Validates if the target of an attack should receive mythic+ damage/heal/dot scaling
-    bool EligibleTarget(Unit* target);
+    bool EligibleDamageTarget(Unit* target);
 
     // The creature should be given Mythic+ scaling and powers check for pets, npcs, etc
     bool IsCreatureEligible(Creature* creature);

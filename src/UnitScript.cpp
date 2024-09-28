@@ -9,59 +9,6 @@ public:
     MythicPlus_UnitScript() : UnitScript("MythicPlus_UnitScript", true) { }
 
     void ModifyPeriodicDamageAurasTick(Unit* target, Unit* attacker, uint32& damage, SpellInfo const* /*spellInfo*/) override {
-        Map *map = target->GetMap();
-        if(!sMythicPlus->IsMapEligible(map)) {
-            return;
-        }
-
-        // If the target is the enemy then increase the amount of healing by the instance data modifier for spell output.
-        if(target->isType(TYPEID_PLAYER) && attacker->isType(TYPEID_UNIT)) {
-            Creature* creature = target->ToCreature();
-            if(!creature || !sMythicPlus->IsCreatureEligible(creature)) {
-                return;
-            }
-
-            MpInstanceData* instanceData = sMpDataStore->GetInstanceData(map->GetId(), map->GetInstanceId());
-            if(!instanceData) {
-                return;
-            }
-
-            if(creature->IsDungeonBoss()) {
-                damage = damage * (instanceData->boss.spell * 0.8);
-            } else {
-                damage = damage * (instanceData->creature.spell * 0.8);
-            }
-        }
-    }
-
-    void ModifySpellDamageTaken(Unit* target, Unit* attacker, int32& damage, SpellInfo const* /*spellInfo*/) override {
-        Map *map = target->GetMap();
-        if(!sMythicPlus->IsMapEligible(map)) {
-            return;
-        }
-
-        // If the target is the enemy then increase the amount of healing by the instance data modifier for spell output.
-        if(target->isType(TYPEID_PLAYER) && attacker->isType(TYPEID_UNIT)) {
-            Creature* creature = target->ToCreature();
-            if(!creature || !sMythicPlus->IsCreatureEligible(creature)) {
-                return;
-            }
-
-            MpInstanceData* instanceData = sMpDataStore->GetInstanceData(map->GetId(), map->GetInstanceId());
-            if(!instanceData) {
-                return;
-            }
-
-            if(creature->IsDungeonBoss()) {
-                damage = damage * instanceData->boss.spell;
-            } else {
-                damage = damage * instanceData->creature.spell;
-            }
-        }
-    }
-
-    void ModifyMeleeDamage(Unit* target, Unit* attacker, uint32& damage) override {
-
         if (!target && !attacker) {
             return;
         }
@@ -71,74 +18,110 @@ public:
             return;
         }
 
-        // If the target is the enemy then increase the amount of healing by the instance data modifier for spell output.
-        if(sMythicPlus->EligibleTarget(target)) {
-
-            Creature* creature = attacker->ToCreature();
-
-            MpInstanceData* instanceData = sMpDataStore->GetInstanceData(map->GetId(), map->GetInstanceId());
-            if(!instanceData) {
-                return;
-            }
-
-            auto origDamage = damage;
-            if(creature->IsDungeonBoss()) {
-                damage = damage * instanceData->boss.melee * 5;
-            } else {
-                damage = damage * instanceData->creature.melee;
-            }
-        }
-
+        damage = modifyIncomingDmgHeal(MythicPlus::UNIT_EVENT_DOT, target, attacker, damage);
     }
 
-    // When a healing spell hits a mythic+ enemy modify based on the modifiers for the difficulty
-    void ModifyHealReceived(Unit* target, Unit* healer, uint32& healing, SpellInfo const* /*spellInfo*/) override {
+    void ModifySpellDamageTaken(Unit* target, Unit* attacker, int32& damage, SpellInfo const* /*spellInfo*/) override {
+        if (!target && !attacker) {
+            return;
+        }
 
         Map *map = target->GetMap();
         if(!sMythicPlus->IsMapEligible(map)) {
             return;
         }
 
-        // If the target is the enemy then increase the amount of healing by the instance data modifier for spell output.
-        if(target->isType(TYPEID_UNIT)) {
-            Creature* creature = target->ToCreature();
-            if(!creature || !sMythicPlus->IsCreatureEligible(creature)) {
-                return;
-            }
+        damage = modifyIncomingDmgHeal(MythicPlus::UNIT_EVENT_SPELL, target, attacker, damage);
+    }
 
-            MpInstanceData* instanceData = sMpDataStore->GetInstanceData(map->GetId(), map->GetInstanceId());
-            if(!instanceData) {
-                return;
-            }
-
-            if(creature->IsDungeonBoss()) {
-                healing = healing * instanceData->boss.spell;
-            } else {
-                healing = healing * instanceData->creature.spell;
-
-            }
+    /**
+     * Directly Modify the melee damage characters and allied creatures will
+     * receive from mythic+ scaled enemies.
+     */
+    void ModifyMeleeDamage(Unit* target, Unit* attacker, uint32& damage) override {
+        if (!target && !attacker) {
+            return;
         }
 
+        Map *map = target->GetMap();
+        if(!sMythicPlus->IsMapEligible(map)) {
+            return;
+        }
+
+        damage = modifyIncomingDmgHeal(MythicPlus::UNIT_EVENT_MELEE, target, attacker, damage);
     }
 
-    // void OnAuraApply(Unit* unit, Aura* aura) override {
+    // When a healing spell hits a mythic+ enemy modify based on the modifiers for the difficulty
+    void ModifyHealReceived(Unit* target, Unit* healer, uint32& healing, SpellInfo const* /*spellInfo*/) override {
+      if (!target && !healer) {
+            return;
+        }
 
-    // }
+        Map *map = target->GetMap();
+        if(!sMythicPlus->IsMapEligible(map)) {
+            return;
+        }
 
+        healing = modifyIncomingDmgHeal(MythicPlus::UNIT_EVENT_HEAL, target, healer, healing);
+    }
+
+    // void OnAuraApply(Unit* unit, Aura* aura) override {}
 };
 
-bool EligibleTarget(Unit* target, Unit* attacker) {
+uint32 modifyIncomingDmgHeal(MythicPlus::MP_UNIT_EVENT_TYPE eventType,Unit* target, Unit* attacker, uint32 damageOrHeal) {
     if (!target && !attacker) {
-        return false;
+        return damageOrHeal;
     }
 
-    #define NPCBots
-
-    if (target->GetTypeId() == TYPEID_PLAYER && attacker->GetTypeId() == TYPEID_UNIT) {
-        return true;
+    Map *map = target->GetMap();
+    if(!sMythicPlus->IsMapEligible(map)) {
+        return damageOrHeal;
     }
 
-    return false;
+
+    Creature* creature = attacker->ToCreature();
+    MpInstanceData* instanceData = sMpDataStore->GetInstanceData(map->GetId(), map->GetInstanceId());
+    if(!instanceData) {
+        return damageOrHeal;
+    }
+
+    // If the target is the enemy then increase the amount of healing by the instance data modifier for spell output.
+    if(sMythicPlus->EligibleDamageTarget(target)) {
+        /**
+         * @TODO: Allow more granular control over the scaling of DOT, HOT, and other spell effects
+         * in the future if needed
+         */
+        switch (eventType) {
+            case MythicPlus::UNIT_EVENT_MELEE:
+                if(creature->IsDungeonBoss()) {
+                    return damageOrHeal * instanceData->boss.melee;
+                } else {
+                    return damageOrHeal * instanceData->creature.melee;
+                }
+                break;
+            case MythicPlus::UNIT_EVENT_DOT:
+            case MythicPlus::UNIT_EVENT_SPELL:
+                if(creature->IsDungeonBoss()) {
+                    return damageOrHeal * instanceData->boss.spell;
+                } else {
+                    return damageOrHeal * instanceData->creature.spell;
+                }
+                break;
+        }
+    }
+
+    /**
+     * @TODO: Add more granular control over the scaling of healing spells
+     */
+    if(sMythicPlus->EligibleHealTarget(target)) {
+        if(creature->IsDungeonBoss()) {
+            return damageOrHeal * instanceData->boss.spell;
+        } else {
+            return damageOrHeal * instanceData->creature.spell;
+        }
+    }
+
+    return damageOrHeal;
 }
 
 void Add_MP_UnitScripts()

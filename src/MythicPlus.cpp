@@ -43,7 +43,31 @@ bool MythicPlus::IsDungeonDisabled(uint32 dungeon)
     return std::find(disabledDungeons.begin(), disabledDungeons.end(), dungeon) != disabledDungeons.end();
 }
 
-bool MythicPlus::EligibleTarget(Unit* target)
+bool MythicPlus::EligibleHealTarget(Unit* target)
+{
+    if (!target) {
+        return false;
+    }
+
+    if(sMythicPlus->EligibleDamageTarget(target)) {
+        return false;
+    }
+
+    if(sMythicPlus->IsCreatureEligible(target->ToCreature())) {
+        return true;
+    }
+
+
+    if (target->GetTypeId() == TYPEID_CORPSE || target->GetTypeId() == TYPEID_GAMEOBJECT) {
+        return false;
+    }
+
+
+
+    return true;
+}
+
+bool MythicPlus::EligibleDamageTarget(Unit* target)
 {
     if (!target) {
         return false;
@@ -53,16 +77,7 @@ bool MythicPlus::EligibleTarget(Unit* target)
         return true;
     }
 
-    MpLogger::debug("EligibleTarget: target {} is not a player", target->GetName());
-
-    #if defined(NPCBots)
-        MpLogger::debug("MOD_PRESET_NPCBOTS: value {}", MOD_PRESENT_NPCBOTS);
-    #endif
-
-
-
     #if defined(MOD_PRESENT_NPCBOTS)
-        MpLogger::debug("IN BOT DEFINED STUFF: target: {} BOT?{}", target->GetName(), target->IsNPCBot());
         if (target->IsNPCBot()) {
             MpLogger::debug("Target {} is an NPC eligible to be smacked hard", target->GetName());
             return true;
@@ -237,6 +252,10 @@ void MythicPlus::ScaleCreature(uint8 level, Creature* creature, MpMultipliers* m
     // Scale up the armor with some variance also to make some tougher enemies in the mix
     uint32 armor = uint32(std::ceil(stats->BaseArmor * multipliers->armor));
     creature->SetArmor(armor);
+
+    /**
+     * @TODO Explore scaling other variable stats based on the creature type at a later date.
+     */
     // creature->SetModifierValue(UNIT_MOD_ATTACK_POWER, BASE_VALUE, stats->AttackPower * multipliers->melee);
     // creature->SetModifierValue(UNIT_MOD_ATTACK_POWER_RANGED, BASE_VALUE, stats->RangedAttackPower * multipliers->melee);
 

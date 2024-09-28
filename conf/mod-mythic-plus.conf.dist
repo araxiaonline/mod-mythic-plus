@@ -46,18 +46,21 @@ MythicPlus.EnableDeathLimits = 1
 
 MythicPlus.Mythic.DungeonHealth = 1.25
 MythicPlus.Mythic.DungeonMelee = 1.25
+MythicPlus.Mythic.DungeonBaseDamage = 1.50
 MythicPlus.Mythic.DungeonSpell = 1.15
 MythicPlus.Mythic.DungeonArmor = 1.25
 MythicPlus.Mythic.DungeonAvgLevel = 83
 
 MythicPlus.Mythic.DungeonBossHealth = 1.50
 MythicPlus.Mythic.DungeonBossMelee = 1.35
+MythicPlus.Mythic.DungeonBossBaseDamage = 2.00
 MythicPlus.Mythic.DungeonBossSpell = 1.25
 MythicPlus.Mythic.DungeonBossArmor = 1.35
 MythicPlus.Mythic.DungeonBossLevel = 85
 
 MythicPlus.Legendary.DungeonHealth = 2.25
 MythicPlus.Legendary.DungeonMelee = 2.25
+MythicPlus.Legendary.DungeonBaseDamage = 2.75
 MythicPlus.Legendary.DungeonSpell = 2.25
 MythicPlus.Legendary.DungeonArmor = 2.25
 MythicPlus.Legendary.DungeonAvgLevel = 85
@@ -65,11 +68,13 @@ MythicPlus.Legendary.DungeonAvgLevel = 85
 MythicPlus.Legendary.DungeonBossHealth = 2.25
 MythicPlus.Legendary.DungeonBossMelee = 2.25
 MythicPlus.Legendary.DungeonBossSpell = 2.25
+MythicPlus.Legendary.DungeonBossBaseDamage = 4.00
 MythicPlus.Legendary.DungeonBossArmor = 3.25
 MythicPlus.Legendary.DungeonBossLevel = 87
 
 MythicPlus.Ascendant.DungeonHealth = 3.25
 MythicPlus.Ascendant.DungeonMelee = 3.25
+MythicPlus.Ascendant.DungeonBaseDamage = 4.75
 MythicPlus.Ascendant.DungeonSpell = 3.25
 MythicPlus.Ascendant.DungeonArmor = 3.25
 MythicPlus.Ascendant.DungeonAvgLevel = 87
@@ -77,6 +82,7 @@ MythicPlus.Ascendant.DungeonAvgLevel = 87
 MythicPlus.Ascendant.DungeonBossHealth = 3.25
 MythicPlus.Ascendant.DungeonBossMelee = 3.25
 MythicPlus.Ascendant.DungeonBossSpell = 3.25
+MythicPlus.Ascendant.DungeonBossBaseDamage = 6.00
 MythicPlus.Ascendant.DungeonBossArmor = 3.25
 MythicPlus.Ascendant.DungeonBossLevel = 90
 
@@ -88,7 +94,7 @@ MythicPlus.Ascendant.DungeonBossLevel = 90
 #
 ##########################################################
 
-MythicPlus.Mythic.DeathAllowance = 1000
+MythicPlus.Mythic.DeathAllowance = 100
 MythicPlus.Legendary.DeathAllowance = 30
 MythicPlus.Ascendant.DeathAllowance = 15
 
