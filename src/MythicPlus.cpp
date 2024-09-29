@@ -276,21 +276,21 @@ void MythicPlus::ScaleCreature(uint8 level, Creature* creature, MpMultipliers* m
     // creature->SetModifierValue(UNIT_MOD_ATTACK_POWER_RANGED, BASE_VALUE, stats->RangedAttackPower * multipliers->melee);
 }
 
-int32 ScaleDamageSpell(SpellInfo const * spellInfo, MpCreatureData* creatureData, Creature* creature, float damageMultiplier)
+int32 MythicPlus::ScaleDamageSpell(SpellInfo const * spellInfo, MpCreatureData* creatureData, Creature* creature, float damageMultiplier)
 {
     if (!spellInfo) {
         MpLogger::error("Invalid spell info ScaleDamageSpell()");
-        return;
+        return 0;
     }
 
     if(!creatureData) {
         MpLogger::error("Invalid creature data ScaleDamageSpell()");
-        return;
+        return 0;
     }
 
     if(!creature) {
         MpLogger::error("Invalid creature ScaleDamageSpell()");
-        return;
+        return 0;
     }
 
     int32 originalLevel = creatureData->originalLevel;
@@ -310,29 +310,31 @@ int32 ScaleDamageSpell(SpellInfo const * spellInfo, MpCreatureData* creatureData
 
     // Apply scaling factor and the set multiplier from the instance data
     totalDamage = int32(totalDamage * scalingFactor * damageMultiplier);
+
+    MpLogger::debug("Spell damage scaled from for spell New Damage: {}", totalDamage);
     return totalDamage;
 }
 
-int32 ScaleHealSpell(SpellInfo const * spellInfo, MpCreatureData* creatureData, Creature* creature, Creature* target, float healMultiplier)
+int32 MythicPlus::ScaleHealSpell(SpellInfo const * spellInfo, MpCreatureData* creatureData, Creature* creature, Creature* target, float healMultiplier)
 {
     if (!spellInfo) {
         MpLogger::error("Invalid spell info ScaleHealSpell()");
-        return;
+        return 0;
     }
 
     if(!creatureData) {
         MpLogger::error("Invalid creature data ScaleHealSpell()");
-        return;
+        return 0;
     }
 
     if(!creature) {
         MpLogger::error("Invalid creature ScaleHealSpell()");
-        return;
+        return 0;
     }
 
     if(!target) {
         MpLogger::error("Invalid target ScaleHealSpell()");
-        return;
+        return 0;
     }
 
     int32 originalHp = creatureData->originalStats->BaseHealth[EXPANSION_WRATH_OF_THE_LICH_KING];
@@ -348,8 +350,8 @@ int32 ScaleHealSpell(SpellInfo const * spellInfo, MpCreatureData* creatureData, 
     }
 
     // Apply scaling factor and the set multiplier from the instance data
+    MpLogger::debug("Spell healing scaled from for spell  New Damage: {}", totalHeal);
     return pow((totalHeal / originalHp) * currentHealth, 0.8f) * healMultiplier;
-    return totalHeal;
 }
 
 /**
