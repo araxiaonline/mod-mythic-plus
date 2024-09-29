@@ -54,7 +54,8 @@ public:
         UNIT_EVENT_MELEE,
         UNIT_EVENT_HEAL,
         UNIT_EVENT_DOT,
-        UNIT_EVENT_SPELL
+        UNIT_EVENT_SPELL,
+        UNIT_EVENT_HOT
     };
 
     // Map is eligible for mythic+ scaling
@@ -97,6 +98,12 @@ public:
 
     // Scales the creature based on the level and the creature base stats
     void ScaleCreature(uint8 level, Creature* creature, MpMultipliers* multipliers);
+
+    // Scales a damage spell up based on the level increase
+    int32 ScaleDamageSpell(SpellInfo const * spellInfo, MpCreatureData* creatureData, Creature* creature, float damageMultiplier);
+
+    // This scales a heal spell up based on the how much % the original heal spell was
+    int32 ScaleHealSpell(SpellInfo const * spellInfo, MpCreatureData* creatureData, Creature* creature, Creature* target, float healMultiplier);
 
     private:
         MythicPlus() { }

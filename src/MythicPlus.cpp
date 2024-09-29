@@ -4,6 +4,12 @@
 #include "ObjectMgr.h"
 #include "MapMgr.h"
 #include "ScriptMgr.h"
+#include "Player.h"
+#include "Group.h"
+#include "Map.h"
+#include "Unit.h"
+#include "Creature.h"
+#include "SpellInfo.h"
 
 bool MythicPlus::IsMapEligible(Map* map)
 {
@@ -49,22 +55,25 @@ bool MythicPlus::EligibleHealTarget(Unit* target)
         return false;
     }
 
-    if(sMythicPlus->EligibleDamageTarget(target)) {
+    if (target->GetTypeId() == TYPEID_CORPSE || target->GetTypeId() == TYPEID_GAMEOBJECT) {
         return false;
     }
+
+    #if defined(MOD_PRESENT_NPCBOTS)
+        if (target->IsNPCBot()) {
+            return false;
+        }
+
+        if ((target->IsPet() || target->IsSummon() || target->IsHunterPet()) && target->GetOwner()->IsNPCBot()) {
+            return false;
+        }
+    #endif
 
     if(sMythicPlus->IsCreatureEligible(target->ToCreature())) {
         return true;
     }
 
-
-    if (target->GetTypeId() == TYPEID_CORPSE || target->GetTypeId() == TYPEID_GAMEOBJECT) {
-        return false;
-    }
-
-
-
-    return true;
+    return false;
 }
 
 bool MythicPlus::EligibleDamageTarget(Unit* target)
@@ -74,12 +83,12 @@ bool MythicPlus::EligibleDamageTarget(Unit* target)
     }
 
     if (target->GetTypeId() == TYPEID_PLAYER) {
+        MpLogger::debug("Target {} is a player", target->GetName());
         return true;
     }
 
     #if defined(MOD_PRESENT_NPCBOTS)
         if (target->IsNPCBot()) {
-            MpLogger::debug("Target {} is an NPC eligible to be smacked hard", target->GetName());
             return true;
         }
 
@@ -98,6 +107,10 @@ bool MythicPlus::EligibleDamageTarget(Unit* target)
 
 bool MythicPlus::IsCreatureEligible(Creature* creature)
 {
+    if(!creature) {
+        return false;
+    }
+
     if (creature->IsDungeonBoss()) {
         return true;
     }
@@ -229,7 +242,7 @@ void MythicPlus::ScaleCreature(uint8 level, Creature* creature, MpMultipliers* m
     // Normalize the damage from earlier expansions
     float cTemplateDmgMult = cInfo->DamageModifier;
     if (origLevel <= 60 && cTemplateDmgMult < 3.0f) {
-        cTemplateDmgMult = 3.0f;
+        cTemplateDmgMult = 4.0f;
     }
     if (origLevel <= 70 && origLevel > 60 && cTemplateDmgMult < 4.0f) {
         cTemplateDmgMult = 4.0f;
@@ -247,10 +260,13 @@ void MythicPlus::ScaleCreature(uint8 level, Creature* creature, MpMultipliers* m
     creature->SetBaseWeaponDamage(RANGED_ATTACK, MINDAMAGE, weaponBaseMinDamage);
     creature->SetBaseWeaponDamage(RANGED_ATTACK, MAXDAMAGE, weaponBaseMaxDamage);
 
+    creature->ApplyAttackTimePercentMod(BASE_ATTACK, 0.75, true);
+    creature->ApplyAttackTimePercentMod(OFF_ATTACK, 0.95, true);
+    creature->ApplyCastTimePercentMod(0.80, true);
     creature->UpdateAllStats();
 
     // Scale up the armor with some variance also to make some tougher enemies in the mix
-    uint32 armor = uint32(std::ceil(stats->BaseArmor * multipliers->armor));
+    uint32 armor = uint32(std::ceil(stats->BaseArmor * multipliers->armor * cInfo->ModArmor));
     creature->SetArmor(armor);
 
     /**
@@ -258,10 +274,82 @@ void MythicPlus::ScaleCreature(uint8 level, Creature* creature, MpMultipliers* m
      */
     // creature->SetModifierValue(UNIT_MOD_ATTACK_POWER, BASE_VALUE, stats->AttackPower * multipliers->melee);
     // creature->SetModifierValue(UNIT_MOD_ATTACK_POWER_RANGED, BASE_VALUE, stats->RangedAttackPower * multipliers->melee);
+}
 
+int32 ScaleDamageSpell(SpellInfo const * spellInfo, MpCreatureData* creatureData, Creature* creature, float damageMultiplier)
+{
+    if (!spellInfo) {
+        MpLogger::error("Invalid spell info ScaleDamageSpell()");
+        return;
+    }
 
-    MpLogger::debug("Scaled creature reported base damage from {} to {}", creature->GetWeaponDamageRange(BASE_ATTACK, MINDAMAGE), creature->GetWeaponDamageRange(BASE_ATTACK, MAXDAMAGE));
-    MpLogger::debug("Scaled creature {} armor to {}", creature->GetName(), creature->GetArmor());
+    if(!creatureData) {
+        MpLogger::error("Invalid creature data ScaleDamageSpell()");
+        return;
+    }
+
+    if(!creature) {
+        MpLogger::error("Invalid creature ScaleDamageSpell()");
+        return;
+    }
+
+    int32 originalLevel = creatureData->originalLevel;
+    int32 currentLevel = creature->GetLevel();
+    int32 totalDamage = 0;
+
+    // Calculate the scaling factor using the 1.8 exponent
+    float scalingFactor = pow(float(originalLevel / originalLevel), 1.8f);
+    auto effects = spellInfo->GetEffects();
+
+    // Loop through all spell effects to scale their base damage
+    for (uint8 i = 0; i < effects.size(); ++i)
+    {
+        SpellEffectInfo effect = effects[i];
+        totalDamage += effect.CalcValue(creature, nullptr,nullptr);
+    }
+
+    // Apply scaling factor and the set multiplier from the instance data
+    totalDamage = int32(totalDamage * scalingFactor * damageMultiplier);
+    return totalDamage;
+}
+
+int32 ScaleHealSpell(SpellInfo const * spellInfo, MpCreatureData* creatureData, Creature* creature, Creature* target, float healMultiplier)
+{
+    if (!spellInfo) {
+        MpLogger::error("Invalid spell info ScaleHealSpell()");
+        return;
+    }
+
+    if(!creatureData) {
+        MpLogger::error("Invalid creature data ScaleHealSpell()");
+        return;
+    }
+
+    if(!creature) {
+        MpLogger::error("Invalid creature ScaleHealSpell()");
+        return;
+    }
+
+    if(!target) {
+        MpLogger::error("Invalid target ScaleHealSpell()");
+        return;
+    }
+
+    int32 originalHp = creatureData->originalStats->BaseHealth[EXPANSION_WRATH_OF_THE_LICH_KING];
+    int32 currentHealth = creature->GetHealth();
+    int32 totalHeal = 0;
+
+    auto effects = spellInfo->GetEffects();
+    // Loop through all spell effects to scale their base healing
+    for (uint8 i = 0; i < effects.size(); ++i)
+    {
+        SpellEffectInfo effect = effects[i];
+        totalHeal += effect.CalcValue(creature, nullptr, target);
+    }
+
+    // Apply scaling factor and the set multiplier from the instance data
+    return pow((totalHeal / originalHp) * currentHealth, 0.8f) * healMultiplier;
+    return totalHeal;
 }
 
 /**

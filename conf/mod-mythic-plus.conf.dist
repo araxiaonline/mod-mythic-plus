@@ -31,9 +31,8 @@ MythicPlus.EnableDeathLimits = 1
 # Enabled difficulty settings
 #
 ##########################################################
-# MythicPlus.EnabledDifficulties = 3,4,5
-# MythicPlus.DisabledDungeons =
-
+ MythicPlus.EnabledDifficulties = mythic,legendary,ascendant
+ MythicPlus.DisabledDungeons =
 
 ##########################################################
 #
@@ -48,7 +47,7 @@ MythicPlus.Mythic.DungeonHealth = 1.25
 MythicPlus.Mythic.DungeonMelee = 1.25
 MythicPlus.Mythic.DungeonBaseDamage = 1.50
 MythicPlus.Mythic.DungeonSpell = 1.15
-MythicPlus.Mythic.DungeonArmor = 1.25
+MythicPlus.Mythic.DungeonArmor = 1.95
 MythicPlus.Mythic.DungeonAvgLevel = 83
 
 MythicPlus.Mythic.DungeonBossHealth = 1.50
