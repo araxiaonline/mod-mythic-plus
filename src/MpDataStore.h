@@ -20,12 +20,16 @@ struct MpGroupData
     uint32 deaths;
 
     std::vector<std::pair<uint32,uint32>> instanceDataKeys;
+    MpGroupData() : group(nullptr), deaths(0) {
+        instanceDataKeys.reserve(32);
+    }
 
     std::string ToString() const {
         return "MpGroupData: { group: " + std::to_string(group->GetGUID().GetCounter()) +
                ", difficulty: " + std::to_string(difficulty) +
                ", deaths: " + std::to_string(deaths) + " }";
     }
+
 };
 
 struct MpPlayerData
@@ -33,6 +37,12 @@ struct MpPlayerData
     Player* player;
     uint8 difficulty;
     uint32 deaths;
+};
+
+struct MpScaleFactor
+{
+    int32 mapId;
+    int8 difficulty;
 };
 
 struct MpMultipliers
@@ -80,6 +90,8 @@ struct MpInstanceData
 
 };
 
+
+
 /**
  * Simple struct for managing information about creatures that
  * are in a mythic+ instance.
@@ -126,7 +138,11 @@ private:
     : _playerData(std::make_unique<std::unordered_map<ObjectGuid, MpPlayerData>>()),
       _instanceData(std::make_unique<std::map<std::pair<uint32, uint32>, MpInstanceData>>()),
       _groupData(std::make_unique<std::unordered_map<ObjectGuid, MpGroupData>>()),
-      _instanceCreatureData(std::make_unique<std::unordered_map<ObjectGuid, MpCreatureData>>()) {};
+      _instanceCreatureData(std::make_unique<std::unordered_map<ObjectGuid, MpCreatureData>>()) {
+        _playerData->reserve(32);
+        _groupData->reserve(32);
+        _instanceCreatureData->reserve(500);
+      };
 
     inline ~MpDataStore() {
 
@@ -194,6 +210,9 @@ public:
     auto GetInstanceDataKey(uint32 mapId, uint32 instanceId) {
         return std::make_pair(mapId, instanceId);
     }
+
+    // loads scaling factors from the database
+    void LoadScaleFactors();
 
     // accessor for this singleton
     static MpDataStore* instance() {

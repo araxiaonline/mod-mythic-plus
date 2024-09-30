@@ -219,7 +219,7 @@ void MythicPlus::ScaleCreature(uint8 level, Creature* creature, MpMultipliers* m
     }
 
     // Scales the creatures hitpoints
-    float healthmod = GetHealthModifier(rank);
+    float healthmod = GetTypeHealthModifier(rank);
     // Add some variance to the healthpool so enemies are not all the same
     float healthVariation = frand(0.85f, 1.15f);
     uint32 basehp = uint32(std::ceil(stats->BaseHealth[EXPANSION_WRATH_OF_THE_LICH_KING] * cInfo->ModHealth));
@@ -231,7 +231,8 @@ void MythicPlus::ScaleCreature(uint8 level, Creature* creature, MpMultipliers* m
     creature->ResetPlayerDamageReq();
 
     // Scales the creatures mana
-    uint32 mana = uint32(std::ceil(stats->BaseMana * cInfo->ModMana));
+    uint32 mana = uint32(std::ceil(stats->BaseMana * cInfo->ModMana * multipliers->health));
+
     creature->SetCreateMana(mana);
     creature->SetMaxPower(POWER_MANA, mana);
     creature->SetPower(POWER_MANA, mana);
@@ -249,7 +250,7 @@ void MythicPlus::ScaleCreature(uint8 level, Creature* creature, MpMultipliers* m
     }
 
     float basedamage = uint32(std::ceil(stats->BaseDamage[EXPANSION_WRATH_OF_THE_LICH_KING]));
-    float creatureTypeMult = GetDamageModifier(rank);
+    float creatureTypeMult = GetTypeDamageModifier(rank);
     float weaponBaseMinDamage = basedamage * cTemplateDmgMult * creatureTypeMult * multipliers->baseDamage;
     float weaponBaseMaxDamage = weaponBaseMinDamage * 1.5f;
 
@@ -357,7 +358,7 @@ int32 MythicPlus::ScaleHealSpell(SpellInfo const * spellInfo, MpCreatureData* cr
 /**
  * Function is copied because was not accessible in core creature class
  */
-float GetHealthModifier(int32 Rank)
+float GetTypeHealthModifier(int32 Rank)
 {
     switch (Rank)
     {
@@ -376,7 +377,7 @@ float GetHealthModifier(int32 Rank)
     }
 }
 
-float GetDamageModifier(int32 Rank)
+float GetTypeDamageModifier(int32 Rank)
 {
     switch (Rank)
     {
@@ -394,3 +395,5 @@ float GetDamageModifier(int32 Rank)
             return sWorld->getRate(RATE_CREATURE_ELITE_ELITE_DAMAGE);
     }
 }
+
+float NormalizeDamageMap
