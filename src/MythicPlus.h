@@ -119,7 +119,8 @@ public:
 
 float GetTypeHealthModifier(int32 rank);
 float GetTypeDamageModifier(int32 rank);
-
+uint32 CalculateNewHealth(CreatureTemplate const* cInfo, uint32 mapId, MpDifficulty difficulty, uint32 origHealth, float confHPMod);
+float CalculateNewBaseDamage(CreatureTemplate const* cInfo, uint32 mapId, MpDifficulty difficulty, float origDamage);
 
 #define sMythicPlus MythicPlus::instance()
 

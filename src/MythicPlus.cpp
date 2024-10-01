@@ -389,10 +389,9 @@ float CalculateNewBaseDamage(CreatureTemplate const* cInfo, uint32 mapId, MpDiff
     if(cInfo->DamageModifier > 0.0f) {
         return baseDamage * (cInfo->DamageModifier + dmgScaleFactor);
     } else {
-        return baseDamage * (dmgScaleFactor);
+        return baseDamage * dmgScaleFactor;
     }
 }
-
 
 float GetTypeDamageModifier(int32 Rank)
 {
