@@ -26,11 +26,11 @@ public:
             }
         }
 
-        if(haspositiveeffect) {
-            damage = modifyIncomingDmgHeal(MythicPlus::UNIT_EVENT_HOT, target, attacker, damage);
-        } else {
-            damage = modifyIncomingDmgHeal(MythicPlus::UNIT_EVENT_DOT, target, attacker, damage);
-        }
+        // if(haspositiveeffect) {
+        //     damage = modifyIncomingDmgHeal(MythicPlus::UNIT_EVENT_HOT, target, attacker, damage);
+        // } else {
+        //     damage = modifyIncomingDmgHeal(MythicPlus::UNIT_EVENT_DOT, target, attacker, damage);
+        // }
     }
 
     void ModifySpellDamageTaken(Unit* target, Unit* attacker, int32& damage, SpellInfo const* /*spellInfo*/) override {
@@ -43,7 +43,7 @@ public:
             return;
         }
 
-        damage = modifyIncomingDmgHeal(MythicPlus::UNIT_EVENT_SPELL, target, attacker, damage);
+        // damage = modifyIncomingDmgHeal(MythicPlus::UNIT_EVENT_SPELL, target, attacker, damage);
     }
 
     /**
@@ -60,7 +60,7 @@ public:
             return;
         }
 
-        damage = modifyIncomingDmgHeal(MythicPlus::UNIT_EVENT_MELEE, target, attacker, damage);
+        // damage = modifyIncomingDmgHeal(MythicPlus::UNIT_EVENT_MELEE, target, attacker, damage);
     }
 
     // When a healing spell hits a mythic+ enemy modify based on the modifiers for the difficulty
@@ -74,7 +74,7 @@ public:
             return;
         }
 
-        healing = modifyIncomingDmgHeal(MythicPlus::UNIT_EVENT_HEAL, target, healer, healing);
+        // healing = modifyIncomingDmgHeal(MythicPlus::UNIT_EVENT_HEAL, target, healer, healing);
     }
 
     uint32 modifyIncomingDmgHeal(MythicPlus::MP_UNIT_EVENT_TYPE eventType,Unit* target, Unit* attacker, uint32 damageOrHeal, SpellInfo const* spellInfo = nullptr) {
@@ -88,6 +88,16 @@ public:
         if(!sMythicPlus->IsMapEligible(map)) {
             return damageOrHeal;
         }
+
+        if(attacker && attacker->IsPlayer()) {
+            return damageOrHeal;
+        }
+
+    #if defined(MOD_PRESENT_NPCBOTS)
+        if (attacker && attacker->IsNPCBot()) {
+            return damageOrHeal;
+        }
+    #endif
 
         Creature* creature = attacker ? attacker->ToCreature() : nullptr;
         if (!creature) {

@@ -4,6 +4,7 @@
 #include "MapMgr.h"
 #include "ScriptMgr.h"
 #include "Group.h"
+#include "Unit.h"
 
 #include <algorithm>
 #include <cmath>
@@ -231,16 +232,24 @@ void MythicPlus::ScaleCreature(uint8 level, Creature* creature, MpMultipliers* m
     creature->SetModifierValue(UNIT_MOD_MANA, BASE_VALUE, (float)mana);
 
 
-    float basedamage = stats->BaseDamage[EXPANSION_WRATH_OF_THE_LICH_KING];
-    float weaponBaseMinDamage = CalculateNewBaseDamage(cInfo, mapId, difficulty, basedamage);
-    float weaponBaseMaxDamage = weaponBaseMinDamage * 1.5f;
+    // float basedamage = stats->BaseDamage[EXPANSION_WRATH_OF_THE_LICH_KING];
+    // float weaponBaseMinDamage = CalculateNewBaseDamage(cInfo, mapId, difficulty, basedamage);
+    // float weaponBaseMaxDamage = weaponBaseMinDamage * 1.15f;
 
-    creature->SetBaseWeaponDamage(BASE_ATTACK, MINDAMAGE, weaponBaseMinDamage);
-    creature->SetBaseWeaponDamage(BASE_ATTACK, MAXDAMAGE, weaponBaseMaxDamage);
-    creature->SetBaseWeaponDamage(OFF_ATTACK, MINDAMAGE, weaponBaseMinDamage);
-    creature->SetBaseWeaponDamage(OFF_ATTACK, MAXDAMAGE, weaponBaseMaxDamage);
-    creature->SetBaseWeaponDamage(RANGED_ATTACK, MINDAMAGE, weaponBaseMinDamage);
-    creature->SetBaseWeaponDamage(RANGED_ATTACK, MAXDAMAGE, weaponBaseMaxDamage);
+    // creature->SetBaseWeaponDamage(BASE_ATTACK, MINDAMAGE, weaponBaseMinDamage);
+    // creature->SetBaseWeaponDamage(BASE_ATTACK, MAXDAMAGE, weaponBaseMaxDamage);
+    // creature->SetBaseWeaponDamage(OFF_ATTACK, MINDAMAGE, weaponBaseMinDamage);
+    // creature->SetBaseWeaponDamage(OFF_ATTACK, MAXDAMAGE, weaponBaseMaxDamage);
+    // creature->SetBaseWeaponDamage(RANGED_ATTACK, MINDAMAGE, weaponBaseMinDamage);
+    // creature->SetBaseWeaponDamage(RANGED_ATTACK, MAXDAMAGE, weaponBaseMaxDamage);
+    int32 damageBonus = sMpDataStore->GetDamageScaleFactor(mapId, difficulty);
+    float dmgMod = cInfo->DamageModifier + damageBonus;
+    creature->SetModifierValue(UNIT_MOD_DAMAGE_MAINHAND,BASE_VALUE, dmgMod);
+
+    // MpLogger::debug("Creature base attack damage scaled from {} to {}",
+    //     basedamage,
+    //     weaponBaseMinDamage
+    // );
 
     creature->UpdateAllStats();
 
