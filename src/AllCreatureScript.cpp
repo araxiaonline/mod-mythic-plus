@@ -42,6 +42,7 @@ public:
     {
         sMythicPlus->RemoveCreature(creature);
     }
+
 };
 
 void Add_MP_AllCreatureScripts()

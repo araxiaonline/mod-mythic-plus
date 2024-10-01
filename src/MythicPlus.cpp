@@ -173,13 +173,13 @@ void MythicPlus::AddScaledCreature(Creature* creature, MpInstanceData* instanceD
     creatureData.SetScaled(true);
     sMpDataStore->AddCreatureData(creature->GetGUID(), creatureData);
 
-    MpLogger::debug("Scaled Creature {} Entry {} Id {} level from {} to {}",
-        creature->GetName(),
-        creature->GetEntry(),
-        creature->GetGUID().GetCounter(),
-        creature->GetLevel(),
-        level
-    );
+    // MpLogger::debug("Scaled Creature {} Entry {} Id {} level from {} to {}",
+    //     creature->GetName(),
+    //     creature->GetEntry(),
+    //     creature->GetGUID().GetCounter(),
+    //     creature->GetLevel(),
+    //     level
+    // );
 }
 
 void MythicPlus::ScaleRemaining(Player* player, MpInstanceData* instanceData)
@@ -216,10 +216,17 @@ void MythicPlus::ScaleCreature(uint8 level, Creature* creature, MpMultipliers* m
     uint32 basehp = stats->BaseHealth[EXPANSION_WRATH_OF_THE_LICH_KING];
     uint32 health = CalculateNewHealth(cInfo, mapId, difficulty, basehp, multipliers->health);
 
+    MpLogger::debug("Creature {} base health scaled from {} to {}",
+        creature->GetName(),
+        basehp,
+        health
+    );
+
     creature->SetCreateHealth(health);
     creature->SetMaxHealth(health);
     creature->SetHealth(health);
     creature->ResetPlayerDamageReq();
+    creature->SetModifierValue(UNIT_MOD_HEALTH, BASE_VALUE, (float)health);
 
     /**
      * @TODO: Figure out mana later for unit_types 2 and 8
@@ -228,28 +235,49 @@ void MythicPlus::ScaleCreature(uint8 level, Creature* creature, MpMultipliers* m
     creature->SetCreateMana(mana);
     creature->SetMaxPower(POWER_MANA, mana);
     creature->SetPower(POWER_MANA, mana);
-    creature->SetModifierValue(UNIT_MOD_HEALTH, BASE_VALUE, (float)health);
-    creature->SetModifierValue(UNIT_MOD_MANA, BASE_VALUE, (float)mana);
 
+    if(cInfo->unit_class == UNIT_CLASS_MAGE) {
+        creature->SetModifierValue(UNIT_MOD_MANA, BASE_VALUE, (float)mana * 10.0f);
+    }
 
-    // float basedamage = stats->BaseDamage[EXPANSION_WRATH_OF_THE_LICH_KING];
-    // float weaponBaseMinDamage = CalculateNewBaseDamage(cInfo, mapId, difficulty, basedamage);
-    // float weaponBaseMaxDamage = weaponBaseMinDamage * 1.15f;
+    if(cInfo->unit_class == UNIT_CLASS_PALADIN) {
+        creature->SetModifierValue(UNIT_MOD_MANA, BASE_VALUE, (float)mana * 3.0f);
+    }
 
-    // creature->SetBaseWeaponDamage(BASE_ATTACK, MINDAMAGE, weaponBaseMinDamage);
-    // creature->SetBaseWeaponDamage(BASE_ATTACK, MAXDAMAGE, weaponBaseMaxDamage);
-    // creature->SetBaseWeaponDamage(OFF_ATTACK, MINDAMAGE, weaponBaseMinDamage);
-    // creature->SetBaseWeaponDamage(OFF_ATTACK, MAXDAMAGE, weaponBaseMaxDamage);
-    // creature->SetBaseWeaponDamage(RANGED_ATTACK, MINDAMAGE, weaponBaseMinDamage);
-    // creature->SetBaseWeaponDamage(RANGED_ATTACK, MAXDAMAGE, weaponBaseMaxDamage);
+    // need to calcuate a new base weapon damage that makes sense for the level and class
+    uint32 ap = stats->AttackPower;
+    uint32 rangeAp = irand(115, 157);
+    MpLogger::debug("Creature {} base attack power{}",
+        creature->GetName(),
+        ap
+    );
+
+    ap = pow(float(creature->GetLevel() / origLevel), 1.8f) * 1000;
+
+    creature->SetModifierValue(UNIT_MOD_ATTACK_POWER, BASE_VALUE, ap);
+    creature->SetModifierValue(UNIT_MOD_ATTACK_POWER_RANGED, BASE_VALUE, rangeAp);
+
+    // This works out a bonus damage to apply to the mob using the database and original mod settings.
+    // the thought behind this is some mobs in dungeons are intended to hit harder than others
+    // so applying a flat bonus keeps the ratios the same but increases the overall difficulty.
+    // Of course within reason.
     int32 damageBonus = sMpDataStore->GetDamageScaleFactor(mapId, difficulty);
+    int32 maxBonus = sMpDataStore->GetMaxDamageScaleFactor(mapId, difficulty);
     float dmgMod = cInfo->DamageModifier + damageBonus;
-    creature->SetModifierValue(UNIT_MOD_DAMAGE_MAINHAND,BASE_VALUE, dmgMod);
 
-    // MpLogger::debug("Creature base attack damage scaled from {} to {}",
-    //     basedamage,
-    //     weaponBaseMinDamage
-    // );
+    // Allow bosses to scale as high as they want but limit non-bosses to a max bonus
+    if(!creature->IsDungeonBoss() && damageBonus > maxBonus) {
+        dmgMod = maxBonus;
+    }
+    float oldDmgModifier = creature->GetModifierValue(UNIT_MOD_DAMAGE_MAINHAND, BASE_VALUE);
+    creature->SetModifierValue(UNIT_MOD_DAMAGE_MAINHAND,BASE_VALUE, dmgMod);
+    creature->SetModifierValue(UNIT_MOD_DAMAGE_OFFHAND,BASE_VALUE, dmgMod*0.85f);
+    creature->SetModifierValue(UNIT_MOD_DAMAGE_RANGED,BASE_VALUE, dmgMod);
+
+    MpLogger::debug("Creature new attack damage scaled from {} to {}",
+        oldDmgModifier,
+        dmgMod
+    );
 
     creature->UpdateAllStats();
 
@@ -285,7 +313,7 @@ int32 MythicPlus::ScaleDamageSpell(SpellInfo const * spellInfo, MpCreatureData* 
     int32 totalDamage = 0;
 
     // Calculate the scaling factor using the 1.8 exponent
-    float scalingFactor = pow(float(originalLevel / originalLevel), 1.8f);
+    float scalingFactor = pow(float(creature->GetLevel() / originalLevel), 1.8f);
     auto effects = spellInfo->GetEffects();
 
     // Loop through all spell effects to scale their base damage
@@ -381,24 +409,6 @@ uint32 CalculateNewHealth(CreatureTemplate const* cInfo, uint32 mapId, MpDifficu
         return uint32(basehp * (cInfo->ModHealth + hpScaleFactor) * confHPMod);
     } else {
         return uint32(basehp * (hpScaleFactor) * confHPMod);
-    }
-}
-
-float CalculateNewBaseDamage(CreatureTemplate const* cInfo, uint32 mapId, MpDifficulty difficulty, float origDamage)
-{
-    int32 rank = 0;
-    if(cInfo && cInfo->rank > 0) {
-        rank = cInfo->rank;
-    }
-
-    float unitTypeMod = GetTypeDamageModifier(rank);
-    float baseDamage = origDamage * unitTypeMod;
-
-    int32 dmgScaleFactor = sMpDataStore->GetDamageScaleFactor(mapId, difficulty);
-    if(cInfo->DamageModifier > 0.0f) {
-        return baseDamage * (cInfo->DamageModifier + dmgScaleFactor);
-    } else {
-        return baseDamage * dmgScaleFactor;
     }
 }
 

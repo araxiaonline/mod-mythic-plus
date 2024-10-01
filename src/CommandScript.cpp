@@ -23,7 +23,7 @@ public:
         {
             {"", HandleHelp, SEC_PLAYER, Console::No},
             {"status", HandleStatus, SEC_PLAYER, Console::No},
-            {"debug", HandleDebug, SEC_PLAYER, Console::No},
+            {"showstats", HandleDebug, SEC_PLAYER, Console::No},
             // {"mythic",HandleMythic, SEC_PLAYER, Console::No},
             // {"legendary",HandleLegendary, SEC_PLAYER, Console::No},
             // {"ascendant",HandleAscendant, SEC_PLAYER, Console::No},
@@ -35,7 +35,8 @@ public:
         static ChatCommandTable commandTable =
         {
             {"mp", commandTableMain},
-            {"mythicplus", commandTableMain}
+            {"mythicplus", commandTableMain},
+            {"mp debug", HandleDebug, SEC_PLAYER, Console::No}
         };
 
         return commandTable;
@@ -52,42 +53,39 @@ public:
         return true;
     }
 
-    static bool HandleDebug(ChatHandler* handler, const std::vector<std::string>& /*args*/)
+    static bool HandleDebug(ChatHandler* handler, const std::vector<std::string>& args)
     {
+
         Creature* target = handler->getSelectedCreature();
         if(!target) {
             handler->PSendSysMessage("You must select a creature to debug.");
             return true;
         }
 
-        // Output creature info with proper formatting
         handler->PSendSysMessage(LANG_NPCINFO_LEVEL, target->GetLevel());
         handler->PSendSysMessage(LANG_NPCINFO_HEALTH, target->GetCreateHealth(), target->GetMaxHealth(), target->GetHealth());
-
-        // Output main-hand weapon damage
-        handler->PSendSysMessage("WeaponDmg Main %f - %f",
+        handler->PSendSysMessage("WeaponDmg Main {} - {}",
             target->GetWeaponDamageRange(BASE_ATTACK, MINDAMAGE),
             target->GetWeaponDamageRange(BASE_ATTACK, MAXDAMAGE)
         );
-
-        // Output ranged weapon damage
-        handler->PSendSysMessage("WeaponDmg Range %f - %f",
+        handler->PSendSysMessage("WeaponDmg Range {} - {}",
             target->GetWeaponDamageRange(RANGED_ATTACK, MINDAMAGE),
             target->GetWeaponDamageRange(RANGED_ATTACK, MAXDAMAGE)
         );
-
-        // Output off-hand weapon damage
-        handler->PSendSysMessage("WeaponDmg Offhand %f - %f",
+        handler->PSendSysMessage("WeaponDmg Offhand {} - {}",
             target->GetWeaponDamageRange(OFF_ATTACK, MINDAMAGE),
             target->GetWeaponDamageRange(OFF_ATTACK, MAXDAMAGE)
         );
-
-        // Output creature armor
+        handler->PSendSysMessage("Attack Power Main {}", target->GetModifierValue(UNIT_MOD_ATTACK_POWER, BASE_VALUE));
+        handler->PSendSysMessage("Attack Power Ranged {}", target->GetModifierValue(UNIT_MOD_ATTACK_POWER_RANGED, BASE_VALUE));
         handler->PSendSysMessage(LANG_NPCINFO_ARMOR, target->GetArmor());
+        handler->PSendSysMessage("Damage Modifier {}", target->GetModifierValue(UNIT_MOD_DAMAGE_MAINHAND, BASE_VALUE));
+
+
 
         return true;
-    }
 
+    }
 
     // sets the difficluty for the group
     static bool HandleSetDifficulty(ChatHandler* handler, const std::vector<std::string>& args)

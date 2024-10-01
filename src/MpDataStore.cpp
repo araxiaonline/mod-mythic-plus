@@ -125,7 +125,7 @@ MpCreatureData* MpDataStore::GetCreatureData(ObjectGuid guid) {
  }
 
 void MpDataStore::RemoveCreatureData(ObjectGuid guid) {
-    MpLogger::debug("RemoveInstanceCreatureData data for creature {}", guid.GetCounter());
+    // MpLogger::debug("RemoveInstanceCreatureData data for creature {}", guid.GetCounter());
     _instanceCreatureData->erase(guid);
 }
 
