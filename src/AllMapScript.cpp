@@ -1,11 +1,11 @@
 #include "Chat.h"
-#include "Log.h"
-#include "MapMgr.h"
 #include "MpLogger.h"
+#include "Map.h"
 #include "MpDataStore.h"
 #include "MythicPlus.h"
 #include "Player.h"
 #include "ScriptMgr.h"
+
 
 class MythicPlus_AllMapScript : public AllMapScript
 {
@@ -55,7 +55,6 @@ public:
             return;
         }
 
-        uint8 avgLevel = 0;
         MpInstanceData instanceData;
         switch(groupData->difficulty) {
             case MP_DIFFICULTY_MYTHIC:

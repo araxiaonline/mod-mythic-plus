@@ -3,7 +3,6 @@
 #include "ScriptMgr.h"
 #include "Player.h"
 #include "Map.h"
-#include "ObjectMgr.h"
 
 class MythicPlus_GlobalScript : public GlobalScript
 {

@@ -1,6 +1,4 @@
 
-#include "Log.h"
-
 void Addmod_mythic_plusScripts();
 void Add_MP_AllCreatureScripts();
 void Add_MP_AllMapScripts();

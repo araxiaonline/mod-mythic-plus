@@ -87,6 +87,13 @@ public:
         sMythicPlus->legendaryItemOffset = sConfigMgr->GetOption<uint32>("MythicPlus.Legendary.ItemOffset", 21000000);
         sMythicPlus->ascendantItemOffset = sConfigMgr->GetOption<uint32>("MythicPlus.Ascendant.ItemOffset", 22000000);
     }
+
+    void OnStartup() override
+    {
+        int32 size = sMpDataStore->LoadScaleFactors();
+        MpLogger::info("Loaded {} Mythic+ Scaling Factors from database...", size);
+
+    }
 };
 
 void Add_MP_WorldScripts()

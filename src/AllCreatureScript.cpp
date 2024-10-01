@@ -1,20 +1,18 @@
-#include "MapMgr.h"
 #include "MpDataStore.h"
-#include "ObjectMgr.h"
 #include "MpLogger.h"
 #include "MythicPlus.h"
 #include "ScriptMgr.h"
-#include "Log.h"
 
 class MythicPlus_AllCreatureScript : public AllCreatureScript
 {
 public:
-    MythicPlus_AllCreatureScript() : AllCreatureScript("MythicPlus_AllCreatureScript")
-    {
-
-    }
+    MythicPlus_AllCreatureScript() : AllCreatureScript("MythicPlus_AllCreatureScript") {}
 
     // void OnBeforeCreatureSelectLevel(const CreatureTemplate* /*creatureTemplate*/, Creature* creature, uint8& level) override
+    // {
+    // }
+
+    // void OnAllCreatureUpdate(Creature* creature, uint32 diff) override
     // {
     // }
 
@@ -30,7 +28,6 @@ public:
             return;
         }
 
-
         // if we have instance data about zone then just scale the creature otherwise add to be scaled once we do.
         MpInstanceData* instanceData = sMpDataStore->GetInstanceData(map->GetId(), map->GetInstanceId());
         if(instanceData) {
@@ -39,10 +36,6 @@ public:
             sMythicPlus->AddCreatureForScaling(creature);
         }
     }
-
-    // void OnAllCreatureUpdate(Creature* creature, uint32 diff) override
-    // {
-    // }
 
     // Cleanup the creature from custom data used for mythic+ mod
     void OnCreatureRemoveWorld(Creature* creature) override

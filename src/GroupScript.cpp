@@ -2,6 +2,7 @@
 #include "MpDataStore.h"
 #include "MpLogger.h"
 #include "ScriptMgr.h"
+#include "Group.h"
 
 // this handles updating custom group difficulties used in auto balancing mobs and
 // scripts that enable buffs on mobs randomly

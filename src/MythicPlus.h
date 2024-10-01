@@ -1,11 +1,18 @@
 #ifndef MYTHICPLUS_H
 #define MYTHICPLUS_H
 
+#include "Creature.h"
 #include "Define.h"
 #include "Map.h"
 #include "MpDataStore.h"
+#include "Player.h"
+#include "SpellInfo.h"
+#include "Unit.h"
+
 #include <map>
 #include <string>
+#include <vector>
+#include <unordered_map>
 
 class MythicPlus
 {
@@ -97,7 +104,7 @@ public:
     void AddScaledCreature(Creature* creature, MpInstanceData* instanceData);
 
     // Scales the creature based on the level and the creature base stats
-    void ScaleCreature(uint8 level, Creature* creature, MpMultipliers* multipliers);
+    void ScaleCreature(uint8 level, Creature* creature, MpMultipliers* multipliers, MpDifficulty difficulty);
 
     // Scales a damage spell up based on the level increase
     int32 ScaleDamageSpell(SpellInfo const * spellInfo, MpCreatureData* creatureData, Creature* creature, float damageMultiplier);
@@ -110,8 +117,9 @@ public:
         ~MythicPlus() { }
 };
 
-float GetHealthModifier(int32 rank);
-float GetDamageModifier(int32 rank);
+float GetTypeHealthModifier(int32 rank);
+float GetTypeDamageModifier(int32 rank);
+
 
 #define sMythicPlus MythicPlus::instance()
 

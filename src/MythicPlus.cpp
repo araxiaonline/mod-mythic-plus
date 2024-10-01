@@ -1,15 +1,12 @@
 #include "MythicPlus.h"
-#include "MpDataStore.h"
 #include "MpLogger.h"
 #include "ObjectMgr.h"
 #include "MapMgr.h"
 #include "ScriptMgr.h"
-#include "Player.h"
 #include "Group.h"
-#include "Map.h"
-#include "Unit.h"
-#include "Creature.h"
-#include "SpellInfo.h"
+
+#include <algorithm>
+#include <cmath>
 
 bool MythicPlus::IsMapEligible(Map* map)
 {
@@ -166,9 +163,9 @@ void MythicPlus::AddScaledCreature(Creature* creature, MpInstanceData* instanceD
     // allow small variance in level for non-boss creatures
     uint8 level = uint8(urand(instanceData->creature.avgLevel - 1, instanceData->creature.avgLevel + 1));
     if(creature->IsDungeonBoss()) {
-        ScaleCreature(instanceData->boss.avgLevel, creature, &instanceData->boss);
+        ScaleCreature(instanceData->boss.avgLevel, creature, &instanceData->boss, instanceData->difficulty);
     } else {
-        ScaleCreature(level, creature, &instanceData->creature);
+        ScaleCreature(level, creature, &instanceData->creature, instanceData->difficulty);
     }
 
     MpCreatureData creatureData = MpCreatureData(creature);
@@ -203,55 +200,39 @@ void MythicPlus::RemoveCreature(Creature* creature)
     sMpDataStore->RemoveCreatureData(creature->GetGUID());
 }
 
-void MythicPlus::ScaleCreature(uint8 level, Creature* creature, MpMultipliers* multipliers)
+void MythicPlus::ScaleCreature(uint8 level, Creature* creature, MpMultipliers* multipliers, MpDifficulty difficulty)
 {
     uint32 origLevel = creature->GetLevel();
+    CreatureTemplate const* cInfo = creature->GetCreatureTemplate();
+    uint32 mapId = creature->GetMapId();
+
     creature->SetLevel(level);
     CreatureBaseStats const* stats = sObjectMgr->GetCreatureBaseStats(
         level,
-        creature->GetCreatureTemplate()->unit_class
+        cInfo->unit_class
     );
 
-    int32 rank = 0;
-    CreatureTemplate const* cInfo = creature->GetCreatureTemplate();
-    if(cInfo && cInfo->rank > 0) {
-        rank = cInfo->rank;
-    }
-
-    // Scales the creatures hitpoints
-    float healthmod = GetTypeHealthModifier(rank);
-    // Add some variance to the healthpool so enemies are not all the same
-    float healthVariation = frand(0.85f, 1.15f);
-    uint32 basehp = uint32(std::ceil(stats->BaseHealth[EXPANSION_WRATH_OF_THE_LICH_KING] * cInfo->ModHealth));
-    uint32 health = uint32(basehp * healthmod * multipliers->health * healthVariation);
+    uint32 basehp = stats->BaseHealth[EXPANSION_WRATH_OF_THE_LICH_KING];
+    uint32 health = CalculateNewHealth(cInfo, mapId, difficulty, basehp, multipliers->health);
 
     creature->SetCreateHealth(health);
     creature->SetMaxHealth(health);
     creature->SetHealth(health);
     creature->ResetPlayerDamageReq();
 
-    // Scales the creatures mana
-    uint32 mana = uint32(std::ceil(stats->BaseMana * cInfo->ModMana * multipliers->health));
-
+    /**
+     * @TODO: Figure out mana later for unit_types 2 and 8
+     */
+    uint32 mana = uint32(std::ceil(stats->BaseMana * cInfo->ModMana));
     creature->SetCreateMana(mana);
     creature->SetMaxPower(POWER_MANA, mana);
     creature->SetPower(POWER_MANA, mana);
-
     creature->SetModifierValue(UNIT_MOD_HEALTH, BASE_VALUE, (float)health);
     creature->SetModifierValue(UNIT_MOD_MANA, BASE_VALUE, (float)mana);
 
-    // Normalize the damage from earlier expansions
-    float cTemplateDmgMult = cInfo->DamageModifier;
-    if (origLevel <= 60 && cTemplateDmgMult < 3.0f) {
-        cTemplateDmgMult = 4.0f;
-    }
-    if (origLevel <= 70 && origLevel > 60 && cTemplateDmgMult < 4.0f) {
-        cTemplateDmgMult = 4.0f;
-    }
 
-    float basedamage = uint32(std::ceil(stats->BaseDamage[EXPANSION_WRATH_OF_THE_LICH_KING]));
-    float creatureTypeMult = GetTypeDamageModifier(rank);
-    float weaponBaseMinDamage = basedamage * cTemplateDmgMult * creatureTypeMult * multipliers->baseDamage;
+    float basedamage = stats->BaseDamage[EXPANSION_WRATH_OF_THE_LICH_KING];
+    float weaponBaseMinDamage = CalculateNewBaseDamage(cInfo, mapId, difficulty, basedamage);
     float weaponBaseMaxDamage = weaponBaseMinDamage * 1.5f;
 
     creature->SetBaseWeaponDamage(BASE_ATTACK, MINDAMAGE, weaponBaseMinDamage);
@@ -261,9 +242,6 @@ void MythicPlus::ScaleCreature(uint8 level, Creature* creature, MpMultipliers* m
     creature->SetBaseWeaponDamage(RANGED_ATTACK, MINDAMAGE, weaponBaseMinDamage);
     creature->SetBaseWeaponDamage(RANGED_ATTACK, MAXDAMAGE, weaponBaseMaxDamage);
 
-    creature->ApplyAttackTimePercentMod(BASE_ATTACK, 0.75, true);
-    creature->ApplyAttackTimePercentMod(OFF_ATTACK, 0.95, true);
-    creature->ApplyCastTimePercentMod(0.80, true);
     creature->UpdateAllStats();
 
     // Scale up the armor with some variance also to make some tougher enemies in the mix
@@ -271,7 +249,7 @@ void MythicPlus::ScaleCreature(uint8 level, Creature* creature, MpMultipliers* m
     creature->SetArmor(armor);
 
     /**
-     * @TODO Explore scaling other variable stats based on the creature type at a later date.
+     * @TODO: Explore scaling other variable stats and resistances on the creature type at a later date.
      */
     // creature->SetModifierValue(UNIT_MOD_ATTACK_POWER, BASE_VALUE, stats->AttackPower * multipliers->melee);
     // creature->SetModifierValue(UNIT_MOD_ATTACK_POWER_RANGED, BASE_VALUE, stats->RangedAttackPower * multipliers->melee);
@@ -295,7 +273,6 @@ int32 MythicPlus::ScaleDamageSpell(SpellInfo const * spellInfo, MpCreatureData* 
     }
 
     int32 originalLevel = creatureData->originalLevel;
-    int32 currentLevel = creature->GetLevel();
     int32 totalDamage = 0;
 
     // Calculate the scaling factor using the 1.8 exponent
@@ -377,6 +354,46 @@ float GetTypeHealthModifier(int32 Rank)
     }
 }
 
+// This takes the orignal health and scales flat based on the factor then applies the configuration modifier from the conf file
+uint32 CalculateNewHealth(CreatureTemplate const* cInfo, uint32 mapId, MpDifficulty difficulty, uint32 origHealth, float confHPMod)
+{
+    int32 rank = 0;
+    if(cInfo && cInfo->rank > 0) {
+        rank = cInfo->rank;
+    }
+
+    // Add some variance to the healthpool so enemies are not all the same
+    float healthVariation = frand(0.85f, 1.15f);
+    float unitTypeMod = GetTypeHealthModifier(rank);
+    uint32 basehp = uint32(std::ceil(origHealth * unitTypeMod * healthVariation));
+
+    int32 hpScaleFactor = sMpDataStore->GetHealthScaleFactor(mapId, difficulty);
+    if(cInfo->ModHealth > 0.0f) {
+        return uint32(basehp * (cInfo->ModHealth + hpScaleFactor) * confHPMod);
+    } else {
+        return uint32(basehp * (hpScaleFactor) * confHPMod);
+    }
+}
+
+float CalculateNewBaseDamage(CreatureTemplate const* cInfo, uint32 mapId, MpDifficulty difficulty, float origDamage)
+{
+    int32 rank = 0;
+    if(cInfo && cInfo->rank > 0) {
+        rank = cInfo->rank;
+    }
+
+    float unitTypeMod = GetTypeDamageModifier(rank);
+    float baseDamage = origDamage * unitTypeMod;
+
+    int32 dmgScaleFactor = sMpDataStore->GetDamageScaleFactor(mapId, difficulty);
+    if(cInfo->DamageModifier > 0.0f) {
+        return baseDamage * (cInfo->DamageModifier + dmgScaleFactor);
+    } else {
+        return baseDamage * (dmgScaleFactor);
+    }
+}
+
+
 float GetTypeDamageModifier(int32 Rank)
 {
     switch (Rank)
@@ -395,5 +412,3 @@ float GetTypeDamageModifier(int32 Rank)
             return sWorld->getRate(RATE_CREATURE_ELITE_ELITE_DAMAGE);
     }
 }
-
-float NormalizeDamageMap

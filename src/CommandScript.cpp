@@ -87,22 +87,13 @@ public:
         }
 
         if (difficulty == "mythic") {
-            sMpDataStore->AddGroupData(group, {
-                .group = group,
-                .difficulty = MP_DIFFICULTY_MYTHIC
-            });
+            sMpDataStore->AddGroupData(group, MpGroupData(group, MP_DIFFICULTY_MYTHIC, 0));
         }
         else if (difficulty == "legendary") {
-            sMpDataStore->AddGroupData(group,{
-                .group = group,
-                .difficulty = MP_DIFFICULTY_LEGENDARY
-            });
+            sMpDataStore->AddGroupData(group,MpGroupData(group, MP_DIFFICULTY_LEGENDARY, 0));
         }
         else if (difficulty == "ascendant") {
-            sMpDataStore->AddGroupData(group, {
-                .group = group,
-                .difficulty = MP_DIFFICULTY_ASCENDANT
-            });
+            sMpDataStore->AddGroupData(group, MpGroupData(group, MP_DIFFICULTY_ASCENDANT, 0));
         }
         else {
             handler->PSendSysMessage("|cFFFF0000 Invalid difficulty level. Expected values are 'mythic', 'legendary', or 'ascendant'.");
