@@ -1,72 +1,261 @@
 #ifndef MYTHICPLUS_DATASTORE_H
 #define MYTHICPLUS_DATASTORE_H
 
+#include "Creature.h"
 #include "Group.h"
 #include "MapMgr.h"
+#include "Player.h"
+#include "ObjectGuid.h"
+
+#include <unordered_map>
+#include <map>
+#include <string>
+#include <vector>
+#include <memory>
 
 enum MpDifficulty {
     MP_DIFFICULTY_NORMAL    = 0,
     MP_DIFFICULTY_HEROIC    = 1,
     MP_DIFFICULTY_EPIC      = 2,
-    MP_DIFFICULTY_HEROIC_25 = 3,
-    MP_DIFFICULTY_MYTHIC    = 4,
-    MP_DIFFICULTY_LEGENDARY = 8,
-    MP_DIFFICULTY_ASCENDANT = 12
+    MP_DIFFICULTY_MYTHIC    = 3,
+    MP_DIFFICULTY_LEGENDARY = 4,
+    MP_DIFFICULTY_ASCENDANT = 5
 };
-
-struct GroupData
+struct MpGroupData
 {
     Group* group;
-    uint8 difficulty;
+    MpDifficulty difficulty;
+    uint32 deaths;
+
+    std::vector<std::pair<uint32,uint32>> instanceDataKeys;
+    MpGroupData() : group(nullptr), difficulty(MpDifficulty{}), deaths(0) {
+        instanceDataKeys.reserve(32);
+    }
+    MpGroupData(Group* group, MpDifficulty difficulty, uint32 deaths)
+        : group(group), difficulty(difficulty), deaths(deaths) {
+        instanceDataKeys.reserve(32);
+    }
+
+    std::string ToString() const {
+        return "MpGroupData: { group: " + std::to_string(group->GetGUID().GetCounter()) +
+               ", difficulty: " + std::to_string(difficulty) +
+               ", deaths: " + std::to_string(deaths) + " }";
+    }
+
 };
 
-struct PlayerData
+struct MpPlayerData
 {
     Player* player;
     uint8 difficulty;
+    uint32 deaths;
 };
 
-struct MapData
+struct MpScaleFactor
 {
-    Map* instance;
+    int32 dmgBonus;
+    int32 healthBonus;
+    int32 maxDamageBonus;
+
+    std::string ToString() const {
+        return "MpScaleFactor: { dmgBonus: " + std::to_string(dmgBonus) +
+               ", healthBonus: " + std::to_string(healthBonus) +
+               ", maxDamageBonus: " + std::to_string(maxDamageBonus) + " }";
+    }
+
 };
 
-struct MapCreatureData
+struct MpMultipliers
+{
+    float health;
+    float melee;
+    float baseDamage;
+    float spell;
+    float armor;
+    uint8 avgLevel;
+
+    std::string ToString() const {
+    return "MpMultipliers: { health: " + std::to_string(health) +
+            ", melee: " + std::to_string(melee) +
+            ", melee: " + std::to_string(baseDamage) +
+            ", spell: " + std::to_string(spell) +
+            ", armor: " + std::to_string(armor) +
+            ", avgLevel: " + std::to_string(avgLevel) + " }";
+    }
+};
+
+struct MpInstanceData
+{
+    InstanceMap* instance;
+    MpDifficulty difficulty;
+
+    // Enemy data
+    MpMultipliers boss;
+    MpMultipliers creature;
+
+    // Instance Settings
+    bool itemRewards;
+    uint32 deathLimits;
+    uint32 itemOffset;
+
+    std::string ToString() const {
+        return "MpInstanceData: { " +
+               std::string("instance: ") + (instance ? "valid instance" : "nullptr") +
+               ", boss: " + boss.ToString() +
+               ", creature: " + creature.ToString() +
+               ", itemRewards: " + (itemRewards ? "true" : "false") +
+               ", deathLimits: " + std::to_string(deathLimits) +
+               ", itemOffset: " + std::to_string(itemOffset) + " }";
+    }
+
+};
+
+
+
+/**
+ * Simple struct for managing information about creatures that
+ * are in a mythic+ instance.
+ */
+struct MpCreatureData
 {
     Creature* creature;
-    MapEntry* instance;
+    bool scaled;
+
+    // Original information about the creature that was altered.
+    uint8 originalLevel;
+    CreatureBaseStats const* originalStats;
+
+    // Custom difficulty modifiers to creatures at higher difficulties.
+    std::vector<uint32> auras;
+    std::vector<std::string> affixes;
+
+    MpCreatureData(Creature* creature)
+        : creature(creature), scaled(false)
+    {
+        if(creature) {
+            originalLevel = creature->GetLevel();
+            originalStats = sObjectMgr->GetCreatureBaseStats(
+                originalLevel,
+                creature->GetCreatureTemplate()->unit_class
+            );
+        }
+
+        auras.reserve(3);
+        affixes.reserve(3);
+    }
+
+    void SetScaled(bool scaled) {
+        this->scaled = scaled;
+    }
+
+    bool IsScaled() {
+        return scaled;
+    }
+
+    /**@todo Add Affixes and Aura Spell methods */
 };
 
 class MpDataStore {
 private:
-    MpDataStore();
-    ~MpDataStore();
+    MpDataStore()
+    : _playerData(std::make_unique<std::unordered_map<ObjectGuid, MpPlayerData>>()),
+      _instanceData(std::make_unique<std::map<std::pair<uint32, uint32>, MpInstanceData>>()),
+      _groupData(std::make_unique<std::unordered_map<ObjectGuid, MpGroupData>>()),
+      _instanceCreatureData(std::make_unique<std::unordered_map<ObjectGuid, MpCreatureData>>()),
+      _mutableScaleFactors(std::make_unique<std::map<std::pair<int32, int32>,MpScaleFactor>>())
+      {
+        _playerData->reserve(32);
+        _groupData->reserve(32);
+        _instanceCreatureData->reserve(500);
+      };
 
-    std::map<ObjectGuid, GroupData>* groupData;
-    std::map<ObjectGuid, PlayerData>* playerData;
-    std::map<ObjectGuid, MapData>* instanceData;
-    std::map<ObjectGuid, MapCreatureData>* instanceCreatureData;
+    inline ~MpDataStore() {}
+
+    std::unique_ptr<std::unordered_map<ObjectGuid, MpPlayerData>> _playerData;
+
+    // Instance data containes information about how to scale creatures
+    std::unique_ptr<std::map<std::pair<uint32,uint32>,MpInstanceData>> _instanceData; // {mapId,instanceId}
+
+    // Group data stored current group difficulty setting, and stats of group
+    std::unique_ptr<std::unordered_map<ObjectGuid, MpGroupData>> _groupData;
+
+    // This is all creatures that have been scaled used for determining what has been scaled
+    std::unique_ptr<std::unordered_map<ObjectGuid, MpCreatureData>> _instanceCreatureData;
+
+    // use to mimic pattern normals scale to heroic  (loaded at server start)
+    std::unique_ptr<std::map<std::pair<int32,int32>,MpScaleFactor>> _mutableScaleFactors; // {mapId,difficulty}
+    std::unique_ptr<const std::map<std::pair<int32,int32>,MpScaleFactor>> _scaleFactors; // {mapId,difficulty}
+
 
 public:
-    void AddGroupData(ObjectGuid guid, GroupData gd);
-    void RemoveGroupData(ObjectGuid guid);
 
-    void AddPlayerData(ObjectGuid guid, PlayerData pd);
+    // ensure we only ever have one instance of this class
+    MpDataStore(const MpDataStore&) = delete;
+    MpDataStore& operator=(const MpDataStore&) = delete;
+
+    const MpPlayerData* GetPlayerData(ObjectGuid guid) const {
+        try {
+            return &_playerData->at(guid);
+        } catch (const std::out_of_range& oor) {
+            return nullptr;
+        }
+    }
+
+    const MpGroupData* GetGroupData(ObjectGuid guid) const {
+
+        if (_groupData->contains(guid)) {
+            return &_groupData->at(guid);
+        } else {
+            return nullptr;
+        }
+
+    }
+    const MpGroupData* GetGroupData(Player *player) const {
+        return GetGroupData(player->GetGroup()->GetGUID());
+    };
+
+    // Set and remove settigs for a group options (difficulty, deaths, stats, etc)
+    void AddGroupData(Group *group, MpGroupData groupData);
+    void RemoveGroupData(Group *group);
+    MpGroupData* GetGroupData(Group *group);
+    void PushGroupInstanceKey(Group *group, uint32 mapId, uint32 instanceId);
+
+    void AddPlayerData(ObjectGuid guid, MpPlayerData pd);
     void RemovePlayerData(ObjectGuid guid);
-    void SetPlayerDifficulty(ObjectGuid guid, uint8 difficulty);
-    const PlayerData* GetPlayerData();
 
-    void AddInstanceData(ObjectGuid guid, MapData md);
-    void RemoveInstanceData(ObjectGuid guid);
+    // Each Map/Instance is a unique key that contains scaling information based on difficulty
+    void AddInstanceData(uint32 mapId, uint32 instanceId, MpInstanceData );
+    MpInstanceData* GetInstanceData(uint32 mapId, uint32 instanceId);
+    void RemoveInstanceData(uint32 mapId, uint32 instanceId);
 
-    void AddInstanceCreatureData(ObjectGuid guid, MapCreatureData mcd);
-    void RemoveInstanceCreatureData(ObjectGuid guid);
+    // Methods for interacting with the map of creatures in a mythic instances
+    void AddCreatureData(ObjectGuid guid, MpCreatureData creatureData);
+    MpCreatureData* GetCreatureData(ObjectGuid guid);
+    void RemoveCreatureData(ObjectGuid guid);
+    std::vector<MpCreatureData*> GetUnscaledCreatures(uint32 mapId, uint32 instanceId);
 
-    static MpDataStore* getInstance() {
+    // Scale factors are used to determine a base bonus for enemies base on the instance difficulty
+    int32 GetHealthScaleFactor(int32 mapId, int32 difficulty) const;
+    int32 GetDamageScaleFactor(int32 mapId, int32 difficulty) const;
+    int32 GetMaxDamageScaleFactor(int32 mapId, int32 difficulty) const;
+    MpScaleFactor GetScaleFactor(int32 mapId, int32 difficulty) const;
+
+    auto GetInstanceDataKey(uint32 mapId, uint32 instanceId) const {
+        return std::make_pair(mapId, instanceId);
+    }
+    auto GetScaleFactorKey(int32 mapId, int32 difficulty) const {
+        return std::make_pair(mapId, difficulty);
+    }
+
+    // Used at initial server load
+    int32 LoadScaleFactors();
+
+    static MpDataStore* instance() {
         static MpDataStore instance;
         return &instance;
     }
 };
 
-#endif // MYTHICPLUS_DATASTORE_H
+#define sMpDataStore MpDataStore::instance()
 
+#endif // MpDataStore_DATASTORE_H

@@ -1,4 +1,114 @@
+[worldserver]
+
+##########################################################
+#
+#  Logging Configuration
+#
+##########################################################
 
 Appender.MythicPlusLog=2,5,0,mod-mythic-plus.log,w
 Appender.MythicPlusConsole=1,5,0,"1 9 3 6 5 8"
 Logger.module.MythicPlus=5,MythicPlusLog MythicPlusConsole
+
+##########################################################
+#
+# Mythic+ Global Settings
+#   - These settings are used to enable or disable the Mythic+ system and set the global settings for the system.
+#
+#   Enabled: 1 = Enabled, 0 = Disabled - Enables the Mythic+ system.
+#   EnableItemRewards: 1 = Enabled, 0 = Disabled - Enables the reward system for Mythic+ dungeons.
+#   EnableDeathLimits: 1 = Enabled, 0 = Disabled - Enables the death limit system for Mythic+ dungeons.
+#   EnabledDifficulties: A comma separated list of difficulties that are enabled for Mythic+ dungeons.
+#   DisabledDungeons: A comma separated list of dungeons that are disabled for Mythic+ dungeons.
+#
+##########################################################
+MythicPlus.Enabled = 1
+MythicPlus.EnableItemRewards = 1
+MythicPlus.EnableDeathLimits = 1
+
+##########################################################
+#
+# Enabled difficulty settings
+#
+##########################################################
+ MythicPlus.EnabledDifficulties = mythic,legendary,ascendant
+ MythicPlus.DisabledDungeons =
+
+##########################################################
+#
+# Mythic+ Stat Modifiers By Difficuty
+#   - These values are used to adjust the difficulty of enemies and bosses base
+#     stats based on the difficulty of the dungeon.
+#   - Bosses will only receive their multiplier not the Dungeon multiplier to prevent multiplicative scaling.
+#
+##########################################################
+
+MythicPlus.Mythic.DungeonHealth = 1.25
+MythicPlus.Mythic.DungeonMelee = 1.25
+MythicPlus.Mythic.DungeonBaseDamage = 1.50
+MythicPlus.Mythic.DungeonSpell = 1.15
+MythicPlus.Mythic.DungeonArmor = 1.95
+MythicPlus.Mythic.DungeonAvgLevel = 83
+
+MythicPlus.Mythic.DungeonBossHealth = 1.50
+MythicPlus.Mythic.DungeonBossMelee = 1.35
+MythicPlus.Mythic.DungeonBossBaseDamage = 2.00
+MythicPlus.Mythic.DungeonBossSpell = 1.25
+MythicPlus.Mythic.DungeonBossArmor = 1.35
+MythicPlus.Mythic.DungeonBossLevel = 85
+
+MythicPlus.Legendary.DungeonHealth = 2.25
+MythicPlus.Legendary.DungeonMelee = 2.25
+MythicPlus.Legendary.DungeonBaseDamage = 2.75
+MythicPlus.Legendary.DungeonSpell = 2.25
+MythicPlus.Legendary.DungeonArmor = 2.25
+MythicPlus.Legendary.DungeonAvgLevel = 85
+
+MythicPlus.Legendary.DungeonBossHealth = 2.25
+MythicPlus.Legendary.DungeonBossMelee = 2.25
+MythicPlus.Legendary.DungeonBossSpell = 2.25
+MythicPlus.Legendary.DungeonBossBaseDamage = 4.00
+MythicPlus.Legendary.DungeonBossArmor = 3.25
+MythicPlus.Legendary.DungeonBossLevel = 87
+
+MythicPlus.Ascendant.DungeonHealth = 3.25
+MythicPlus.Ascendant.DungeonMelee = 3.25
+MythicPlus.Ascendant.DungeonBaseDamage = 4.75
+MythicPlus.Ascendant.DungeonSpell = 3.25
+MythicPlus.Ascendant.DungeonArmor = 3.25
+MythicPlus.Ascendant.DungeonAvgLevel = 87
+
+MythicPlus.Ascendant.DungeonBossHealth = 3.25
+MythicPlus.Ascendant.DungeonBossMelee = 3.25
+MythicPlus.Ascendant.DungeonBossSpell = 3.25
+MythicPlus.Ascendant.DungeonBossBaseDamage = 6.00
+MythicPlus.Ascendant.DungeonBossArmor = 3.25
+MythicPlus.Ascendant.DungeonBossLevel = 90
+
+##########################################################
+#
+# Mythic+ Gameplay Settings
+# - If Death limit mode is enabled the below numbers set the max number of total deaths before players are kicked out and the
+#   that instance of the dungeon is failed.
+#
+##########################################################
+
+MythicPlus.Mythic.DeathAllowance = 100
+MythicPlus.Legendary.DeathAllowance = 30
+MythicPlus.Ascendant.DeathAllowance = 15
+
+##########################################################
+#
+# Itemization Settings
+#   - These values are used to set the offset to where items per difficulty will map to.
+#   - Item drops in this mode use the original item entry + on offset to determine the new item entry reward.
+#   - This enables a fast lookup at loot drop time as it is just an addition operation.
+#   - If using the base geneated sql the settings below will map to it.  If the offset is incorrect,
+#     the item will not be found and the original low level item will be rewarded.
+#
+##########################################################
+
+MythicPlus.Mythic.ItemOffset = 20000000
+MythicPlus.Legendary.ItemOffset = 21000000
+MythicPlus.Ascendant.ItemOffset = 22000000
+
