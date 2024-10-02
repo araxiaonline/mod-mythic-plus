@@ -1,0 +1,22 @@
+{
+  "configurations": [
+      {
+          "name": "AzerothCore",
+          "includePath": [
+              "${workspaceFolder}/src/common/Logging/**",
+              "${workspaceFolder}/src",
+              "${workspaceFolder}/deps",
+              "${workspaceFolder}/**",
+              "/opt/homebrew/include"
+          ],
+          "defines": [
+              "AZEROTHCORE"
+          ],
+          "compilerPath": "/usr/bin/clang++",  // macOS typically uses clang as the default compiler
+          "cStandard": "c11",
+          "cppStandard": "c++17",
+          "intelliSenseMode": "macos-clang-x64"
+      }
+  ],
+  "version": 4
+}
