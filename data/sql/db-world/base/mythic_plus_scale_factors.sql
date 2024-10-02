@@ -11,44 +11,44 @@ CREATE TABLE IF NOT EXISTS mythic_plus_scale_factors (
 -- 1. Pre 60 level dungeons (13 dmg_bonus, 2 hp_bonus, max 23, difficulty 3)
 INSERT INTO mythic_plus_scale_factors (mapId, dmg_bonus, hp_bonus, difficulty, max)
 VALUES
-    (389, 13, 2, 3, 23),  -- Ragefire Chasm
-    (43,  13, 2, 3, 23),  -- Wailing Caverns
-    (36,  13, 2, 3, 23),  -- The Deadmines
-    (33,  13, 2, 3, 23),  -- Shadowfang Keep
-    (34,  13, 2, 3, 23),  -- The Stockade
-    (48,  13, 2, 3, 23),  -- Blackfathom Deeps
-    (90,  13, 2, 3, 23),  -- Gnomeregan
-    (47,  13, 2, 3, 23),  -- Razorfen Kraul
-    (189, 13, 2, 3, 23),  -- Scarlet Monastery (Graveyard)
-    (129, 13, 2, 3, 23),  -- Razorfen Downs
-    (70,  13, 2, 3, 23),  -- Uldaman
-    (209, 13, 2, 3, 23),  -- Zul'Farrak
-    (349, 13, 2, 3, 23)   -- Maraudon
+    (389, 19, 2, 3, 23),  -- Ragefire Chasm
+    (43,  19, 2, 3, 23),  -- Wailing Caverns
+    (36,  19, 2, 3, 23),  -- The Deadmines
+    (33,  19, 2, 3, 23),  -- Shadowfang Keep
+    (34,  19, 2, 3, 23),  -- The Stockade
+    (48,  19, 2, 3, 23),  -- Blackfathom Deeps
+    (90,  19, 2, 3, 23),  -- Gnomeregan
+    (47,  19, 2, 3, 23),  -- Razorfen Kraul
+    (189, 19, 2, 3, 23),  -- Scarlet Monastery (Graveyard)
+    (129, 19, 2, 3, 23),  -- Razorfen Downs
+    (70,  19, 2, 3, 23),  -- Uldaman
+    (209, 19, 2, 3, 23),  -- Zul'Farrak
+    (349, 19, 2, 3, 23)   -- Maraudon
 ON DUPLICATE KEY UPDATE mapId = mapId;
 
 -- 2. Level 60 dungeons for classic (15 dmg_bonus, 3 hp_bonus, max 25, difficulty 3)
 INSERT INTO mythic_plus_scale_factors (mapId, dmg_bonus, hp_bonus, difficulty, max)
 VALUES
-    (289, 15, 3, 3, 25),  -- Scholomance
-    (109, 15, 3, 3, 25),  -- Sunken Temple
-    (329, 15, 3, 3, 25),  -- Stratholme
-    (229, 15, 3, 3, 25),  -- Blackrock Spire (Lower)
-    (230, 15, 3, 3, 25),  -- Blackrock Spire (Upper)
-    (429, 15, 3, 3, 25),  -- Dire Maul
-    (269, 15, 3, 3, 25)   -- Temple of Atal'Hakkar
+    (289, 17, 3, 3, 25),  -- Scholomance
+    (109, 17, 3, 3, 25),  -- Sunken Temple
+    (329, 17, 3, 3, 25),  -- Stratholme
+    (229, 17, 3, 3, 25),  -- Blackrock Spire (Lower)
+    (230, 17, 3, 3, 25),  -- Blackrock Spire (Upper)
+    (429, 17, 3, 3, 25),  -- Dire Maul
+    (269, 17, 3, 3, 25)   -- Temple of Atal'Hakkar
 ON DUPLICATE KEY UPDATE mapId = mapId;
 
 -- 3. Pre 70 dungeons in Burning Crusade (15 dmg_bonus, 4 hp_bonus, max 26, difficulty 3)
 INSERT INTO mythic_plus_scale_factors (mapId, dmg_bonus, hp_bonus, difficulty, max)
 VALUES
-    (542, 15, 4, 3, 26),  -- Hellfire The Blood Furnace
-    (543, 15, 4, 3, 26),  -- Hellfire Ramparts
-    (545, 15, 4, 3, 26),  -- Coilfang Steamvaults
-    (546, 15, 4, 3, 26),  -- Coilfang Reservoir: The Underbog
-    (547, 15, 4, 3, 26),  -- Coilfang Reservoir: The Underbog
-    (557, 15, 4, 3, 26),  -- Auchindoun: Mana-Tombs
-    (558, 15, 4, 3, 26),  -- Auchindoun: Auchenai Crypts
-    (560, 15, 4, 3, 26)   -- Caverns of Time: Old Hillsbrad Foothills
+    (542, 16, 4, 3, 26),  -- Hellfire The Blood Furnace
+    (543, 16, 4, 3, 26),  -- Hellfire Ramparts
+    (545, 16, 4, 3, 26),  -- Coilfang Steamvaults
+    (546, 16, 4, 3, 26),  -- Coilfang Reservoir: The Underbog
+    (547, 16, 4, 3, 26),  -- Coilfang Reservoir: The Underbog
+    (557, 16, 4, 3, 26),  -- Auchindoun: Mana-Tombs
+    (558, 16, 4, 3, 26),  -- Auchindoun: Auchenai Crypts
+    (560, 16, 4, 3, 26)   -- Caverns of Time: Old Hillsbrad Foothills
 ON DUPLICATE KEY UPDATE mapId = mapId;
 
 -- 4. Level 70 dungeons in Burning Crusade (14 dmg_bonus, 4 hp_bonus, max 29, difficulty 3)

@@ -90,13 +90,13 @@ bool MythicPlus::EligibleDamageTarget(Unit* target)
             return true;
         }
 
-        if ((target->IsPet() || target->IsSummon() || target->IsHunterPet()) && target->GetOwner()->IsNPCBot()) {
+        if ((target->IsPet() || target->IsSummon() || target->IsHunterPet()) && target->GetOwner() && target->GetOwner()->IsNPCBot()) {
             return true;
         }
     #endif
 
     Creature* creature = target->ToCreature();
-    if((creature->IsPet() || creature->IsSummon() || creature->IsHunterPet()) && creature->IsControlledByPlayer()) {
+    if (creature && (creature->IsPet() || creature->IsSummon() || creature->IsHunterPet()) && creature->GetOwner() && creature->IsControlledByPlayer()) {
         return true;
     }
 
@@ -105,7 +105,7 @@ bool MythicPlus::EligibleDamageTarget(Unit* target)
 
 bool MythicPlus::IsCreatureEligible(Creature* creature)
 {
-    if(!creature) {
+    if (!creature) {
         return false;
     }
 
@@ -113,32 +113,34 @@ bool MythicPlus::IsCreatureEligible(Creature* creature)
         return true;
     }
 
+    // Check if the creature is a pet or summon controlled by a player
     if ((creature->IsHunterPet() || creature->IsPet() || creature->IsSummon()) && creature->IsControlledByPlayer()) {
         return false;
     }
 
+    // Skip critters, totems, and triggers
     if (creature->IsCritter() || creature->IsTotem() || creature->IsTrigger()) {
         return false;
     }
 
-    # if defined(MOD_PRESENT_NPCBOTS)
+    #if defined(MOD_PRESENT_NPCBOTS)
+        // Safely check if the creature is an NPC Bot
         if (creature->IsNPCBot()) {
-            MpLogger::debug("Creature {} is an NPC Bot do not scale", creature->GetName());
+            MpLogger::debug("Creature {} is an NPC Bot, do not scale", creature->GetName());
             return false;
         }
-    # endif
+    #endif
 
-    // throw out NPCs
-    if  ((creature->IsVendor() ||
-            creature->HasNpcFlag(UNIT_NPC_FLAG_GOSSIP) ||
-            creature->HasNpcFlag(UNIT_NPC_FLAG_QUESTGIVER) ||
-            creature->HasNpcFlag(UNIT_NPC_FLAG_TRAINER) ||
-            creature->HasNpcFlag(UNIT_NPC_FLAG_TRAINER_PROFESSION) ||
-            creature->HasNpcFlag(UNIT_NPC_FLAG_REPAIR) ||
-            creature->HasUnitFlag(UNIT_FLAG_IMMUNE_TO_PC) ||
-            creature->HasUnitFlag(UNIT_FLAG_NOT_SELECTABLE)) &&
-            (!creature->IsDungeonBoss())
-        )
+    // Check for NPC-related flags (vendor, gossip, quest giver, trainer, etc.)
+    if ((creature->IsVendor() ||
+         creature->HasNpcFlag(UNIT_NPC_FLAG_GOSSIP) ||
+         creature->HasNpcFlag(UNIT_NPC_FLAG_QUESTGIVER) ||
+         creature->HasNpcFlag(UNIT_NPC_FLAG_TRAINER) ||
+         creature->HasNpcFlag(UNIT_NPC_FLAG_TRAINER_PROFESSION) ||
+         creature->HasNpcFlag(UNIT_NPC_FLAG_REPAIR) ||
+         creature->HasUnitFlag(UNIT_FLAG_IMMUNE_TO_PC) ||
+         creature->HasUnitFlag(UNIT_FLAG_NOT_SELECTABLE)) &&
+        (!creature->IsDungeonBoss()))
     {
         return false;
     }
