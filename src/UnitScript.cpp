@@ -27,13 +27,13 @@ public:
         }
 
         if(haspositiveeffect) {
-            damage = modifyIncomingDmgHeal(MythicPlus::UNIT_EVENT_HOT, target, attacker, damage);
+            damage = modifyIncomingDmgHeal(MythicPlus::UNIT_EVENT_HOT, target, attacker, damage, spellInfo);
         } else {
-            damage = modifyIncomingDmgHeal(MythicPlus::UNIT_EVENT_DOT, target, attacker, damage);
+            damage = modifyIncomingDmgHeal(MythicPlus::UNIT_EVENT_DOT, target, attacker, damage, spellInfo);
         }
     }
 
-    void ModifySpellDamageTaken(Unit* target, Unit* attacker, int32& damage, SpellInfo const* /*spellInfo*/) override {
+    void ModifySpellDamageTaken(Unit* target, Unit* attacker, int32& damage, SpellInfo const* spellInfo) override {
         if (!target && !attacker) {
             return;
         }
@@ -43,7 +43,11 @@ public:
             return;
         }
 
-        damage = modifyIncomingDmgHeal(MythicPlus::UNIT_EVENT_SPELL, target, attacker, damage);
+        if(sMythicPlus->EligibleDamageTarget(target)) {
+            MpLogger::debug("ModifySpellDamageTaken: {} hits {} with spell: {}", attacker->GetName(), target->GetName(), spellInfo->SpellName[0]);
+        }
+
+        damage = modifyIncomingDmgHeal(MythicPlus::UNIT_EVENT_SPELL, target, attacker, damage, spellInfo);
     }
 
     /**
@@ -64,7 +68,7 @@ public:
     }
 
     // When a healing spell hits a mythic+ enemy modify based on the modifiers for the difficulty
-    void ModifyHealReceived(Unit* target, Unit* healer, uint32& healing, SpellInfo const* /*spellInfo*/) override {
+    void ModifyHealReceived(Unit* target, Unit* healer, uint32& healing, SpellInfo const* spellInfo) override {
       if (!target && !healer) {
             return;
         }
@@ -74,7 +78,7 @@ public:
             return;
         }
 
-        healing = modifyIncomingDmgHeal(MythicPlus::UNIT_EVENT_HEAL, target, healer, healing);
+        healing = modifyIncomingDmgHeal(MythicPlus::UNIT_EVENT_HEAL, target, healer, healing, spellInfo);
     }
 
     uint32 modifyIncomingDmgHeal(MythicPlus::MP_UNIT_EVENT_TYPE eventType,Unit* target, Unit* attacker, uint32 damageOrHeal, SpellInfo const* spellInfo = nullptr) {
@@ -129,9 +133,10 @@ public:
                 break;
         }
 
-        MpLogger::debug("Incoming Event Type ({}): {} hits {} before mod: {}", eventName, attacker->GetName(), target->GetName(), damageOrHeal);
+        if(eventType != MythicPlus::UNIT_EVENT_MELEE) {
+            MpLogger::debug("Incoming Event Type ({}): {} hits {} before mod: {} spell: ", eventName, attacker->GetName(), target->GetName(), damageOrHeal, spellInfo ? spellInfo->SpellName[0] : "none");
+        }
 
-        bool isHeal = false;
         // If the target is the enemy then increase the amount of healing by the instance data modifier for spell output.
         if(sMythicPlus->EligibleDamageTarget(target)) {
             /**
@@ -145,7 +150,7 @@ public:
                     } else {
                         alteredDmgHeal = damageOrHeal * instanceData->creature.melee;
                     }
-                    MpLogger::debug("Incoming Melee New Damage: {}({}) {} hits {}", alteredDmgHeal, damageOrHeal, attacker->GetName(), target->GetName());
+                    // MpLogger::debug("Incoming Melee New Damage: {}({}) {} hits {}", alteredDmgHeal, damageOrHeal, attacker->GetName(), target->GetName());
                     break;
                 case MythicPlus::UNIT_EVENT_DOT:
                 case MythicPlus::UNIT_EVENT_SPELL:
@@ -162,7 +167,15 @@ public:
                             alteredDmgHeal = damageOrHeal * instanceData->creature.spell;
                         }
                     }
-                    MpLogger::debug("Incoming spell or dot New Damage: {}({}) {} hits {}", alteredDmgHeal, damageOrHeal, attacker->GetName(), target->GetName());
+
+                    if(spellInfo) {
+                        MpLogger::debug("Incoming spell New Damage: {}({}) {} hits {} spell: {}", alteredDmgHeal, damageOrHeal, attacker->GetName(), target->GetName(), spellInfo->SpellName[0]);
+                    } else {
+                        MpLogger::debug("Incoming spell New Damage: {}({}) {} hits {}", alteredDmgHeal, damageOrHeal, attacker->GetName(), target->GetName());
+                    }
+                    break;
+                case MythicPlus::UNIT_EVENT_HOT:
+                case MythicPlus::UNIT_EVENT_HEAL:
                     break;
             }
         }
@@ -173,7 +186,7 @@ public:
          * @TODO: Add more granular control over the scaling of healing spells
          */
         if(sMythicPlus->EligibleHealTarget(target) && (eventType == MythicPlus::UNIT_EVENT_HEAL || eventType == MythicPlus::UNIT_EVENT_HOT)) {
-            isHeal = true;
+            bool isHeal = true;
             if(creature->IsDungeonBoss()) {
                 if(spellInfo) {
                     alteredDmgHeal = sMythicPlus->ScaleHealSpell(spellInfo, sMpDataStore->GetCreatureData(attacker->GetGUID()), creature, attacker->ToCreature(), instanceData->boss.spell);

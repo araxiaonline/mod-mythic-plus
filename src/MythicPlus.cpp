@@ -296,6 +296,7 @@ void MythicPlus::ScaleCreature(uint8 level, Creature* creature, MpMultipliers* m
 
 int32 MythicPlus::ScaleDamageSpell(SpellInfo const * spellInfo, MpCreatureData* creatureData, Creature* creature, float damageMultiplier)
 {
+
     if (!spellInfo) {
         MpLogger::error("Invalid spell info ScaleDamageSpell()");
         return 0;
@@ -315,20 +316,40 @@ int32 MythicPlus::ScaleDamageSpell(SpellInfo const * spellInfo, MpCreatureData* 
     int32 totalDamage = 0;
 
     // Calculate the scaling factor using the 1.8 exponent
-    float scalingFactor = pow(float(creature->GetLevel() / originalLevel), 1.8f);
+    float scalingFactor = pow(float(creature->GetLevel()*1.5 / originalLevel), 1.8f);
     auto effects = spellInfo->GetEffects();
 
     // Loop through all spell effects to scale their base damage
     for (uint8 i = 0; i < effects.size(); ++i)
     {
+        MpLogger::debug("Spell effect {} base points: {}", i, effects[i].BasePoints);
         SpellEffectInfo effect = effects[i];
-        totalDamage += effect.CalcValue(creature, nullptr,nullptr);
+        totalDamage += effect.CalcValue(creature, &effect.BasePoints, nullptr);
+
+        MpLogger::debug("Spell effect {} total damage: {}", i, totalDamage);
+
+        if(effect.IsAreaAuraEffect()) {
+            MpLogger::debug("Skipping area aura effect");
+            continue;
+        }
+
+        if(effect.IsAura()) {
+            MpLogger::debug("Skipping aura effect");
+            continue;
+        }
+
+
+        if(effect.IsEffect(SPELL_EFFECT_WEAPON_DAMAGE) || effect.IsEffect(SPELL_EFFECT_WEAPON_PERCENT_DAMAGE)) {
+            MpLogger::debug("Skipping weapon damage effect");
+            continue;
+        }
     }
 
     // Apply scaling factor and the set multiplier from the instance data
     totalDamage = int32(totalDamage * scalingFactor * damageMultiplier);
 
-    MpLogger::debug("Spell damage scaled from for spell New Damage: {}", totalDamage);
+
+    MpLogger::debug("Spell damage scaled from for spell New Damage: {} using: scaling Factor: {} and damangeMulti", totalDamage, scalingFactor, damageMultiplier);
     return totalDamage;
 }
 
