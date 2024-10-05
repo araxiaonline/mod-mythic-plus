@@ -151,13 +151,17 @@ int32 MpDataStore::GetDamageScaleFactor(int32 mapId, int32 difficulty) const {
     return GetScaleFactor(mapId, difficulty).dmgBonus;
 }
 
+int32 MpDataStore::GetSpellScaleFactor(int32 mapId, int32 difficulty) const {
+    return GetScaleFactor(mapId, difficulty).spellBonus;
+}
+
 int32 MpDataStore::GetMaxDamageScaleFactor(int32 mapId, int32 difficulty) const {
     return GetScaleFactor(mapId, difficulty).maxDamageBonus;
 }
 
 int32 MpDataStore::LoadScaleFactors() {
-    //                                                 0       1          2          3        4
-    QueryResult result = WorldDatabase.Query("SELECT mapId, dmg_bonus, hp_bonus, difficulty, max FROM mythic_plus_scale_factors");
+    //                                                 0       1          2              3        4        5
+    QueryResult result = WorldDatabase.Query("SELECT mapId, dmg_bonus, spell_bonus, hp_bonus, difficulty, max FROM mythic_plus_scale_factors");
     if (!result) {
         MpLogger::error("Failed to load mythic scale factors from database");
         return 0;
@@ -167,13 +171,15 @@ int32 MpDataStore::LoadScaleFactors() {
         Field* fields = result->Fetch();
         uint32 mapId = fields[0].Get<uint32>();
         int32 damageBonus = fields[1].Get<int32>();
-        int32 healthBonus = fields[2].Get<int32>();
-        int32 difficulty = fields[3].Get<int32>();
-        int32 maxDamageBonus = fields[4].Get<int32>();
+        int32 spellBonus = fields[2].Get<int32>();
+        int32 healthBonus = fields[3].Get<int32>();
+        int32 difficulty = fields[4].Get<int32>();
+        int32 maxDamageBonus = fields[5].Get<int32>();
 
         MpScaleFactor scaleFactor = {
             .dmgBonus = damageBonus,
             .healthBonus = healthBonus,
+            .spellBonus = spellBonus,
             .maxDamageBonus = maxDamageBonus
         };
 

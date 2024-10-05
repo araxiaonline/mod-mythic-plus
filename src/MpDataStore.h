@@ -55,10 +55,12 @@ struct MpScaleFactor
 {
     int32 dmgBonus;
     int32 healthBonus;
+    int32 spellBonus;
     int32 maxDamageBonus;
 
     std::string ToString() const {
         return "MpScaleFactor: { dmgBonus: " + std::to_string(dmgBonus) +
+               ", healthBonus: " + std::to_string(healthBonus) +
                ", healthBonus: " + std::to_string(healthBonus) +
                ", maxDamageBonus: " + std::to_string(maxDamageBonus) + " }";
     }
@@ -238,6 +240,7 @@ public:
     int32 GetHealthScaleFactor(int32 mapId, int32 difficulty) const;
     int32 GetDamageScaleFactor(int32 mapId, int32 difficulty) const;
     int32 GetMaxDamageScaleFactor(int32 mapId, int32 difficulty) const;
+    int32 GetSpellScaleFactor(int32 mapId, int32 difficulty) const;
     MpScaleFactor GetScaleFactor(int32 mapId, int32 difficulty) const;
 
     auto GetInstanceDataKey(uint32 mapId, uint32 instanceId) const {

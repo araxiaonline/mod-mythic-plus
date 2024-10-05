@@ -163,6 +163,8 @@ void MythicPlus::AddCreatureForScaling(Creature* creature)
 
 void MythicPlus::AddScaledCreature(Creature* creature, MpInstanceData* instanceData)
 {
+    MpCreatureData creatureData = MpCreatureData(creature);
+
     // allow small variance in level for non-boss creatures
     uint8 level = uint8(urand(instanceData->creature.avgLevel - 1, instanceData->creature.avgLevel + 1));
     if(creature->IsDungeonBoss()) {
@@ -171,7 +173,6 @@ void MythicPlus::AddScaledCreature(Creature* creature, MpInstanceData* instanceD
         ScaleCreature(level, creature, &instanceData->creature, instanceData->difficulty);
     }
 
-    MpCreatureData creatureData = MpCreatureData(creature);
     creatureData.SetScaled(true);
     sMpDataStore->AddCreatureData(creature->GetGUID(), creatureData);
 
@@ -246,110 +247,149 @@ void MythicPlus::ScaleCreature(uint8 level, Creature* creature, MpMultipliers* m
         creature->SetModifierValue(UNIT_MOD_MANA, BASE_VALUE, (float)mana * 3.0f);
     }
 
-    // need to calcuate a new base weapon damage that makes sense for the level and class
-    uint32 ap = stats->AttackPower;
-    uint32 rangeAp = irand(115, 157);
-    MpLogger::debug("Creature {} base attack power{}",
-        creature->GetName(),
-        ap
-    );
+    float oldAp = stats->AttackPower;
+    float oldRangeAp = stats->RangedAttackPower;
+    uint32 rangeAp = irand(215, 357);
+    float ap; // = ((85 - origLevel) * APratio); // * 100;
 
-    ap = pow(float(creature->GetLevel() / origLevel), 1.8f) * 1000;
+    int32 damageBonus = sMpDataStore->GetDamageScaleFactor(mapId, difficulty);
+    float dmgMod = cInfo->DamageModifier + damageBonus;
+
+
+    ap = dmgMod * 80 + oldAp;
+    if (creature->GetLevel() >= 60) {
+        ap = ap * 1.25f;
+        rangeAp = rangeAp * 1.25f;
+    }
 
     creature->SetModifierValue(UNIT_MOD_ATTACK_POWER, BASE_VALUE, ap);
     creature->SetModifierValue(UNIT_MOD_ATTACK_POWER_RANGED, BASE_VALUE, rangeAp);
 
+    // MpLogger::debug("Creature {} base attack power {} new ap {}",
+    //     creature->GetName(),
+    //     oldAp,
+    //     ap
+    // );
     // This works out a bonus damage to apply to the mob using the database and original mod settings.
     // the thought behind this is some mobs in dungeons are intended to hit harder than others
     // so applying a flat bonus keeps the ratios the same but increases the overall difficulty.
     // Of course within reason.
-    int32 damageBonus = sMpDataStore->GetDamageScaleFactor(mapId, difficulty);
+
     int32 maxBonus = sMpDataStore->GetMaxDamageScaleFactor(mapId, difficulty);
-    float dmgMod = cInfo->DamageModifier + damageBonus;
+
 
     // Allow bosses to scale as high as they want but limit non-bosses to a max bonus
     if(!creature->IsDungeonBoss() && damageBonus > maxBonus) {
         dmgMod = maxBonus;
     }
     float oldDmgModifier = creature->GetModifierValue(UNIT_MOD_DAMAGE_MAINHAND, BASE_VALUE);
-    creature->SetModifierValue(UNIT_MOD_DAMAGE_MAINHAND,BASE_VALUE, dmgMod);
-    creature->SetModifierValue(UNIT_MOD_DAMAGE_OFFHAND,BASE_VALUE, dmgMod*0.85f);
-    creature->SetModifierValue(UNIT_MOD_DAMAGE_RANGED,BASE_VALUE, dmgMod);
-
-    MpLogger::debug("Creature new attack damage scaled from {} to {}",
-        oldDmgModifier,
-        dmgMod
-    );
-
+    creature->SetModifierValue(UNIT_MOD_DAMAGE_MAINHAND,BASE_PCT, dmgMod);
+    creature->SetModifierValue(UNIT_MOD_DAMAGE_OFFHAND,BASE_PCT, dmgMod*0.85f);
+    creature->SetModifierValue(UNIT_MOD_DAMAGE_RANGED,BASE_PCT, dmgMod);
     creature->UpdateAllStats();
 
     // Scale up the armor with some variance also to make some tougher enemies in the mix
     uint32 armor = uint32(std::ceil(stats->BaseArmor * multipliers->armor * cInfo->ModArmor));
     creature->SetArmor(armor);
 
-    /**
-     * @TODO: Explore scaling other variable stats and resistances on the creature type at a later date.
-     */
-    // creature->SetModifierValue(UNIT_MOD_ATTACK_POWER, BASE_VALUE, stats->AttackPower * multipliers->melee);
-    // creature->SetModifierValue(UNIT_MOD_ATTACK_POWER_RANGED, BASE_VALUE, stats->RangedAttackPower * multipliers->melee);
+    // ap = pow(float((creature->GetLevel() - origLevel) / 5), 1.8f) * 1000
 }
 
-int32 MythicPlus::ScaleDamageSpell(SpellInfo const * spellInfo, MpCreatureData* creatureData, Creature* creature, float damageMultiplier)
+int32 MythicPlus::ScaleDamageSpell(SpellInfo const * spellInfo, uint32 damage, MpCreatureData* creatureData, Creature* creature, Unit* target, float damageMultiplier)
 {
 
     if (!spellInfo) {
         MpLogger::error("Invalid spell info ScaleDamageSpell()");
-        return 0;
+        return damage;
     }
 
     if(!creatureData) {
+        // this is probably a summoned object or totem so going to cheat here and just use the flat modifer
+
+        // Handle totems that do some nasty things to us Slave Pens anyone
+        if(creature->IsTotem()) {
+            Unit* owner = creature->GetOwner();
+            if(owner) {
+                float lvlDmgBonus = float(85 - owner->GetLevel() / 5.0f);
+                return int32(damage * lvlDmgBonus * damageMultiplier);
+            } else {
+                return damage * damageMultiplier;
+            }
+        }
+
         MpLogger::error("Invalid creature data ScaleDamageSpell()");
-        return 0;
+        return damage * damageMultiplier;
     }
 
     if(!creature) {
         MpLogger::error("Invalid creature ScaleDamageSpell()");
-        return 0;
+        return damage * damageMultiplier;
     }
 
     int32 originalLevel = creatureData->originalLevel;
+
+    MpInstanceData *instanceData = sMpDataStore->GetInstanceData(creature->GetMapId(), creature->GetInstanceId());
+    int32 spellBonus = sMpDataStore->GetSpellScaleFactor(creature->GetMapId(), instanceData->difficulty);
+    if(creature->IsDungeonBoss()) {
+        spellBonus *= 1.25;
+    }
+
+    // since we are using logrithmic operation divide the level by the original level
+
+    float scalingFactor = pow(float((creature->GetLevel() - originalLevel) / 10.0f ), float(spellBonus) / 5.0f);
+    MpLogger::debug("Creature {} original level: {} New Level{} and Scaling level {}", creature->GetName(), originalLevel, creature->GetLevel(), scalingFactor);
+
     int32 totalDamage = 0;
-
-    // Calculate the scaling factor using the 1.8 exponent
-    float scalingFactor = pow(float(creature->GetLevel()*1.5 / originalLevel), 1.8f);
     auto effects = spellInfo->GetEffects();
-
-    // Loop through all spell effects to scale their base damage
     for (uint8 i = 0; i < effects.size(); ++i)
     {
-        MpLogger::debug("Spell effect {} base points: {}", i, effects[i].BasePoints);
         SpellEffectInfo effect = effects[i];
-        totalDamage += effect.CalcValue(creature, &effect.BasePoints, nullptr);
-
-        MpLogger::debug("Spell effect {} total damage: {}", i, totalDamage);
-
-        if(effect.IsAreaAuraEffect()) {
-            MpLogger::debug("Skipping area aura effect");
-            continue;
-        }
-
         if(effect.IsAura()) {
-            MpLogger::debug("Skipping aura effect");
-            continue;
-        }
+            switch(spellInfo->Effects[i].ApplyAuraName) {
+                case SPELL_AURA_PERIODIC_DAMAGE:
+                case SPELL_AURA_PERIODIC_DAMAGE_PERCENT:
+                case SPELL_AURA_POWER_BURN:
+                case SPELL_AURA_PERIODIC_LEECH:
+                case SPELL_AURA_PERIODIC_TRIGGER_SPELL:
+                case SPELL_AURA_PERIODIC_TRIGGER_SPELL_WITH_VALUE:
+                case SPELL_AURA_PERIODIC_DUMMY:
+                case SPELL_AURA_DUMMY:
+                    totalDamage += effect.CalcValue(creature, nullptr, target);
+                    break;
+                default:
+                    break;
+            }
+        } else {
+            switch(effect.Effect)
+            {
+                case SPELL_EFFECT_WEAPON_PERCENT_DAMAGE:
+                case SPELL_EFFECT_WEAPON_DAMAGE:
+                case SPELL_EFFECT_NORMALIZED_WEAPON_DMG:
+                    return damage;
 
-
-        if(effect.IsEffect(SPELL_EFFECT_WEAPON_DAMAGE) || effect.IsEffect(SPELL_EFFECT_WEAPON_PERCENT_DAMAGE)) {
-            MpLogger::debug("Skipping weapon damage effect");
-            continue;
+                case SPELL_EFFECT_SCHOOL_DAMAGE:
+                case SPELL_EFFECT_ENVIRONMENTAL_DAMAGE:
+                case SPELL_EFFECT_POWER_BURN:
+                case SPELL_EFFECT_HEALTH_LEECH:
+                case SPELL_EFFECT_TRIGGER_SPELL:
+                case SPELL_EFFECT_TRIGGER_SPELL_WITH_VALUE:
+                case SPELL_EFFECT_DUMMY:
+                    totalDamage += effect.CalcValue(creature, nullptr, target);
+                    break;
+                default:
+                    break;
+            }
         }
+    }
+
+    if(totalDamage == 0) {
+        return damage;
     }
 
     // Apply scaling factor and the set multiplier from the instance data
     totalDamage = int32(totalDamage * scalingFactor * damageMultiplier);
 
-
-    MpLogger::debug("Spell damage scaled from for spell New Damage: {} using: scaling Factor: {} and damangeMulti", totalDamage, scalingFactor, damageMultiplier);
+    MpLogger::debug("Spell {} damage scaled from for spell New Damage: {} using: scaling Factor: {} and damage Multi: {}",spellInfo->SpellName[0], totalDamage, scalingFactor, damageMultiplier);
     return totalDamage;
 }
 

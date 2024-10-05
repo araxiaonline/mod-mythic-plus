@@ -18,15 +18,22 @@ public:
             return;
         }
 
-        bool haspositiveeffect = false;
+        auto effects = spellInfo->Effects;
+        bool isHot = false;
         for (uint8 i = 0; i < MAX_SPELL_EFFECTS; ++i) {
-            if (spellInfo->_IsPositiveEffect(i, true)) {
-                haspositiveeffect = true;
-                break;
+            switch(effects[i].Effect) {
+                case SPELL_EFFECT_HEAL:
+                case SPELL_EFFECT_HEAL_MAX_HEALTH:
+                case SPELL_EFFECT_HEAL_MECHANICAL:
+                case SPELL_EFFECT_HEAL_PCT:
+                case SPELL_EFFECT_SPIRIT_HEAL:
+                    isHot = true;
+                    break;
             }
         }
 
-        if(haspositiveeffect) {
+
+        if(isHot) {
             damage = modifyIncomingDmgHeal(MythicPlus::UNIT_EVENT_HOT, target, attacker, damage, spellInfo);
         } else {
             damage = modifyIncomingDmgHeal(MythicPlus::UNIT_EVENT_DOT, target, attacker, damage, spellInfo);
@@ -135,6 +142,11 @@ public:
 
         if(eventType != MythicPlus::UNIT_EVENT_MELEE) {
             MpLogger::debug("Incoming Event Type ({}): {} hits {} before mod: {} spell: ", eventName, attacker->GetName(), target->GetName(), damageOrHeal, spellInfo ? spellInfo->SpellName[0] : "none");
+                    if(creature->IsDungeonBoss()) {
+                        alteredDmgHeal = damageOrHeal * instanceData->boss.melee;
+                    } else {
+                        alteredDmgHeal = damageOrHeal * instanceData->creature.melee;
+                    }
         }
 
         // If the target is the enemy then increase the amount of healing by the instance data modifier for spell output.
@@ -150,26 +162,26 @@ public:
                     } else {
                         alteredDmgHeal = damageOrHeal * instanceData->creature.melee;
                     }
-                    // MpLogger::debug("Incoming Melee New Damage: {}({}) {} hits {}", alteredDmgHeal, damageOrHeal, attacker->GetName(), target->GetName());
+                    MpLogger::debug("Incoming Melee New Damage: {}({}) {} hits {}", alteredDmgHeal, damageOrHeal, attacker->GetName(), target->GetName());
                     break;
                 case MythicPlus::UNIT_EVENT_DOT:
                 case MythicPlus::UNIT_EVENT_SPELL:
                     if(creature->IsDungeonBoss()) {
                         if(spellInfo) {
-                            alteredDmgHeal = sMythicPlus->ScaleDamageSpell(spellInfo, sMpDataStore->GetCreatureData(attacker->GetGUID()), creature, instanceData->boss.spell);
+                            alteredDmgHeal = sMythicPlus->ScaleDamageSpell(spellInfo, damageOrHeal, sMpDataStore->GetCreatureData(attacker->GetGUID()), creature, target, instanceData->boss.spell);
                         } else {
                             alteredDmgHeal = damageOrHeal * instanceData->boss.spell;
                         }
                     } else {
                         if(spellInfo) {
-                            alteredDmgHeal = sMythicPlus->ScaleDamageSpell(spellInfo, sMpDataStore->GetCreatureData(attacker->GetGUID()), creature, instanceData->creature.spell);
+                            alteredDmgHeal = sMythicPlus->ScaleDamageSpell(spellInfo, damageOrHeal, sMpDataStore->GetCreatureData(attacker->GetGUID()), creature, target, instanceData->creature.spell);
                         } else {
                             alteredDmgHeal = damageOrHeal * instanceData->creature.spell;
                         }
                     }
 
                     if(spellInfo) {
-                        MpLogger::debug("Incoming spell New Damage: {}({}) {} hits {} spell: {}", alteredDmgHeal, damageOrHeal, attacker->GetName(), target->GetName(), spellInfo->SpellName[0]);
+                        MpLogger::debug("Incoming spell New Damage: {}({}) {} hits {} spell: {} ID: {}", alteredDmgHeal, damageOrHeal, attacker->GetName(), target->GetName(), spellInfo->SpellName[0], spellInfo->Id);
                     } else {
                         MpLogger::debug("Incoming spell New Damage: {}({}) {} hits {}", alteredDmgHeal, damageOrHeal, attacker->GetName(), target->GetName());
                     }
@@ -179,8 +191,6 @@ public:
                     break;
             }
         }
-
-
 
         /**
          * @TODO: Add more granular control over the scaling of healing spells
