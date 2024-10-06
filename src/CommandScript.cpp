@@ -28,6 +28,7 @@ public:
             // {"legendary",HandleLegendary, SEC_PLAYER, Console::No},
             // {"ascendant",HandleAscendant, SEC_PLAYER, Console::No},
             {"set", HandleSetDifficulty, SEC_PLAYER, Console::No},
+            {"update", HandleUpdate, SEC_GAMEMASTER,Console::No },
             {"disable", HandleDisable, SEC_ADMINISTRATOR, Console::Yes},
             {"enable", HandleEnable, SEC_ADMINISTRATOR, Console::Yes}
         };
@@ -50,6 +51,13 @@ public:
             "  .mp [enable,disable] - enable or disable this mod\n"
             "  .mp - Show this help message\n";
         handler->PSendSysMessage(helpText);
+        return true;
+    }
+
+    static bool HandleUpdate(ChatHandler* handler, const std::vector<std::string>& /*args*/)
+    {
+        sMpDataStore->LoadScaleFactors();
+        handler->PSendSysMessage("Mythic+ scale factors updated.");
         return true;
     }
 

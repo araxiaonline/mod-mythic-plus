@@ -62,12 +62,15 @@ bool MythicPlus::EligibleHealTarget(Unit* target)
             return false;
         }
 
-        if ((target->IsPet() || target->IsSummon() || target->IsHunterPet()) && target->GetOwner()->IsNPCBot()) {
+        // Null check for GetOwner to avoid dereferencing a null pointer
+        if ((target->IsPet() || target->IsSummon() || target->IsHunterPet()) && target->GetOwner() && target->GetOwner()->IsNPCBot()) {
             return false;
         }
     #endif
 
-    if(sMythicPlus->IsCreatureEligible(target->ToCreature())) {
+    // Ensure target is a valid creature before checking eligibility
+    Creature* creatureTarget = target->ToCreature();
+    if (creatureTarget && sMythicPlus->IsCreatureEligible(creatureTarget)) {
         return true;
     }
 
@@ -331,12 +334,16 @@ int32 MythicPlus::ScaleDamageSpell(SpellInfo const * spellInfo, uint32 damage, M
     MpInstanceData *instanceData = sMpDataStore->GetInstanceData(creature->GetMapId(), creature->GetInstanceId());
     int32 spellBonus = sMpDataStore->GetSpellScaleFactor(creature->GetMapId(), instanceData->difficulty);
     if(creature->IsDungeonBoss()) {
-        spellBonus *= 1.25;
+        spellBonus *= 1.15;
     }
 
-    // since we are using logrithmic operation divide the level by the original level
+    // Calculate the level difference
+    float levelDifference = creature->GetLevel() - originalLevel;
 
-    float scalingFactor = pow(float((creature->GetLevel() - originalLevel) / 10.0f ), float(spellBonus) / 5.0f);
+    // New formula with adjusted divisor for smoother scaling
+    float scalingFactor = 1 + (std::log2(levelDifference + 1) * (float(spellBonus) / 10.0f));
+
+    // float scalingFactor = pow(float((creature->GetLevel() - originalLevel) / 10.0f ), float(spellBonus) / 5.0f);
     MpLogger::debug("Creature {} original level: {} New Level{} and Scaling level {}", creature->GetName(), originalLevel, creature->GetLevel(), scalingFactor);
 
     int32 totalDamage = 0;
