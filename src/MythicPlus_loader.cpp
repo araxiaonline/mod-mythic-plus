@@ -1,3 +1,5 @@
+// #include "ScriptMgr.h"
+// #include "Instances/Ragefire/boss_bazzalan.cpp"
 
 void Addmod_mythic_plusScripts();
 void Add_MP_AllCreatureScripts();
@@ -9,6 +11,9 @@ void Add_MP_PlayerScripts();
 void Add_MP_UnitScripts();
 void Add_MP_WorldScripts();
 
+// Mythic custom encounters for mythic+ dungeons
+void AddSC_Ragefire_Bazzalan_Mythic();
+
 void Addmod_mythic_plusScripts()
 {
     Add_MP_AllCreatureScripts();
@@ -19,4 +24,7 @@ void Addmod_mythic_plusScripts()
     // Add_MP_PlayerScripts();
     Add_MP_UnitScripts();
     Add_MP_WorldScripts();
+
+    // Boss custom changes for mythic+ dungeons
+    AddSC_Ragefire_Bazzalan_Mythic();
 }
