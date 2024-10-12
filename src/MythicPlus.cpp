@@ -250,45 +250,95 @@ void MythicPlus::ScaleCreature(uint8 level, Creature* creature, MpMultipliers* m
         creature->SetModifierValue(UNIT_MOD_MANA, BASE_VALUE, (float)mana * 3.0f);
     }
 
-    float oldAp = stats->AttackPower;
-    float oldRangeAp = stats->RangedAttackPower;
+    MpInstanceData *instanceData = sMpDataStore->GetInstanceData(creature->GetMapId(), creature->GetInstanceId());
+    int32 meleeDamage = sMpDataStore->GetDamageScaleFactor(creature->GetMapId(), instanceData->difficulty);
+    if(creature->IsDungeonBoss()) {
+        meleeDamage *= 1.15;
+    }
+
+    // Calculate the level difference
+    float levelDifference = creature->GetLevel() - origLevel;
+
+    // New formula with adjusted divisor for smoother scaling
+    float scalingFactor = 1 + (std::log2(levelDifference + 1) * (float(meleeDamage) / 30.0f));
+
+
+    uint32 ap = uint32(sMythicPlus->meleeAttackPowerStart - sMythicPlus->meleeAttackPowerDampener * log(cInfo->DamageModifier));
     uint32 rangeAp = irand(215, 357);
-    float ap; // = ((85 - origLevel) * APratio); // * 100;
 
-    int32 damageBonus = sMpDataStore->GetDamageScaleFactor(mapId, difficulty);
-    float dmgMod = cInfo->DamageModifier + damageBonus;
-
-
-    ap = dmgMod * 80 + oldAp;
-    if (creature->GetLevel() >= 60) {
-        ap = ap * 1.25f;
-        rangeAp = rangeAp * 1.25f;
+    if(cInfo->unit_class == UNIT_CLASS_MAGE) {
+        ap = ap * 0.6f;
     }
 
-    creature->SetModifierValue(UNIT_MOD_ATTACK_POWER, BASE_VALUE, ap);
-    creature->SetModifierValue(UNIT_MOD_ATTACK_POWER_RANGED, BASE_VALUE, rangeAp);
 
-    // MpLogger::debug("Creature {} base attack power {} new ap {}",
-    //     creature->GetName(),
-    //     oldAp,
-    //     ap
-    // );
-    // This works out a bonus damage to apply to the mob using the database and original mod settings.
-    // the thought behind this is some mobs in dungeons are intended to hit harder than others
-    // so applying a flat bonus keeps the ratios the same but increases the overall difficulty.
-    // Of course within reason.
-
-    int32 maxBonus = sMpDataStore->GetMaxDamageScaleFactor(mapId, difficulty);
-
-
-    // Allow bosses to scale as high as they want but limit non-bosses to a max bonus
-    if(!creature->IsDungeonBoss() && damageBonus > maxBonus) {
-        dmgMod = maxBonus;
+    if(cInfo->unit_class == UNIT_CLASS_WARRIOR) {
+        ap = ap * 1.2f;
     }
-    float oldDmgModifier = creature->GetModifierValue(UNIT_MOD_DAMAGE_MAINHAND, BASE_VALUE);
-    creature->SetModifierValue(UNIT_MOD_DAMAGE_MAINHAND,BASE_PCT, dmgMod);
-    creature->SetModifierValue(UNIT_MOD_DAMAGE_OFFHAND,BASE_PCT, dmgMod*0.85f);
-    creature->SetModifierValue(UNIT_MOD_DAMAGE_RANGED,BASE_PCT, dmgMod);
+
+    if(cInfo->unit_class == UNIT_CLASS_ROGUE) {
+        ap = ap * 1.5f;
+    }
+
+    // Set scaled attack power
+    creature->SetModifierValue(UNIT_MOD_ATTACK_POWER, BASE_VALUE, ap +  stats->AttackPower * scalingFactor);
+    creature->SetModifierValue(UNIT_MOD_ATTACK_POWER_RANGED, BASE_VALUE, rangeAp + stats->RangedAttackPower * scalingFactor);
+
+    // set the base weapon damage
+    creature->SetBaseWeaponDamage(BASE_ATTACK, MINDAMAGE, stats->BaseDamage[EXPANSION_WRATH_OF_THE_LICH_KING], 0);
+    creature->SetBaseWeaponDamage(BASE_ATTACK, MAXDAMAGE, stats->BaseDamage[EXPANSION_WRATH_OF_THE_LICH_KING], 0);
+
+    // float oldAp = stats->AttackPower;
+    // float oldRangeAp = stats->RangedAttackPower;
+
+    // float ap; // = ((85 - origLevel) * APratio); // * 100;
+
+    // int32 damageBonus = sMpDataStore->GetDamageScaleFactor(mapId, difficulty);
+    // float dmgMod = cInfo->DamageModifier + damageBonus;
+
+
+    // ap = dmgMod * 80 + oldAp;
+    // if (creature->GetLevel() >= 60) {
+    //     ap = ap * 1.25f;
+    //     rangeAp = rangeAp * 1.25f;
+    // }
+
+    // creature->SetModifierValue(UNIT_MOD_ATTACK_POWER, BASE_VALUE, ap);
+    // creature->SetModifierValue(UNIT_MOD_ATTACK_POWER_RANGED, BASE_VALUE, rangeAp);
+
+    // // MpLogger::debug("Creature {} base attack power {} new ap {}",
+    // //     creature->GetName(),
+    // //     oldAp,
+    // //     ap
+    // // );
+    // // This works out a bonus damage to apply to the mob using the database and original mod settings.
+    // // the thought behind this is some mobs in dungeons are intended to hit harder than others
+    // // so applying a flat bonus keeps the ratios the same but increases the overall difficulty.
+    // // Of course within reason.
+
+    // int32 maxBonus = sMpDataStore->GetMaxDamageScaleFactor(mapId, difficulty);
+
+
+    // // Allow bosses to scale as high as they want but limit non-bosses to a max bonus
+    // if(!creature->IsDungeonBoss() && damageBonus > maxBonus) {
+    //     dmgMod = maxBonus;
+    // }
+    // float oldDmgModifier = creature->GetModifierValue(UNIT_MOD_DAMAGE_MAINHAND, BASE_VALUE);
+    // creature->SetModifierValue(UNIT_MOD_DAMAGE_MAINHAND,BASE_VALUE, oldDmgModifier * dmgMod);
+    // creature->SetModifierValue(UNIT_MOD_DAMAGE_OFFHAND,BASE_VALUE, oldDmgModifier * dmgMod * 0.85f);
+    // creature->SetModifierValue(UNIT_MOD_DAMAGE_RANGED,BASE_VALUE, oldDmgModifier * dmgMod);
+    // creature->UpdateAllStats();
+
+
+// Retrieve instance data and damage scaling factors
+// MpInstanceData* instanceData = sMpDataStore->GetInstanceData(creature->GetMapId(), creature->GetInstanceId());
+// int32 damageBonus = sMpDataStore->GetDamageScaleFactor(creature->GetMapId(), instanceData->difficulty);
+
+// // Apply a boss multiplier for scaling
+// if (creature->IsDungeonBoss()) {
+//     damageBonus *= 1.15;
+// }
+
+    // Update all stats to apply the new damage values
     creature->UpdateAllStats();
 
     // Scale up the armor with some variance also to make some tougher enemies in the mix

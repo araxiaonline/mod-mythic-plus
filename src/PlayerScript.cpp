@@ -16,19 +16,18 @@ public:
             return;
         }
 
-        if (!player) {
-            return;
-        }
-
-        if (!killer) {
+        if (!player || !killer) {
             return;
         }
 
         MpGroupData *data = sMpDataStore->GetGroupData(player->GetGroup());
-
-        if (player->GetMap()->IsDungeon()) {
-            MpLogger::debug("Player {} just died in dungeon {} by {}", player->GetName(), player->GetMap()->GetMapName(), killer->GetName());
+        if (!data) {
+            return;
         }
+
+        data->deaths++; //
+
+
     }
 };
 

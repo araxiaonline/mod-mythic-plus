@@ -56,6 +56,10 @@ public:
     uint32 legendaryItemOffset;
     uint32 ascendantItemOffset;
 
+    uint32 meleeAttackPowerDampener;
+    uint32 meleeAttackPowerStart;
+
+
     enum MP_UNIT_EVENT_TYPE
     {
         UNIT_EVENT_MELEE,

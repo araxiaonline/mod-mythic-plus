@@ -6,56 +6,24 @@
 
 #ifdef _ELUNA_CREATURE_AI_H
     #include "ElunaCreatureAI.h"
+    using BaseAI = ElunaCreatureAI;
+#else
+    using BaseAI = ScriptedAI;
 #endif
 
-
-class MpScriptAI : public ScriptedAI
+class MpScriptAI : public BaseAI
 {
 public:
-    MpScriptAI(Creature* creature) : ScriptedAI(creature) {
-#ifdef _ELUNA_CREATURE_AI_H
-        // Check if Eluna is attached to the creature
-        if (ElunaCreatureAI* eluna = dynamic_cast<ElunaCreatureAI*>(creature->AI())) {
-            elunaAI = eluna;  // Store a pointer to the Eluna AI
-        } else {
-            elunaAI = nullptr;  // No Eluna AI attached
-        }
-#endif
-    }
+    MpScriptAI(Creature* creature) : BaseAI(creature) {}
 
-    // Example for JustDied event
     void JustDied(Unit* killer) override {
         sCreatureHooks->JustDied(me, killer);
 
-#ifdef _ELUNA_CREATURE_AI_H
-        // If Eluna is attached, call its JustDied event
-        if (elunaAI){
-            elunaAI->JustDied(killer);
-        }
-        else
-#endif
-        {
-            // If Eluna is not installed or not attached, call the default AI handler
-            ScriptedAI::JustDied(killer);
-        }
+        BaseAI::JustDied(killer);
     }
 
     void Reset() override {
-#ifdef _ELUNA_CREATURE_AI_H
-        // If Eluna is attached, call its Reset event
-        if (elunaAI){
-            elunaAI->Reset();
-        }
-        else
-#endif
-        {
-            // Call the default AI handler
-            ScriptedAI::Reset();
-        }
+        BaseAI::Reset();
     }
 
-private:
-#ifdef ENABLE_ELUNA
-    ElunaCreatureAI* elunaAI;  // Store a pointer to Eluna's AI if attached
-#endif
 };

@@ -1,6 +1,8 @@
+#include "CreatureAI.h"
 #include "MpDataStore.h"
 #include "MpLogger.h"
 #include "MythicPlus.h"
+#include "MpScriptAI.h"
 #include "ScriptMgr.h"
 
 class MythicPlus_AllCreatureScript : public AllCreatureScript
@@ -35,6 +37,22 @@ public:
         } else {
             sMythicPlus->AddCreatureForScaling(creature);
         }
+
+        // // Assign random affix for now.
+        if (roll_chance_i(30)) {
+            uint32 irand = urand(0, 2);
+
+            if(irand == 0) {
+                creature->AddAura(23341, creature);
+                   creature->SetName("Infernal " + creature->GetName());
+            } else if(irand == 1) {
+                creature->AddAura(34711, creature);
+                   creature->SetName("Berserking " + creature->GetName());
+            } else {
+                creature->AddAura(774, creature);
+                   creature->SetName("Blessed " + creature->GetName());
+            }
+        }
     }
 
     // Cleanup the creature from custom data used for mythic+ mod
@@ -42,6 +60,19 @@ public:
     {
         sMythicPlus->RemoveCreature(creature);
     }
+
+    // CreatureAI* GetCreatureAI(Creature* creature) const override
+    // {
+    //     ASSERT(creature);
+
+    //     // Attach to creatures that are in a mythic+ map
+    //     MpCreatureData* creatureData = sMpDataStore->GetCreatureData(creature->GetGUID());
+    //     if (!creatureData) {
+    //         return nullptr;
+    //     }
+
+    //     return new MpScriptAI(creature);
+    // }
 
 };
 

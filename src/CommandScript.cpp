@@ -58,6 +58,7 @@ public:
     {
         sMpDataStore->LoadScaleFactors();
         handler->PSendSysMessage("Mythic+ scale factors updated.");
+
         return true;
     }
 

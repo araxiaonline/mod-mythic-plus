@@ -1,36 +1,19 @@
-#include "ScriptMgr.h"
-#include "ScriptedCreature.h"
-#include "CreatureAI.h"
-#include "MpLogger.h"
+// #include "BaseCreatureHandler.h"
 
-class Ragefire_Bazzalan_Mythic : public CreatureScript
-{
-public:
-    Ragefire_Bazzalan_Mythic() : CreatureScript("Ragefire_Bazzalan_Mythic") { }
+// class Ragefire_Bazzalan_Mythic : public BaseCreatureHandler
+// {
+// public:
+//     Ragefire_Bazzalan_Mythic(uint32 creature) : BaseCreatureHandler(creature.GetEntry());
 
-    struct Ragefire_Bazzalan_MythicAI : public ScriptedAI
-    {
-        Ragefire_Bazzalan_MythicAI(Creature* creature) : ScriptedAI(creature) { }
+//     // Implement the required methods from BaseCreatureHandler
+//     void OnJustDied(Creature* creature, Unit* killer) override {
+//         // Bazzalan-specific behavior on death
+//         creature->Yell("The flame... it burns out...", LANG_UNIVERSAL, nullptr);
+//     }
 
-        void Reset() override
-        {
-            MpLogger::debug(" >>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>  Ragefire Bazzalan Mythic reset, restoring custom health");
-                uint32 health = 1000000;  // Ensure max health is reset if the boss resets
-                me->SetCreateHealth(health);
-                me->SetMaxHealth(health);
-                me->SetHealth(health);
-                me->ResetPlayerDamageReq();
-                me->SetModifierValue(UNIT_MOD_HEALTH, BASE_VALUE, (float)health);
-        }
-    };
-
-    CreatureAI* GetAI(Creature* creature) const override
-    {
-        return new Ragefire_Bazzalan_MythicAI(creature);
-    }
-};
-
-void AddSC_Ragefire_Bazzalan_Mythic()
-{
-    new Ragefire_Bazzalan_Mythic();
-}
+//     void OnJustSpawned(Creature* creature) override {
+//         // Bazzalan-specific behavior on spawn
+//         creature->Yell("The fire rises again!", LANG_UNIVERSAL, nullptr);
+//         creature->SetHealth(creature->GetMaxHealth());  // Restore health on spawn
+//     }
+// };
