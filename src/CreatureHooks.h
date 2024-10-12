@@ -38,8 +38,23 @@ using CreatureEventStateMap = std::map<ObjectGuid, CreatureEventState>;
 class CreatureHooks {
 private:
 
-    CreatureHooks() { }
-    ~CreatureHooks() { }
+    CreatureHooks():
+        _OnSpawnHandlers(std::make_unique<HandlerMap<Creature*>>()),
+        _JustDiedHandlers(std::make_unique<HandlerMap<Creature*, Unit*>>()),
+        _OnAddToInstanceHandlers(std::make_unique<HandlerMap<Creature*>>()),
+        _eventStates(std::make_unique<CreatureEventStateMap>())
+    {
+        _OnSpawnHandlers->reserve(128);
+        _JustDiedHandlers->reserve(128);
+        _OnAddToInstanceHandlers->reserve(100);
+    }
+
+    ~CreatureHooks() {
+        _OnSpawnHandlers->clear();
+        _JustDiedHandlers->clear();
+        _OnAddToInstanceHandlers->clear();
+        _eventStates->clear();
+    }
 
     // ensure we only ever have one instance of this class
     CreatureHooks(const CreatureHooks&) = delete;
@@ -56,6 +71,7 @@ private:
 public:
     static CreatureHooks* instance() {
         static CreatureHooks instance;
+
         return &instance;
     }
 

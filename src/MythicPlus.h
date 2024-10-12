@@ -56,6 +56,7 @@ public:
     uint32 legendaryItemOffset;
     uint32 ascendantItemOffset;
 
+    // Scaling modifiers
     uint32 meleeAttackPowerDampener;
     uint32 meleeAttackPowerStart;
 

@@ -30,13 +30,24 @@ void CreatureHooks::RegisterOnAddToInstance(uint32 entry, uint32 mapId, uint32 i
 // }
 
 void CreatureHooks::JustDied(Creature* creature, Unit* killer) {
-    uint32 entry = creature->GetEntry();
+    if(!creature) {
+        MpLogger::debug("JustDied() called with nullptr for creature");
+        return;
+    }
 
+    if(!killer) {
+        MpLogger::debug("JustDied() called with nullptr for killer");
+        return;
+    }
+
+
+    uint32 entry = creature->GetEntry();
     if (_JustDiedHandlers->contains(entry)) {
         for (auto& callback : _JustDiedHandlers->at(entry)) {
             callback(creature, killer);
         }
     }
+     MpLogger::debug("JustDied() called for creature: {}", entry);
 }
 
 void CreatureHooks::JustSpawned(Creature* creature) {

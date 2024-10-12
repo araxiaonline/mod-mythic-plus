@@ -44,15 +44,18 @@ public:
 
             if(irand == 0) {
                 creature->AddAura(23341, creature);
-                   creature->SetName("Infernal " + creature->GetName());
+                creature->SetName("Infernal " + creature->GetName());
             } else if(irand == 1) {
                 creature->AddAura(34711, creature);
-                   creature->SetName("Berserking " + creature->GetName());
+                creature->SetName("Berserking " + creature->GetName());
             } else {
                 creature->AddAura(774, creature);
-                   creature->SetName("Blessed " + creature->GetName());
+                creature->SetName("Blessed " + creature->GetName());
             }
         }
+
+        creature->SetAI(new MpScriptAI(creature));
+        MpLogger::debug("Creature AI debug info: {}", creature->GetAI()->GetDebugInfo());
     }
 
     // Cleanup the creature from custom data used for mythic+ mod
@@ -63,13 +66,24 @@ public:
 
     // CreatureAI* GetCreatureAI(Creature* creature) const override
     // {
-    //     ASSERT(creature);
+    //     if(!creature) {
+    //         return nullptr;
+    //     }
+
+    //     uint32 instance = creature->GetInstanceId();
+    //     if(!instance) {
+    //         return nullptr;
+    //     }
+
+    //     MpLogger::debug("GetCreatureAI: Instance logger for instanceId {} called on {}", instance, creature->GetGUID().GetCounter());
 
     //     // Attach to creatures that are in a mythic+ map
     //     MpCreatureData* creatureData = sMpDataStore->GetCreatureData(creature->GetGUID());
     //     if (!creatureData) {
     //         return nullptr;
     //     }
+
+    //     MpLogger::debug("GetCreatureAI: called on {}", creature->GetName());
 
     //     return new MpScriptAI(creature);
     // }

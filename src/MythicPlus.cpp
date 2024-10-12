@@ -84,7 +84,6 @@ bool MythicPlus::EligibleDamageTarget(Unit* target)
     }
 
     if (target->GetTypeId() == TYPEID_PLAYER) {
-        MpLogger::debug("Target {} is a player", target->GetName());
         return true;
     }
 
@@ -221,12 +220,6 @@ void MythicPlus::ScaleCreature(uint8 level, Creature* creature, MpMultipliers* m
 
     uint32 basehp = stats->BaseHealth[EXPANSION_WRATH_OF_THE_LICH_KING];
     uint32 health = CalculateNewHealth(cInfo, mapId, difficulty, basehp, multipliers->health);
-
-    MpLogger::debug("Creature {} base health scaled from {} to {}",
-        creature->GetName(),
-        basehp,
-        health
-    );
 
     creature->SetCreateHealth(health);
     creature->SetMaxHealth(health);
@@ -394,7 +387,7 @@ int32 MythicPlus::ScaleDamageSpell(SpellInfo const * spellInfo, uint32 damage, M
     float scalingFactor = 1 + (std::log2(levelDifference + 1) * (float(spellBonus) / 10.0f));
 
     // float scalingFactor = pow(float((creature->GetLevel() - originalLevel) / 10.0f ), float(spellBonus) / 5.0f);
-    MpLogger::debug("Creature {} original level: {} New Level{} and Scaling level {}", creature->GetName(), originalLevel, creature->GetLevel(), scalingFactor);
+    // MpLogger::debug("Creature {} original level: {} New Level{} and Scaling level {}", creature->GetName(), originalLevel, creature->GetLevel(), scalingFactor);
 
     int32 totalDamage = 0;
     auto effects = spellInfo->GetEffects();
@@ -446,7 +439,7 @@ int32 MythicPlus::ScaleDamageSpell(SpellInfo const * spellInfo, uint32 damage, M
     // Apply scaling factor and the set multiplier from the instance data
     totalDamage = int32(totalDamage * scalingFactor * damageMultiplier);
 
-    MpLogger::debug("Spell {} damage scaled from for spell New Damage: {} using: scaling Factor: {} and damage Multi: {}",spellInfo->SpellName[0], totalDamage, scalingFactor, damageMultiplier);
+    // MpLogger::debug("Spell {} damage scaled from for spell New Damage: {} using: scaling Factor: {} and damage Multi: {}",spellInfo->SpellName[0], totalDamage, scalingFactor, damageMultiplier);
     return totalDamage;
 }
 
@@ -485,7 +478,7 @@ int32 MythicPlus::ScaleHealSpell(SpellInfo const * spellInfo, MpCreatureData* cr
     }
 
     // Apply scaling factor and the set multiplier from the instance data
-    MpLogger::debug("Spell healing scaled from for spell  New Damage: {}", totalHeal);
+    // MpLogger::debug("Spell healing scaled from for spell  New Damage: {}", totalHeal);
     return pow((totalHeal / originalHp) * currentHealth, 0.8f) * healMultiplier;
 }
 
