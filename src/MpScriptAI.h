@@ -2,6 +2,7 @@
 #include "CreatureAI.h"
 #include "CreatureHooks.h"
 #include "MpLogger.h"
+#include "MythicPlus.h"
 #include "ScriptMgr.h"
 #include "ScriptedCreature.h"
 
@@ -14,10 +15,15 @@
 
 class MpScriptAI : public BaseAI
 {
-    Difficulty _difficulty;
+    MpDifficulty _difficulty;
+
 public:
-    MpScriptAI(Creature* creature, Difficulty difficulty) : BaseAI(creature) {
+    MpScriptAI(Creature* creature, MpDifficulty difficulty) : BaseAI(creature) {
         _difficulty = difficulty;
+    }
+
+    MpScriptAI(Creature* creature) : BaseAI(creature) {
+        _difficulty = MpDifficulty::MP_DIFFICULTY_MYTHIC;
     }
 
     void JustDied(Unit* killer) override {

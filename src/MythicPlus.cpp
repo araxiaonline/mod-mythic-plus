@@ -5,6 +5,9 @@
 #include "ScriptMgr.h"
 #include "Group.h"
 #include "Unit.h"
+#include "WorldPacket.h"
+#include "UpdateMask.h"
+#include "MpScriptAI.h"
 
 #include <algorithm>
 #include <cmath>
@@ -173,6 +176,26 @@ void MythicPlus::AddScaledCreature(Creature* creature, MpInstanceData* instanceD
         ScaleCreature(instanceData->boss.avgLevel, creature, &instanceData->boss, instanceData->difficulty);
     } else {
         ScaleCreature(level, creature, &instanceData->creature, instanceData->difficulty);
+    }
+
+    // Update AI now the creature has been scaled.
+    auto ai = new MpScriptAI(creature, instanceData->difficulty);
+    creature->SetAI(ai);
+
+    std::string name = creature->GetName();
+
+    // Assign random affix for now.
+    if (roll_chance_i(50)) {
+        uint32 irand = urand(0, 2);
+
+        if(irand == 0) {
+            creature->AddAura(23341, creature);
+        } else if(irand == 1) {
+            creature->AddAura(34711, creature);
+
+        } else {
+            creature->AddAura(774, creature);
+        }
     }
 
     creatureData.SetScaled(true);
@@ -481,6 +504,7 @@ int32 MythicPlus::ScaleHealSpell(SpellInfo const * spellInfo, MpCreatureData* cr
     // MpLogger::debug("Spell healing scaled from for spell  New Damage: {}", totalHeal);
     return pow((totalHeal / originalHp) * currentHealth, 0.8f) * healMultiplier;
 }
+
 
 /**
  * Function is copied because was not accessible in core creature class
