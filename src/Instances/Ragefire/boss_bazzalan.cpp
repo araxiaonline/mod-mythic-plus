@@ -10,7 +10,7 @@ public:
         creature->Yell("The flame... it burns out...", LANG_UNIVERSAL, nullptr);
     }
 
-    void OnJustSpawned(Creature* creature) override {
+    void OnAddToInstance(Creature* creature) override {
         creature->Yell("The fire rises again!", LANG_UNIVERSAL, nullptr);
         MpLogger::debug("Ragefire Bazzalan spawned Setting high health");
         uint32 health = 10000000;

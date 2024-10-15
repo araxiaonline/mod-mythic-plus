@@ -18,11 +18,18 @@ public:
         sCreatureHooks->RegisterOnSpawn(entry, [this](Creature* creature) {
             this->OnJustSpawned(creature);
         });
+
+        sCreatureHooks->RegisterOnAddToInstance(entry, [this](Creature* creature) {
+            this->OnAddToInstance(creature);
+        });
     }
 
     // Virtual event handlers to be overridden by bosses
-    virtual void OnJustDied(Creature* creature, Unit* killer) = 0;
-    virtual void OnJustSpawned(Creature* creature) = 0;
+    virtual void OnJustDied(Creature* /*creature*/, Unit* /*killer*/) {}
+
+    virtual void OnJustSpawned(Creature* /*creature*/) {}
+
+    virtual void OnAddToInstance(Creature* /*creature*/) {}
 
     virtual ~BaseCreatureHandler() {}
 };

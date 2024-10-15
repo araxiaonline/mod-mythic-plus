@@ -33,7 +33,7 @@ public:
 
     void Reset() override {
         sCreatureHooks->JustSpawned(me->ToCreature());
+
         BaseAI::Reset();
     }
-
 };

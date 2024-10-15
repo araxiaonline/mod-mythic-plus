@@ -100,7 +100,7 @@ void MpDataStore::RemoveInstanceData(uint32 mapId, uint32 instanceId) {
 }
 
 void MpDataStore::AddCreatureData(ObjectGuid guid, MpCreatureData creatureData) {
-    MpLogger::debug("AddInstanceCreatureData for creature {}", guid.GetCounter());
+    // MpLogger::debug("AddInstanceCreatureData for creature {}", guid.GetCounter());
     _instanceCreatureData->emplace(guid, creatureData);
 }
 

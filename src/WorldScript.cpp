@@ -87,8 +87,8 @@ public:
         sMythicPlus->legendaryItemOffset = sConfigMgr->GetOption<uint32>("MythicPlus.Legendary.ItemOffset", 21000000);
         sMythicPlus->ascendantItemOffset = sConfigMgr->GetOption<uint32>("MythicPlus.Ascendant.ItemOffset", 22000000);
 
-        sMythicPlus->meleeAttackPowerDampener = sConfigMgr->GetOption<uint32>("MythicPlus.MeleeAttackPowerDampener", 800);
-        sMythicPlus->meleeAttackPowerStart = sConfigMgr->GetOption<uint32>("MythicPlus.MeleeAttackPowerStart", 3000);
+        sMythicPlus->meleeAttackPowerDampener = sConfigMgr->GetOption<uint32>("MythicPlus.MeleeAttackPowerDampener", 2000);
+        sMythicPlus->meleeAttackPowerStart = sConfigMgr->GetOption<uint32>("MythicPlus.MeleeAttackPowerStart", 10000);
     }
 
     void OnStartup() override

@@ -160,10 +160,10 @@ void MythicPlus::AddCreatureForScaling(Creature* creature)
     }
 
     sMpDataStore->AddCreatureData(creature->GetGUID(), MpCreatureData(creature));
-    MpLogger::debug("Added creature {} to instance data for instance {}",
-        creature->GetName(),
-        creature->GetMap()->GetMapName()
-    );
+    // MpLogger::debug("Added creature {} to instance data for instance {}",
+    //     creature->GetName(),
+    //     creature->GetMap()->GetMapName()
+    // );
 }
 
 void MythicPlus::AddScaledCreature(Creature* creature, MpInstanceData* instanceData)
@@ -182,6 +182,8 @@ void MythicPlus::AddScaledCreature(Creature* creature, MpInstanceData* instanceD
     auto ai = new MpScriptAI(creature, instanceData->difficulty);
     creature->SetAI(ai);
 
+    // We know the creature is scaled and in the instance to fire the event.
+    sCreatureHooks->AddToInstance(creature);
     std::string name = creature->GetName();
 
     // Assign random affix for now.

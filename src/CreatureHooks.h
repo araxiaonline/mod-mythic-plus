@@ -78,11 +78,13 @@ public:
     // Register events for specific actions
     void RegisterJustDied(uint32 entry, CreatureHook<Creature*, Unit*> callback);
     void RegisterOnSpawn(uint32 entry, CreatureHook<Creature*> callback);
-    void RegisterOnAddToInstance(uint32 entry, uint32 mapId, uint32 instanceId, CreatureHook<Creature*> callback);
+    void RegisterOnAddToInstance(uint32 entry, CreatureHook<Creature*> callback);
+
 
     // Event triggers
     void JustDied(Creature* creature, Unit* killer);
     void JustSpawned(Creature* creature);
+    void AddToInstance(Creature* creature);
 };
 
 #define sCreatureHooks CreatureHooks::instance()

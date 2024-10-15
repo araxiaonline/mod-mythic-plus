@@ -154,8 +154,6 @@ public:
 
 
         handler->PSendSysMessage("Mythic+ difficulty set to: " + difficulty);
-        MpLogger::debug("HandleSetMythic() Set difficulty player: {} {}", player->GetName(), difficulty);
-
         return true;
     }
 
@@ -199,7 +197,6 @@ public:
                 status += "  Group Difficulty: Not Set\n";
             }
         }
-
 
         handler->PSendSysMessage(status);
         return true;
