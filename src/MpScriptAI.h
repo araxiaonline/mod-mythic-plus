@@ -27,15 +27,12 @@ public:
     }
 
     void JustDied(Unit* killer) override {
-        MpLogger::debug("***** MythicPlus Script AI JustDied() for creature: ", me->GetEntry());
-
         sCreatureHooks->JustDied(me->ToCreature(), killer);
-
         BaseAI::JustDied(killer);
     }
 
     void Reset() override {
-        MpLogger::debug("***** MythicPlus Script AI Reset() for creature: ", me->GetEntry());
+        sCreatureHooks->JustSpawned(me->ToCreature());
         BaseAI::Reset();
     }
 

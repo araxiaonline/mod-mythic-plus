@@ -29,6 +29,8 @@ void Addmod_mythic_plusScripts()
     Add_MP_UnitScripts();
     Add_MP_WorldScripts();
 
+    new Ragefire_Bazzalan_Mythic();
+
     // list of boss / creature event handlers
     // new Ragefire_Bazzalan_Mythic(RAGEFIRE_BAZZALAN);
 

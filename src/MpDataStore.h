@@ -126,6 +126,7 @@ struct MpCreatureData
     // Original information about the creature that was altered.
     uint8 originalLevel;
     CreatureBaseStats const* originalStats;
+    MpDifficulty difficulty;
 
     // Custom difficulty modifiers to creatures at higher difficulties.
     std::vector<uint32> auras;
@@ -148,6 +149,10 @@ struct MpCreatureData
 
     void SetScaled(bool scaled) {
         this->scaled = scaled;
+    }
+
+    void SetDifficulty(MpDifficulty difficulty) {
+        this->difficulty = difficulty;
     }
 
     bool IsScaled() {

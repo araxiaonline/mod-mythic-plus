@@ -47,7 +47,7 @@ public:
     {
         std::string helpText = "Mythic+ Commands:\n"
             "  .mp status - show current global settings of Mythic+ mod\n"
-            "  .mp set [mythic,legendary,ascendant] - Set Mythic+ difficulty in current beta only supports mythic.\n"
+            "  .mp set [normal, heroic, mythic,legendary,ascendant] - Set Mythic+ difficulty in current beta only supports mythic.\n"
             "  .mp [enable,disable] - enable or disable this mod\n"
             "  .mp - Show this help message\n";
         handler->PSendSysMessage(helpText);
@@ -62,7 +62,7 @@ public:
         return true;
     }
 
-    static bool HandleDebug(ChatHandler* handler, const std::vector<std::string>& args)
+    static bool HandleDebug(ChatHandler* handler, const std::vector<std::string>& /* args */)
     {
 
         Creature* target = handler->getSelectedCreature();
@@ -70,6 +70,8 @@ public:
             handler->PSendSysMessage("You must select a creature to debug.");
             return true;
         }
+
+        CreatureTemplate const* creatureTemplate = target->GetCreatureTemplate();
 
         handler->PSendSysMessage(LANG_NPCINFO_LEVEL, target->GetLevel());
         handler->PSendSysMessage(LANG_NPCINFO_HEALTH, target->GetCreateHealth(), target->GetMaxHealth(), target->GetHealth());
@@ -87,10 +89,8 @@ public:
         );
         handler->PSendSysMessage("Attack Power Main {}", target->GetModifierValue(UNIT_MOD_ATTACK_POWER, BASE_VALUE));
         handler->PSendSysMessage("Attack Power Ranged {}", target->GetModifierValue(UNIT_MOD_ATTACK_POWER_RANGED, BASE_VALUE));
-        handler->PSendSysMessage(LANG_NPCINFO_ARMOR, target->GetArmor());
-        handler->PSendSysMessage("Damage Modifier {}", target->GetModifierValue(UNIT_MOD_DAMAGE_MAINHAND, BASE_VALUE));
-
-
+        handler->PSendSysMessage("Armor {}", target->GetArmor());
+        handler->PSendSysMessage("Damage Modifier on template {}",creatureTemplate->DamageModifier);
 
         return true;
 
@@ -99,7 +99,6 @@ public:
     // sets the difficluty for the group
     static bool HandleSetDifficulty(ChatHandler* handler, const std::vector<std::string>& args)
     {
-
         Player* player = handler->GetSession()->GetPlayer();
         Group* group = player->GetGroup();
 
@@ -139,6 +138,14 @@ public:
         }
         else if (difficulty == "ascendant") {
             sMpDataStore->AddGroupData(group, MpGroupData(group, MP_DIFFICULTY_ASCENDANT, 0));
+        }
+        else if (difficulty == "heroic") {
+            sMpDataStore->RemoveGroupData(group);
+            group->SetDungeonDifficulty(DUNGEON_DIFFICULTY_HEROIC);
+        }
+        else if (difficulty == "normal") {
+            sMpDataStore->RemoveGroupData(group);
+            group->SetDungeonDifficulty(DUNGEON_DIFFICULTY_NORMAL);
         }
         else {
             handler->PSendSysMessage("|cFFFF0000 Invalid difficulty level. Expected values are 'mythic', 'legendary', or 'ascendant'.");

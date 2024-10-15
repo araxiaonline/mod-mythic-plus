@@ -44,10 +44,10 @@ void CreatureHooks::JustDied(Creature* creature, Unit* killer) {
     uint32 entry = creature->GetEntry();
     if (_JustDiedHandlers->contains(entry)) {
         for (auto& callback : _JustDiedHandlers->at(entry)) {
+            MpLogger::debug("JustDied() called for creature: {}", entry);
             callback(creature, killer);
         }
     }
-     MpLogger::debug("JustDied() called for creature: {}", entry);
 }
 
 void CreatureHooks::JustSpawned(Creature* creature) {
@@ -56,6 +56,9 @@ void CreatureHooks::JustSpawned(Creature* creature) {
     if (_OnSpawnHandlers->contains(entry)) {
         for (auto& callback : _OnSpawnHandlers->at(entry)) {
             callback(creature);
+            MpLogger::debug("JustSpawned() called in CreatureHook: {}", entry);
         }
     }
+
+
 }
