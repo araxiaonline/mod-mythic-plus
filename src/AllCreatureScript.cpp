@@ -45,30 +45,6 @@ public:
         sMythicPlus->RemoveCreature(creature);
     }
 
-    // CreatureAI* GetCreatureAI(Creature* creature) const override
-    // {
-    //     if(!creature) {
-    //         return nullptr;
-    //     }
-
-    //     uint32 instance = creature->GetInstanceId();
-    //     if(!instance) {
-    //         return nullptr;
-    //     }
-
-    //     MpLogger::debug("GetCreatureAI: Instance logger for instanceId {} called on {}", instance, creature->GetGUID().GetCounter());
-
-    //     // Attach to creatures that are in a mythic+ map
-    //     MpCreatureData* creatureData = sMpDataStore->GetCreatureData(creature->GetGUID());
-    //     if (!creatureData) {
-    //         return nullptr;
-    //     }
-
-    //     MpLogger::debug("GetCreatureAI: called on {}", creature->GetName());
-
-    //     return new MpScriptAI(creature);
-    // }
-
 };
 
 void Add_MP_AllCreatureScripts()

@@ -166,6 +166,7 @@ public:
                     break;
                 case MythicPlus::UNIT_EVENT_DOT:
                 case MythicPlus::UNIT_EVENT_SPELL:
+                case MythicPlus::UNIT_EVENT_HOT:
                     if(creature->IsDungeonBoss()) {
                         if(spellInfo) {
                             alteredDmgHeal = sMythicPlus->ScaleDamageSpell(spellInfo, damageOrHeal, sMpDataStore->GetCreatureData(attacker->GetGUID()), creature, target, instanceData->boss.spell);
@@ -186,7 +187,6 @@ public:
                         MpLogger::debug("Incoming spell New Damage: {}({}) {} hits {}", alteredDmgHeal, damageOrHeal, attacker->GetName(), target->GetName());
                     }
                     break;
-                case MythicPlus::UNIT_EVENT_HOT:
                 case MythicPlus::UNIT_EVENT_HEAL:
                     break;
             }

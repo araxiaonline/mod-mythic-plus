@@ -273,6 +273,9 @@ void MythicPlus::ScaleCreature(uint8 level, Creature* creature, MpMultipliers* m
     int32 meleeDamage = sMpDataStore->GetDamageScaleFactor(creature->GetMapId(), instanceData->difficulty);
     if(creature->IsDungeonBoss()) {
         meleeDamage *= 1.15;
+
+        // Give the boss an increase in casting speed.
+        creature->SetFloatValue(UNIT_MOD_CAST_SPEED, 1.30f);
     }
 
     // Calculate the level difference
