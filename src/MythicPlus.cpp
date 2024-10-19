@@ -118,6 +118,10 @@ bool MythicPlus::IsCreatureEligible(Creature* creature)
         return true;
     }
 
+    if (creature->GetEntry() == 23682) {
+        return true;
+    }
+
     // Check if the creature is a pet or summon controlled by a player
     if ((creature->IsHunterPet() || creature->IsPet() || creature->IsSummon()) && creature->IsControlledByPlayer()) {
         return false;
@@ -172,7 +176,7 @@ void MythicPlus::AddScaledCreature(Creature* creature, MpInstanceData* instanceD
 
     // allow small variance in level for non-boss creatures
     uint8 level = uint8(urand(instanceData->creature.avgLevel - 1, instanceData->creature.avgLevel + 1));
-    if(creature->IsDungeonBoss()) {
+    if(creature->IsDungeonBoss() || creature->GetEntry() == 23682) {
         ScaleCreature(instanceData->boss.avgLevel, creature, &instanceData->boss, instanceData->difficulty);
     } else {
         ScaleCreature(level, creature, &instanceData->creature, instanceData->difficulty);
@@ -271,7 +275,7 @@ void MythicPlus::ScaleCreature(uint8 level, Creature* creature, MpMultipliers* m
 
     MpInstanceData *instanceData = sMpDataStore->GetInstanceData(creature->GetMapId(), creature->GetInstanceId());
     int32 meleeDamage = sMpDataStore->GetDamageScaleFactor(creature->GetMapId(), instanceData->difficulty);
-    if(creature->IsDungeonBoss()) {
+    if(creature->IsDungeonBoss() || creature->GetEntry() == 23682) {
         meleeDamage *= 1.15;
 
         // Give the boss an increase in casting speed.
@@ -354,7 +358,7 @@ int32 MythicPlus::ScaleDamageSpell(SpellInfo const * spellInfo, uint32 damage, M
 
     MpInstanceData *instanceData = sMpDataStore->GetInstanceData(creature->GetMapId(), creature->GetInstanceId());
     int32 spellBonus = sMpDataStore->GetSpellScaleFactor(creature->GetMapId(), instanceData->difficulty);
-    if(creature->IsDungeonBoss()) {
+    if(creature->IsDungeonBoss() || creature->GetEntry() == 23682) {
         spellBonus *= 1.15;
     }
 

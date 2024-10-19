@@ -142,7 +142,7 @@ public:
 
         if(eventType != MythicPlus::UNIT_EVENT_MELEE) {
             MpLogger::debug("Incoming Event Type ({}): {} hits {} before mod: {} spell: ", eventName, attacker->GetName(), target->GetName(), damageOrHeal, spellInfo ? spellInfo->SpellName[0] : "none");
-                    if(creature->IsDungeonBoss()) {
+                    if(creature->IsDungeonBoss() || creature->GetEntry() == 23682) {
                         alteredDmgHeal = damageOrHeal * instanceData->boss.melee;
                     } else {
                         alteredDmgHeal = damageOrHeal * instanceData->creature.melee;
@@ -157,7 +157,7 @@ public:
              */
             switch (eventType) {
                 case MythicPlus::UNIT_EVENT_MELEE:
-                    if(creature->IsDungeonBoss()) {
+                    if(creature->IsDungeonBoss() || creature->GetEntry() == 23682) {
                         alteredDmgHeal = damageOrHeal * instanceData->boss.melee;
                     } else {
                         alteredDmgHeal = damageOrHeal * instanceData->creature.melee;
@@ -167,7 +167,7 @@ public:
                 case MythicPlus::UNIT_EVENT_DOT:
                 case MythicPlus::UNIT_EVENT_SPELL:
                 case MythicPlus::UNIT_EVENT_HOT:
-                    if(creature->IsDungeonBoss()) {
+                    if(creature->IsDungeonBoss() || creature->GetEntry() == 23682) {
                         if(spellInfo) {
                             alteredDmgHeal = sMythicPlus->ScaleDamageSpell(spellInfo, damageOrHeal, sMpDataStore->GetCreatureData(attacker->GetGUID()), creature, target, instanceData->boss.spell);
                         } else {
