@@ -183,8 +183,8 @@ void MythicPlus::AddScaledCreature(Creature* creature, MpInstanceData* instanceD
     }
 
     // Update AI now the creature has been scaled.
-    auto ai = new MpScriptAI(creature, instanceData->difficulty);
-    creature->SetAI(ai);
+    // auto ai = new MpScriptAI(creature, instanceData->difficulty);
+    // creature->SetAI(ai);
 
     // We know the creature is scaled and in the instance to fire the event.
     sCreatureHooks->AddToInstance(creature);
