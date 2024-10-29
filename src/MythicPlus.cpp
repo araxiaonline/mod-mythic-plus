@@ -12,6 +12,9 @@
 #include <algorithm>
 #include <cmath>
 
+// Special case for Headless Horseman Event
+const uint32 HEADLESS_HORSEMAN = 23682;
+
 bool MythicPlus::IsMapEligible(Map* map)
 {
     if (!Enabled) {
@@ -173,6 +176,7 @@ void MythicPlus::AddCreatureForScaling(Creature* creature)
 void MythicPlus::AddScaledCreature(Creature* creature, MpInstanceData* instanceData)
 {
     MpCreatureData creatureData = MpCreatureData(creature);
+    sMpDataStore->AddCreatureData(creature->GetGUID(), creatureData);
 
     // allow small variance in level for non-boss creatures
     uint8 level = uint8(urand(instanceData->creature.avgLevel - 1, instanceData->creature.avgLevel + 1));
@@ -206,7 +210,6 @@ void MythicPlus::AddScaledCreature(Creature* creature, MpInstanceData* instanceD
 
     creatureData.SetScaled(true);
     creatureData.SetDifficulty(instanceData->difficulty);
-    sMpDataStore->AddCreatureData(creature->GetGUID(), creatureData);
 
     // MpLogger::debug("Scaled Creature {} Entry {} Id {} level from {} to {}",
     //     creature->GetName(),
@@ -249,7 +252,7 @@ void MythicPlus::ScaleCreature(uint8 level, Creature* creature, MpMultipliers* m
     );
 
     uint32 basehp = stats->BaseHealth[EXPANSION_WRATH_OF_THE_LICH_KING];
-    uint32 health = CalculateNewHealth(cInfo, mapId, difficulty, basehp, multipliers->health);
+    uint32 health = CalculateNewHealth(creature, cInfo, mapId, difficulty, basehp, multipliers->health);
 
     creature->SetCreateHealth(health);
     creature->SetMaxHealth(health);
@@ -279,35 +282,40 @@ void MythicPlus::ScaleCreature(uint8 level, Creature* creature, MpMultipliers* m
         meleeDamage *= 1.15;
 
         // Give the boss an increase in casting speed.
-        creature->SetFloatValue(UNIT_MOD_CAST_SPEED, 1.30f);
+        creature->SetFloatValue(UNIT_MOD_CAST_SPEED, 1.20f);
     }
 
     // Calculate the level difference
     float levelDifference = creature->GetLevel() - origLevel;
 
     // New formula with adjusted divisor for smoother scaling
-    float scalingFactor = 1 + (std::log2(levelDifference + 1) * (float(meleeDamage) / 30.0f));
+    float scalingFactor = 1 + (std::log2(levelDifference + 1) * (float(meleeDamage)));
 
 
-    uint32 ap = uint32(sMythicPlus->meleeAttackPowerStart - sMythicPlus->meleeAttackPowerDampener * log(cInfo->DamageModifier));
+    uint32 ap = uint32(sMythicPlus->meleeAttackPowerStart - sMythicPlus->meleeAttackPowerDampener);
     uint32 rangeAp = irand(215, 357);
 
     if(cInfo->unit_class == UNIT_CLASS_MAGE) {
         ap = ap * 0.6f;
     }
 
-
     if(cInfo->unit_class == UNIT_CLASS_WARRIOR) {
         ap = ap * 1.2f;
     }
 
     if(cInfo->unit_class == UNIT_CLASS_ROGUE) {
-        ap = ap * 1.5f;
+        ap = ap * 1.4f;
+    }
+
+    MpCreatureData* creatureData = sMpDataStore->GetCreatureData(creature->GetGUID());
+    if(creatureData) {
+        creatureData->NewAttackPower = ap;
+        creatureData->AttackPowerScaleMultiplier = scalingFactor;
     }
 
     // Set scaled attack power
-    creature->SetModifierValue(UNIT_MOD_ATTACK_POWER, BASE_VALUE, ap +  stats->AttackPower * scalingFactor);
-    creature->SetModifierValue(UNIT_MOD_ATTACK_POWER_RANGED, BASE_VALUE, rangeAp + stats->RangedAttackPower * scalingFactor);
+    creature->SetModifierValue(UNIT_MOD_ATTACK_POWER, BASE_VALUE, (ap * scalingFactor) + stats->AttackPower);
+    creature->SetModifierValue(UNIT_MOD_ATTACK_POWER_RANGED, BASE_VALUE, (rangeAp * scalingFactor) + stats->RangedAttackPower);
 
     // set the base weapon damage
     creature->SetBaseWeaponDamage(BASE_ATTACK, MINDAMAGE, stats->BaseDamage[EXPANSION_WRATH_OF_THE_LICH_KING], 0);
@@ -320,7 +328,6 @@ void MythicPlus::ScaleCreature(uint8 level, Creature* creature, MpMultipliers* m
     uint32 armor = uint32(std::ceil(stats->BaseArmor * multipliers->armor * cInfo->ModArmor));
     creature->SetArmor(armor);
 
-    // ap = pow(float((creature->GetLevel() - origLevel) / 5), 1.8f) * 1000
 }
 
 int32 MythicPlus::ScaleDamageSpell(SpellInfo const * spellInfo, uint32 damage, MpCreatureData* creatureData, Creature* creature, Unit* target, float damageMultiplier)
@@ -338,7 +345,7 @@ int32 MythicPlus::ScaleDamageSpell(SpellInfo const * spellInfo, uint32 damage, M
         if(creature->IsTotem()) {
             Unit* owner = creature->GetOwner();
             if(owner) {
-                float lvlDmgBonus = float(85 - owner->GetLevel() / 5.0f);
+                float lvlDmgBonus = float(85 - owner->GetLevel() / 10.0f);
                 return int32(damage * lvlDmgBonus * damageMultiplier);
             } else {
                 return damage * damageMultiplier;
@@ -358,7 +365,7 @@ int32 MythicPlus::ScaleDamageSpell(SpellInfo const * spellInfo, uint32 damage, M
 
     MpInstanceData *instanceData = sMpDataStore->GetInstanceData(creature->GetMapId(), creature->GetInstanceId());
     int32 spellBonus = sMpDataStore->GetSpellScaleFactor(creature->GetMapId(), instanceData->difficulty);
-    if(creature->IsDungeonBoss() || creature->GetEntry() == 23682) {
+    if((creature->IsDungeonBoss() && creature->isElite()) || creature->GetEntry() == 23682) {
         spellBonus *= 1.15;
     }
 
@@ -366,7 +373,7 @@ int32 MythicPlus::ScaleDamageSpell(SpellInfo const * spellInfo, uint32 damage, M
     float levelDifference = creature->GetLevel() - originalLevel;
 
     // New formula with adjusted divisor for smoother scaling
-    float scalingFactor = 1 + (std::log2(levelDifference + 1) * (float(spellBonus) / 10.0f));
+    float scalingFactor = 1 + (std::log2(levelDifference + 1) * (float(spellBonus)));
 
     // float scalingFactor = pow(float((creature->GetLevel() - originalLevel) / 10.0f ), float(spellBonus) / 5.0f);
     // MpLogger::debug("Creature {} original level: {} New Level{} and Scaling level {}", creature->GetName(), originalLevel, creature->GetLevel(), scalingFactor);
@@ -425,8 +432,9 @@ int32 MythicPlus::ScaleDamageSpell(SpellInfo const * spellInfo, uint32 damage, M
     return totalDamage;
 }
 
-int32 MythicPlus::ScaleHealSpell(SpellInfo const * spellInfo, MpCreatureData* creatureData, Creature* creature, Creature* target, float healMultiplier)
+int32 MythicPlus::ScaleHealSpell(SpellInfo const * spellInfo, uint32 heal, MpCreatureData* creatureData, Creature* creature, Creature* target, float healMultiplier)
 {
+
     if (!spellInfo) {
         MpLogger::error("Invalid spell info ScaleHealSpell()");
         return 0;
@@ -442,26 +450,34 @@ int32 MythicPlus::ScaleHealSpell(SpellInfo const * spellInfo, MpCreatureData* cr
         return 0;
     }
 
+    auto effects = spellInfo->GetEffects();
+    for (uint8 i = 0; i < effects.size(); ++i)
+    {
+        SpellEffectInfo effect = effects[i];
+        MpLogger::debug(" >>> Spell {} effect {} value: {} by creature {}", spellInfo->SpellName[i], effects[i].Effect, heal, creature->GetName());
+        MpLogger::debug(" >>>>> Spell is Aura {}", (effect.IsAura() ? "true" : "false"));
+    }
+
     if(!target) {
         MpLogger::error("Invalid target ScaleHealSpell()");
         return 0;
     }
 
-    int32 originalHp = creatureData->originalStats->BaseHealth[EXPANSION_WRATH_OF_THE_LICH_KING];
-    int32 currentHealth = creature->GetHealth();
-    int32 totalHeal = 0;
+    // int32 originalHp = creatureData->originalStats->BaseHealth[EXPANSION_WRATH_OF_THE_LICH_KING];
+    // int32 currentHealth = creature->GetHealth();
+    // int32 totalHeal = 0;
 
-    auto effects = spellInfo->GetEffects();
-    // Loop through all spell effects to scale their base healing
-    for (uint8 i = 0; i < effects.size(); ++i)
-    {
-        SpellEffectInfo effect = effects[i];
-        totalHeal += effect.CalcValue(creature, nullptr, target);
-    }
+    // auto effects = spellInfo->GetEffects();
+    // // Loop through all spell effects to scale their base healing
+    // for (uint8 i = 0; i < effects.size(); ++i)
+    // {
+    //     SpellEffectInfo effect = effects[i];
+    //     totalHeal += effect.CalcValue(creature, nullptr, target);
+    // }
 
-    // Apply scaling factor and the set multiplier from the instance data
-    // MpLogger::debug("Spell healing scaled from for spell  New Damage: {}", totalHeal);
-    return pow((totalHeal / originalHp) * currentHealth, 0.8f) * healMultiplier;
+    // // Apply scaling factor and the set multiplier from the instance data
+    // // MpLogger::debug("Spell healing scaled from for spell  New Damage: {}", totalHeal);
+    // return pow((totalHeal / originalHp) * currentHealth, 0.8f) * healMultiplier;
 }
 
 
@@ -488,19 +504,38 @@ float GetTypeHealthModifier(int32 Rank)
 }
 
 // This takes the orignal health and scales flat based on the factor then applies the configuration modifier from the conf file
-uint32 CalculateNewHealth(CreatureTemplate const* cInfo, uint32 mapId, MpDifficulty difficulty, uint32 origHealth, float confHPMod)
+uint32 CalculateNewHealth(Creature* creature, CreatureTemplate const* cInfo, uint32 mapId, MpDifficulty difficulty, uint32 origHealth, float confHPMod)
 {
     int32 rank = 0;
     if(cInfo && cInfo->rank > 0) {
         rank = cInfo->rank;
     }
 
+    float healthVariation;
+
+    if(creature->IsPet() || creature->IsSummon() || creature->IsTotem()) {
+        return origHealth;
+    }
+
+    int32 hpScaleFactor = sMpDataStore->GetHealthScaleFactor(mapId, difficulty);
+
     // Add some variance to the healthpool so enemies are not all the same
-    float healthVariation = frand(0.85f, 1.15f);
+    if(creature->IsDungeonBoss() || creature->GetEntry() == HEADLESS_HORSEMAN || creature->isWorldBoss()) {  // Is a boss of some kind
+        healthVariation = frand(1.1f, 1.2f);
+    } else if(creature->isElite() || cInfo->rank == CREATURE_ELITE_RARE) {   // Is Elite Mob
+        healthVariation = frand(1.0f, 1.10f);
+        hpScaleFactor *= 0.90;
+    } else if(creature->IsSummon() || creature->IsPet() || creature->IsTotem()) { // Is a pet or summon
+        healthVariation = frand(1.0f, 1.05f);
+        hpScaleFactor *= 0.35;
+    } else {
+        healthVariation = frand(1.0f, 1.1f);
+        hpScaleFactor *= 0.45;
+    }
+
     float unitTypeMod = GetTypeHealthModifier(rank);
     uint32 basehp = uint32(std::ceil(origHealth * unitTypeMod * healthVariation));
 
-    int32 hpScaleFactor = sMpDataStore->GetHealthScaleFactor(mapId, difficulty);
     if(cInfo->ModHealth > 0.0f) {
         return uint32(basehp * (cInfo->ModHealth + hpScaleFactor) * confHPMod);
     } else {
@@ -526,3 +561,4 @@ float GetTypeDamageModifier(int32 Rank)
             return sWorld->getRate(RATE_CREATURE_ELITE_ELITE_DAMAGE);
     }
 }
+

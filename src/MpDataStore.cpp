@@ -159,7 +159,30 @@ int32 MpDataStore::GetMaxDamageScaleFactor(int32 mapId, int32 difficulty) const 
     return GetScaleFactor(mapId, difficulty).maxDamageBonus;
 }
 
+void MpDataStore::SetHealthScaleFactor(int32 mapId, int32 difficulty, int32 newValue) {
+    auto key = GetScaleFactorKey(mapId, difficulty);
+    if (_scaleFactors->contains(key)) {
+        _scaleFactors->at(key).healthBonus = newValue;
+    }
+}
+
+void MpDataStore::SetDamageScaleFactor(int32 mapId, int32 difficulty, int32 newValue) {
+    auto key = GetScaleFactorKey(mapId, difficulty);
+    if (_scaleFactors->contains(key)) {
+        _scaleFactors->at(key).dmgBonus = newValue;
+    }
+}
+
+void MpDataStore::SetSpellScaleFactor(int32 mapId, int32 difficulty, int32 newValue) {
+    auto key = GetScaleFactorKey(mapId, difficulty);
+    if (_scaleFactors->contains(key)) {
+        _scaleFactors->at(key).spellBonus = newValue;
+    }
+}
+
 int32 MpDataStore::LoadScaleFactors() {
+    _scaleFactors->clear();
+
     //                                                 0       1          2              3        4        5
     QueryResult result = WorldDatabase.Query("SELECT mapId, dmg_bonus, spell_bonus, hp_bonus, difficulty, max FROM mythic_plus_scale_factors");
     if (!result) {
@@ -183,12 +206,9 @@ int32 MpDataStore::LoadScaleFactors() {
             .maxDamageBonus = maxDamageBonus
         };
 
-        _mutableScaleFactors->emplace(GetScaleFactorKey(mapId, difficulty), scaleFactor);
+        _scaleFactors->emplace(GetScaleFactorKey(mapId, difficulty), scaleFactor);
 
     } while (result->NextRow());
-
-    // move to const map one loaded so can not be changed after
-    _scaleFactors = std::move(_mutableScaleFactors);
 
     return int32(_scaleFactors->size());
 }

@@ -2,6 +2,7 @@
 #define MYTHICPLUS_DATASTORE_H
 
 #include "Creature.h"
+// #include "CreatureOverride.h"
 #include "Group.h"
 #include "MapMgr.h"
 #include "Player.h"
@@ -112,8 +113,6 @@ struct MpInstanceData
 
 };
 
-
-
 /**
  * Simple struct for managing information about creatures that
  * are in a mythic+ instance.
@@ -123,8 +122,15 @@ struct MpCreatureData
     Creature* creature;
     bool scaled;
 
+    // AttackPower calculated based on settings
+    uint32 NewAttackPower;
+
+    // New Scaling Multiplier based on database factors + level growth formula
+    float AttackPowerScaleMultiplier;
+
     // Original information about the creature that was altered.
     uint8 originalLevel;
+
     CreatureBaseStats const* originalStats;
     MpDifficulty difficulty;
 
@@ -159,6 +165,30 @@ struct MpCreatureData
         return scaled;
     }
 
+    std::string ToString() const {
+
+        std::string origStatsStr;
+        if(originalStats) {
+            uint32 health = *originalStats->BaseHealth;
+            uint32 mana = originalStats->BaseMana;
+            uint32 armor = originalStats->BaseArmor;
+            uint32 ap = originalStats->AttackPower;
+
+            origStatsStr = "Original Stats: \n Health: " + std::to_string(health) + "\n" +
+                            "Mana: " + std::to_string(mana) + "\n" +
+                            "Armor: " + std::to_string(armor) + "\n" +
+                            "Attack Power: " + std::to_string(ap) + "\n";
+
+        } else {
+            origStatsStr = "Original Stats Display Failed: \n Did you select target or in an non-scaled instance? \n";
+        }
+
+        return " MpCreatureData: \n Original level: " + std::to_string(originalLevel) + "\n" +
+                origStatsStr +
+                " Difficulty: " + std::to_string(difficulty) + "\n" +
+                " Scaled: " + (scaled ? "true" : "false") + "\n";
+    }
+
     /**@todo Add Affixes and Aura Spell methods */
 };
 
@@ -169,7 +199,7 @@ private:
       _instanceData(std::make_unique<std::map<std::pair<uint32, uint32>, MpInstanceData>>()),
       _groupData(std::make_unique<std::unordered_map<ObjectGuid, MpGroupData>>()),
       _instanceCreatureData(std::make_unique<std::unordered_map<ObjectGuid, MpCreatureData>>()),
-      _mutableScaleFactors(std::make_unique<std::map<std::pair<int32, int32>,MpScaleFactor>>())
+      _scaleFactors(std::make_unique<std::map<std::pair<int32, int32>,MpScaleFactor>>())
       {
         _playerData->reserve(32);
         _groupData->reserve(32);
@@ -190,9 +220,10 @@ private:
     std::unique_ptr<std::unordered_map<ObjectGuid, MpCreatureData>> _instanceCreatureData;
 
     // use to mimic pattern normals scale to heroic  (loaded at server start)
-    std::unique_ptr<std::map<std::pair<int32,int32>,MpScaleFactor>> _mutableScaleFactors; // {mapId,difficulty}
-    std::unique_ptr<const std::map<std::pair<int32,int32>,MpScaleFactor>> _scaleFactors; // {mapId,difficulty}
+    std::unique_ptr<std::map<std::pair<int32,int32>,MpScaleFactor>> _scaleFactors; // {mapId,difficulty}
 
+    // Single creature multipliers used to scale creatures individually that may need tuned up or down.
+    // std::unique_ptr<std::unordered_map<uint32, CreatureOverride>> _creatureOverrides;
 
 public:
 
@@ -247,6 +278,14 @@ public:
     int32 GetMaxDamageScaleFactor(int32 mapId, int32 difficulty) const;
     int32 GetSpellScaleFactor(int32 mapId, int32 difficulty) const;
     MpScaleFactor GetScaleFactor(int32 mapId, int32 difficulty) const;
+
+    void SetDamageScaleFactor(int32 mapId, int32 difficulty, int32 value);
+    void SetHealthScaleFactor(int32 mapId, int32 difficulty, int32 value);
+    void SetSpellScaleFactor(int32 mapId, int32 difficulty, int32 value);
+
+    // Individual Creature Scaling Multipliers
+    // void AddCreatureOverride(uint32 entry, CreatureOverride* override);
+    // MpMultipliers* GetCreatureOverride(uint32 entry);
 
     auto GetInstanceDataKey(uint32 mapId, uint32 instanceId) const {
         return std::make_pair(mapId, instanceId);

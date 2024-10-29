@@ -23,21 +23,20 @@ public:
         {
             {"", HandleHelp, SEC_PLAYER, Console::No},
             {"status", HandleStatus, SEC_PLAYER, Console::No},
-            {"showstats", HandleDebug, SEC_PLAYER, Console::No},
-            // {"mythic",HandleMythic, SEC_PLAYER, Console::No},
-            // {"legendary",HandleLegendary, SEC_PLAYER, Console::No},
-            // {"ascendant",HandleAscendant, SEC_PLAYER, Console::No},
             {"set", HandleSetDifficulty, SEC_PLAYER, Console::No},
-            {"update", HandleUpdate, SEC_GAMEMASTER,Console::No },
             {"disable", HandleDisable, SEC_ADMINISTRATOR, Console::Yes},
-            {"enable", HandleEnable, SEC_ADMINISTRATOR, Console::Yes}
+            {"enable", HandleEnable, SEC_ADMINISTRATOR, Console::Yes},
+            {"change melee", HandleChangeMelee, SEC_ADMINISTRATOR, Console::Yes},
+            {"change spell", HandleChangeSpell, SEC_ADMINISTRATOR, Console::Yes},
+            {"change health", HandleChangeHealth, SEC_ADMINISTRATOR, Console::Yes}
         };
 
         static ChatCommandTable commandTable =
         {
             {"mp", commandTableMain},
             {"mythicplus", commandTableMain},
-            {"mp debug", HandleDebug, SEC_PLAYER, Console::No}
+            {"mp debug", HandleDebug, SEC_PLAYER, Console::No},
+            {"mp reload", HandleReload, SEC_GAMEMASTER, Console::No}
         };
 
         return commandTable;
@@ -54,7 +53,7 @@ public:
         return true;
     }
 
-    static bool HandleUpdate(ChatHandler* handler, const std::vector<std::string>& /*args*/)
+    static bool HandleReload(ChatHandler* handler)
     {
         sMpDataStore->LoadScaleFactors();
         handler->PSendSysMessage("Mythic+ scale factors updated.");
@@ -62,7 +61,7 @@ public:
         return true;
     }
 
-    static bool HandleDebug(ChatHandler* handler, const std::vector<std::string>& /* args */)
+    static bool HandleDebug(ChatHandler* handler)
     {
 
         Creature* target = handler->getSelectedCreature();
@@ -72,6 +71,8 @@ public:
         }
 
         CreatureTemplate const* creatureTemplate = target->GetCreatureTemplate();
+        MpCreatureData* creatureData = sMpDataStore->GetCreatureData(target->GetGUID());
+
 
         handler->PSendSysMessage(LANG_NPCINFO_LEVEL, target->GetLevel());
         handler->PSendSysMessage(LANG_NPCINFO_HEALTH, target->GetCreateHealth(), target->GetMaxHealth(), target->GetHealth());
@@ -91,6 +92,10 @@ public:
         handler->PSendSysMessage("Attack Power Ranged {}", target->GetModifierValue(UNIT_MOD_ATTACK_POWER_RANGED, BASE_VALUE));
         handler->PSendSysMessage("Armor {}", target->GetArmor());
         handler->PSendSysMessage("Damage Modifier on template {}",creatureTemplate->DamageModifier);
+
+        if(creatureData) {
+            handler->PSendSysMessage("CreatureData: {}", creatureData->ToString());
+        }
 
         return true;
 
@@ -176,6 +181,9 @@ public:
     {
         Player* player = handler->GetPlayer();
 
+        Map* map = player->GetMap();
+        uint32 mapId = player->GetMapId();
+
         std::string status = Acore::StringFormat(
             "Mythic+ Status:\n"
             "  Mythic+ Enabled: %s\n"
@@ -188,17 +196,58 @@ public:
         if (player->GetGroup()) {
             auto groupData = sMpDataStore->GetGroupData(player->GetGroup()->GetGUID());
             if (groupData) {
+                MpScaleFactor scaleFactors;
+
+                if(map->IsDungeon()) {
+                    scaleFactors = sMpDataStore->GetScaleFactor(mapId, groupData->difficulty);
+                }
+
                 status += Acore::StringFormat(
                     "  Group Difficulty: %u\n"
-                    "  Group Deaths: %u\n",
+                    "  Group Deaths: %u\n"
+                    "  Scale FactorStr %s\n",
                     groupData->difficulty,
-                    groupData->deaths);
+                    groupData->deaths,
+                    scaleFactors.ToString()
+                );
             } else {
                 status += "  Group Difficulty: Not Set\n";
             }
         }
 
         handler->PSendSysMessage(status);
+        return true;
+    }
+
+    static bool HandleReScale(ChatHandler* handler)
+    {
+
+        Creature* creature = handler->getSelectedCreature();
+        if(!creature) {
+            handler->PSendSysMessage("You must select a creature to rescale.");
+            return true;
+        }
+
+        MpCreatureData* creatureData = sMpDataStore->GetCreatureData(creature->GetGUID());
+        if(!creatureData) {
+            handler->PSendSysMessage("Creature is not eligible for rescaling.");
+            return true;
+        }
+
+        auto instanceData = sMpDataStore->GetInstanceData(creature->GetMapId(), creature->GetInstanceId());
+        if(!instanceData) {
+            handler->PSendSysMessage("No instance data found for this creature.");
+            return true;
+        }
+
+        if(creature->IsDungeonBoss() || creature->GetEntry() == 23682) {
+            sMythicPlus->ScaleCreature(creature->GetLevel(), creature, &instanceData->boss, instanceData->difficulty);
+        } else {
+            sMythicPlus->ScaleCreature(creature->GetLevel(), creature, &instanceData->creature, instanceData->difficulty);
+        }
+
+        handler->PSendSysMessage("Creature rescaled: %s", creature->GetName());
+
         return true;
     }
 
@@ -216,6 +265,45 @@ public:
         sMythicPlus->Enabled = false;
         handler->SendSysMessage("Mythic+ mod has been enabled.");
         return true;
+    }
+
+    static bool HandleChangeMelee(ChatHandler* handler,  const std::vector<std::string>& args)
+    {
+        if (args.empty()) {
+            handler->PSendSysMessage("|cFFFF0000 You must specify a value to set the melee scale factor.");
+            return true;
+        }
+
+        Player* player = handler->GetSession()->GetPlayer();
+
+        uint32 value = std::stoi(args[0]);
+        sMpDataStore->SetDamageScaleFactor(player->GetMapId(), player->GetMap()->GetInstanceId(), value);
+    }
+
+    static bool HandleChangeSpell(ChatHandler* handler,  const std::vector<std::string>& args)
+    {
+        if (args.empty()) {
+            handler->PSendSysMessage("|cFFFF0000 You must specify a value to set the spell scale factor.");
+            return true;
+        }
+
+        Player* player = handler->GetSession()->GetPlayer();
+
+        uint32 value = std::stoi(args[0]);
+        sMpDataStore->SetSpellScaleFactor(player->GetMapId(), player->GetMap()->GetInstanceId(), value);
+    }
+
+    static bool HandleChangeHealth(ChatHandler* handler,  const std::vector<std::string>& args)
+    {
+        if (args.empty()) {
+            handler->PSendSysMessage("|cFFFF0000 You must specify a value to set the health scale factor.");
+            return true;
+        }
+
+        Player* player = handler->GetSession()->GetPlayer();
+
+        uint32 value = std::stoi(args[0]);
+        sMpDataStore->SetHealthScaleFactor(player->GetMapId(), player->GetMap()->GetInstanceId(), value);
     }
 
 };

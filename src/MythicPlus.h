@@ -115,7 +115,7 @@ public:
     int32 ScaleDamageSpell(SpellInfo const * spellInfo, uint32 damage, MpCreatureData* creatureData, Creature* creature, Unit* target, float damageMultiplier);
 
     // This scales a heal spell up based on the how much % the original heal spell was
-    int32 ScaleHealSpell(SpellInfo const * spellInfo, MpCreatureData* creatureData, Creature* creature, Creature* target, float healMultiplier);
+    int32 ScaleHealSpell(SpellInfo const * spellInfo, uint32 heal, MpCreatureData* creatureData, Creature* creature, Creature* target, float healMultiplier);
 
     private:
         MythicPlus() { }
@@ -124,7 +124,7 @@ public:
 
 float GetTypeHealthModifier(int32 rank);
 float GetTypeDamageModifier(int32 rank);
-uint32 CalculateNewHealth(CreatureTemplate const* cInfo, uint32 mapId, MpDifficulty difficulty, uint32 origHealth, float confHPMod);
+uint32 CalculateNewHealth(Creature* creature, CreatureTemplate const* cInfo, uint32 mapId, MpDifficulty difficulty, uint32 origHealth, float confHPMod);
 float CalculateNewBaseDamage(CreatureTemplate const* cInfo, uint32 mapId, MpDifficulty difficulty, float origDamage);
 
 #define sMythicPlus MythicPlus::instance()

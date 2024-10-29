@@ -95,7 +95,6 @@ public:
     {
         int32 size = sMpDataStore->LoadScaleFactors();
         MpLogger::info("Loaded {} Mythic+ Scaling Factors from database...", size);
-
     }
 };
 

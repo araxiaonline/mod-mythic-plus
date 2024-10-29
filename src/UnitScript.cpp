@@ -166,7 +166,6 @@ public:
                     break;
                 case MythicPlus::UNIT_EVENT_DOT:
                 case MythicPlus::UNIT_EVENT_SPELL:
-                case MythicPlus::UNIT_EVENT_HOT:
                     if(creature->IsDungeonBoss() || creature->GetEntry() == 23682) {
                         if(spellInfo) {
                             alteredDmgHeal = sMythicPlus->ScaleDamageSpell(spellInfo, damageOrHeal, sMpDataStore->GetCreatureData(attacker->GetGUID()), creature, target, instanceData->boss.spell);
@@ -188,6 +187,7 @@ public:
                     }
                     break;
                 case MythicPlus::UNIT_EVENT_HEAL:
+                case MythicPlus::UNIT_EVENT_HOT:
                     break;
             }
         }
@@ -199,13 +199,13 @@ public:
             bool isHeal = true;
             if(creature->IsDungeonBoss()) {
                 if(spellInfo) {
-                    alteredDmgHeal = sMythicPlus->ScaleHealSpell(spellInfo, sMpDataStore->GetCreatureData(attacker->GetGUID()), creature, attacker->ToCreature(), instanceData->boss.spell);
+                    alteredDmgHeal = sMythicPlus->ScaleHealSpell(spellInfo, damageOrHeal, sMpDataStore->GetCreatureData(attacker->GetGUID()), creature, attacker->ToCreature(), instanceData->boss.spell);
                 } else {
                     alteredDmgHeal = damageOrHeal * instanceData->boss.spell;
                 }
             } else {
                 if(spellInfo) {
-                    alteredDmgHeal = sMythicPlus->ScaleHealSpell(spellInfo, sMpDataStore->GetCreatureData(attacker->GetGUID()), creature, attacker->ToCreature(), instanceData->creature.spell);
+                    alteredDmgHeal = sMythicPlus->ScaleHealSpell(spellInfo, damageOrHeal, sMpDataStore->GetCreatureData(attacker->GetGUID()), creature, attacker->ToCreature(), instanceData->creature.spell);
                 } else {
                     alteredDmgHeal = damageOrHeal * instanceData->creature.spell;
                 }
