@@ -183,8 +183,12 @@ struct MpCreatureData
             origStatsStr = "Original Stats Display Failed: \n Did you select target or in an non-scaled instance? \n";
         }
 
+
+
         return " MpCreatureData: \n Original level: " + std::to_string(originalLevel) + "\n" +
                 origStatsStr +
+                " NewAttackPower: " + std::to_string(NewAttackPower) + "\n" +
+                " AttackPowerScaleMultiplier: " + std::to_string(AttackPowerScaleMultiplier) + "\n" +
                 " Difficulty: " + std::to_string(difficulty) + "\n" +
                 " Scaled: " + (scaled ? "true" : "false") + "\n";
     }

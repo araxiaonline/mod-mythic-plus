@@ -124,6 +124,7 @@ public:
 
 float GetTypeHealthModifier(int32 rank);
 float GetTypeDamageModifier(int32 rank);
+float CalculateScaling(int levelDifference, float scaleFactor, float constant = 1.25f, float growthFactor = 20.0f);
 uint32 CalculateNewHealth(Creature* creature, CreatureTemplate const* cInfo, uint32 mapId, MpDifficulty difficulty, uint32 origHealth, float confHPMod);
 float CalculateNewBaseDamage(CreatureTemplate const* cInfo, uint32 mapId, MpDifficulty difficulty, float origDamage);
 

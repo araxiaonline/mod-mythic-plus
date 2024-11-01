@@ -140,15 +140,6 @@ public:
                 break;
         }
 
-        if(eventType != MythicPlus::UNIT_EVENT_MELEE) {
-            MpLogger::debug("Incoming Event Type ({}): {} hits {} before mod: {} spell: ", eventName, attacker->GetName(), target->GetName(), damageOrHeal, spellInfo ? spellInfo->SpellName[0] : "none");
-                    if(creature->IsDungeonBoss() || creature->GetEntry() == 23682) {
-                        alteredDmgHeal = damageOrHeal * instanceData->boss.melee;
-                    } else {
-                        alteredDmgHeal = damageOrHeal * instanceData->creature.melee;
-                    }
-        }
-
         // If the target is the enemy then increase the amount of healing by the instance data modifier for spell output.
         if(sMythicPlus->EligibleDamageTarget(target)) {
             /**

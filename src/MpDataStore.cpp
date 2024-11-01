@@ -161,21 +161,22 @@ int32 MpDataStore::GetMaxDamageScaleFactor(int32 mapId, int32 difficulty) const 
 
 void MpDataStore::SetHealthScaleFactor(int32 mapId, int32 difficulty, int32 newValue) {
     auto key = GetScaleFactorKey(mapId, difficulty);
-    if (_scaleFactors->contains(key)) {
+    if (_scaleFactors && _scaleFactors->contains(key)) {
         _scaleFactors->at(key).healthBonus = newValue;
     }
 }
 
 void MpDataStore::SetDamageScaleFactor(int32 mapId, int32 difficulty, int32 newValue) {
     auto key = GetScaleFactorKey(mapId, difficulty);
-    if (_scaleFactors->contains(key)) {
+
+    if (_scaleFactors && _scaleFactors->contains(key)) {
         _scaleFactors->at(key).dmgBonus = newValue;
     }
 }
 
 void MpDataStore::SetSpellScaleFactor(int32 mapId, int32 difficulty, int32 newValue) {
     auto key = GetScaleFactorKey(mapId, difficulty);
-    if (_scaleFactors->contains(key)) {
+    if (_scaleFactors && _scaleFactors->contains(key)) {
         _scaleFactors->at(key).spellBonus = newValue;
     }
 }

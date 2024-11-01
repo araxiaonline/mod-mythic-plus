@@ -26,6 +26,7 @@ public:
             {"set", HandleSetDifficulty, SEC_PLAYER, Console::No},
             {"disable", HandleDisable, SEC_ADMINISTRATOR, Console::Yes},
             {"enable", HandleEnable, SEC_ADMINISTRATOR, Console::Yes},
+            {"rescale", HandleReScale, SEC_GAMEMASTER, Console::No},
             {"change melee", HandleChangeMelee, SEC_ADMINISTRATOR, Console::Yes},
             {"change spell", HandleChangeSpell, SEC_ADMINISTRATOR, Console::Yes},
             {"change health", HandleChangeHealth, SEC_ADMINISTRATOR, Console::Yes}
@@ -221,7 +222,6 @@ public:
 
     static bool HandleReScale(ChatHandler* handler)
     {
-
         Creature* creature = handler->getSelectedCreature();
         if(!creature) {
             handler->PSendSysMessage("You must select a creature to rescale.");
@@ -275,9 +275,25 @@ public:
         }
 
         Player* player = handler->GetSession()->GetPlayer();
+        if (!player) {
+            handler->PSendSysMessage("|cFFFF0000 Invalid session or player.");
+            return true;
+        }
 
-        uint32 value = std::stoi(args[0]);
-        sMpDataStore->SetDamageScaleFactor(player->GetMapId(), player->GetMap()->GetInstanceId(), value);
+
+        if (player->GetGroup()) {
+            auto groupData = sMpDataStore->GetGroupData(player->GetGroup()->GetGUID());
+
+            if(groupData) {
+                uint32 value = std::stoi(args[0]);
+                sMpDataStore->SetDamageScaleFactor(player->GetMapId(), groupData->difficulty, value);
+                handler->PSendSysMessage(Acore::StringFormat("Melee scale factor set to: %u", value));
+                return true;
+            }
+        }
+
+        handler->PSendSysMessage("|cFFFF0000 You must be in a group and mythic+ instance to set a melee scale factor.");
+        return true;
     }
 
     static bool HandleChangeSpell(ChatHandler* handler,  const std::vector<std::string>& args)
@@ -288,9 +304,24 @@ public:
         }
 
         Player* player = handler->GetSession()->GetPlayer();
+        if (!player) {
+            handler->PSendSysMessage("|cFFFF0000 Invalid session or player.");
+            return true;
+        }
 
-        uint32 value = std::stoi(args[0]);
-        sMpDataStore->SetSpellScaleFactor(player->GetMapId(), player->GetMap()->GetInstanceId(), value);
+        if (player->GetGroup()) {
+            auto groupData = sMpDataStore->GetGroupData(player->GetGroup()->GetGUID());
+
+            if(groupData) {
+                uint32 value = std::stoi(args[0]);
+                sMpDataStore->SetSpellScaleFactor(player->GetMapId(), groupData->difficulty, value);
+                handler->PSendSysMessage(Acore::StringFormat("Melee scale factor set to: %u", value));
+                return true;
+            }
+        }
+
+        handler->PSendSysMessage("|cFFFF0000 You must be in a group and mythic+ instance to set a melee scale factor.");
+        return true;
     }
 
     static bool HandleChangeHealth(ChatHandler* handler,  const std::vector<std::string>& args)
@@ -301,9 +332,24 @@ public:
         }
 
         Player* player = handler->GetSession()->GetPlayer();
+        if (!player) {
+            handler->PSendSysMessage("|cFFFF0000 Invalid session or player.");
+            return true;
+        }
 
-        uint32 value = std::stoi(args[0]);
-        sMpDataStore->SetHealthScaleFactor(player->GetMapId(), player->GetMap()->GetInstanceId(), value);
+        if (player->GetGroup()) {
+            auto groupData = sMpDataStore->GetGroupData(player->GetGroup()->GetGUID());
+
+            if(groupData) {
+                uint32 value = std::stoi(args[0]);
+                sMpDataStore->SetHealthScaleFactor(player->GetMapId(), groupData->difficulty, value);
+                handler->PSendSysMessage(Acore::StringFormat("Melee scale factor set to: %u", value));
+                return true;
+            }
+        }
+
+        handler->PSendSysMessage("|cFFFF0000 You must be in a group and mythic+ instance to set a melee scale factor.");
+        return true;
     }
 
 };
