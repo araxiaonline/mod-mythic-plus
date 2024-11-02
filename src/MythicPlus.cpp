@@ -501,9 +501,9 @@ uint32 CalculateNewHealth(Creature* creature, CreatureTemplate const* cInfo, uin
 
     float healthVariation;
 
-    if(creature->IsPet() || creature->IsSummon() || creature->IsTotem()) {
-        return origHealth;
-    }
+    // if(creature->IsPet() || creature->IsSummon() || creature->IsTotem()) {
+    //     return origHealth;
+    // }
 
     int32 hpScaleFactor = sMpDataStore->GetHealthScaleFactor(mapId, difficulty);
 
