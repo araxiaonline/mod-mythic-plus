@@ -112,6 +112,18 @@ MpCreatureData* MpDataStore::GetCreatureData(ObjectGuid guid) {
     return &_instanceCreatureData->at(guid);
 }
 
+std::vector<MpCreatureData*> MpDataStore::GetInstanceCreatures(uint32 mapId, uint32 instanceId) {
+    std::vector<MpCreatureData*> creatures;
+    for (auto& [guid, creatureData] : *_instanceCreatureData) {
+        Creature* creature = creatureData.creature;
+
+        if (creature->GetMapId() == mapId && creature->GetInstanceId() == instanceId) {
+            creatures.push_back(&creatureData);
+        }
+    }
+    return creatures;
+}
+
  std::vector<MpCreatureData*> MpDataStore::GetUnscaledCreatures(uint32 mapId, uint32 instanceId) {
     std::vector<MpCreatureData*> creatures;
     for (auto& [guid, creatureData] : *_instanceCreatureData) {

@@ -105,6 +105,9 @@ public:
      */
     void ScaleRemaining(Player* player, MpInstanceData* instanceData);
 
+    // Rescales all creatures for an instance based on set data
+    void ScaleAll(Player* player, MpInstanceData* instanceData);
+
     // This will attempt to scale a creature using instancedata
     void AddScaledCreature(Creature* creature, MpInstanceData* instanceData);
 

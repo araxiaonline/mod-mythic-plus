@@ -27,6 +27,7 @@ public:
             {"disable", HandleDisable, SEC_ADMINISTRATOR, Console::Yes},
             {"enable", HandleEnable, SEC_ADMINISTRATOR, Console::Yes},
             {"rescale", HandleReScale, SEC_GAMEMASTER, Console::No},
+            {"rescale all", HandleReScaleAll, SEC_GAMEMASTER, Console::No},
             {"change melee", HandleChangeMelee, SEC_ADMINISTRATOR, Console::Yes},
             {"change spell", HandleChangeSpell, SEC_ADMINISTRATOR, Console::Yes},
             {"change health", HandleChangeHealth, SEC_ADMINISTRATOR, Console::Yes}
@@ -207,8 +208,8 @@ public:
                     "  Group Difficulty: %u\n"
                     "  Group Deaths: %u\n"
                     "  Scale FactorStr %s\n",
-                    groupData->difficulty,
-                    groupData->deaths,
+                    (groupData->difficulty) ? groupData->difficulty : 0,
+                    (groupData->deaths) ? groupData->deaths : 0,
                     scaleFactors.ToString()
                 );
             } else {
@@ -247,6 +248,35 @@ public:
         }
 
         handler->PSendSysMessage("Creature rescaled: %s", creature->GetName());
+
+        return true;
+    }
+
+    static bool HandleReScaleAll(ChatHandler* handler)
+    {
+        Player* player = handler->GetPlayer();
+        if(!player) {
+            handler->PSendSysMessage("You must be a player to rescale all creatures.");
+            return true;
+        }
+
+        Map* map = player->GetMap();
+        if(!map) {
+            handler->PSendSysMessage("You must be in a map to rescale all creatures.");
+            return true;
+        }
+
+        int32 mapId = map->GetId();
+        int32 instanceId = map->GetInstanceId();
+
+        auto instanceData = sMpDataStore->GetInstanceData(mapId, instanceId);
+        if(!instanceData) {
+            handler->PSendSysMessage("No mythic instance data found for this map.");
+            return true;
+        }
+
+        sMythicPlus->ScaleAll(player, instanceData);
+        handler->PSendSysMessage("All creatures rescaled.");
 
         return true;
     }
@@ -315,7 +345,7 @@ public:
             if(groupData) {
                 uint32 value = std::stoi(args[0]);
                 sMpDataStore->SetSpellScaleFactor(player->GetMapId(), groupData->difficulty, value);
-                handler->PSendSysMessage(Acore::StringFormat("Melee scale factor set to: %u", value));
+                handler->PSendSysMessage(Acore::StringFormat("Spell scale factor set to: %u", value));
                 return true;
             }
         }
@@ -343,7 +373,7 @@ public:
             if(groupData) {
                 uint32 value = std::stoi(args[0]);
                 sMpDataStore->SetHealthScaleFactor(player->GetMapId(), groupData->difficulty, value);
-                handler->PSendSysMessage(Acore::StringFormat("Melee scale factor set to: %u", value));
+                handler->PSendSysMessage(Acore::StringFormat("Health scale factor set to: %u", value));
                 return true;
             }
         }

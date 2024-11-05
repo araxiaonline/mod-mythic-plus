@@ -112,3 +112,8 @@ MythicPlus.Mythic.ItemOffset = 20000000
 MythicPlus.Legendary.ItemOffset = 21000000
 MythicPlus.Ascendant.ItemOffset = 22000000
 
+##############
+# Scaling Adjusters
+#############
+MythicPlus.MeleeAttackPowerDampener = 800
+MythicPlus.MeleeAttackPowerStart = 3000

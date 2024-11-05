@@ -128,7 +128,7 @@ bool MythicPlus::IsCreatureEligible(Creature* creature)
         return true;
     }
 
-    if (creature->GetEntry() == 23682) {
+    if (creature->GetEntry() == HEADLESS_HORSEMAN) {
         return true;
     }
 
@@ -232,6 +232,14 @@ void MythicPlus::ScaleRemaining(Player* player, MpInstanceData* instanceData)
     std::vector<MpCreatureData*> creatures = sMpDataStore->GetUnscaledCreatures(player->GetMapId(), player->GetInstanceId());
     for (MpCreatureData* creatureData : creatures) {
         AddScaledCreature(creatureData->creature, instanceData);
+    }
+}
+
+void MythicPlus::ScaleAll(Player* player, MpInstanceData* instanceData)
+{
+    std::vector<MpCreatureData*> creatures = sMpDataStore->GetInstanceCreatures(player->GetMapId(), player->GetInstanceId());
+    for (MpCreatureData* creatureData : creatures) {
+        ScaleCreature(creatureData->creature->GetLevel(), creatureData->creature, &instanceData->creature, instanceData->difficulty);
     }
 }
 
@@ -462,7 +470,7 @@ int32 MythicPlus::ScaleHealSpell(SpellInfo const * spellInfo, uint32 heal, MpCre
     float levelDifference = creature->GetLevel() - originalLevel;
     float spellBonus = sMpDataStore->GetSpellScaleFactor(creature->GetMapId(), creature->GetInstanceId());
 
-    float scalingFactor = CalculateScaling(levelDifference, spellBonus);
+    float scalingFactor = CalculateScaling(levelDifference, spellBonus, 2.5f);
 
     MpLogger::debug(" >>> Spell {} healed scaled from for spell  New Heal: {} using: scaling Factor: {} and damage Multi: {}",spellInfo->SpellName[0], heal, scalingFactor, healMultiplier);
     return int32(heal * scalingFactor * healMultiplier);

@@ -3,11 +3,11 @@
 DROP TABLE IF EXISTS mythic_plus_scale_factors;
 CREATE TABLE IF NOT EXISTS mythic_plus_scale_factors (
     mapId SMALLINT PRIMARY KEY,
-    dmg_bonus TINYINT,
-    spell_bonus TINYINT,
-    hp_bonus TINYINT,
-    difficulty  TINYINT,
-    max TINYINT
+    dmg_bonus INT,
+    spell_bonus INT,
+    hp_bonus INT,
+    difficulty  INT,
+    max INT
 );
 
 -- 1. Pre 60 level dungeons (13 dmg_bonus, 2 hp_bonus, max 23, difficulty 3)

@@ -274,6 +274,7 @@ public:
     void AddCreatureData(ObjectGuid guid, MpCreatureData creatureData);
     MpCreatureData* GetCreatureData(ObjectGuid guid);
     void RemoveCreatureData(ObjectGuid guid);
+    std::vector<MpCreatureData*> GetInstanceCreatures(uint32 mapId, uint32 instanceId);
     std::vector<MpCreatureData*> GetUnscaledCreatures(uint32 mapId, uint32 instanceId);
 
     // Scale factors are used to determine a base bonus for enemies base on the instance difficulty
