@@ -15,11 +15,47 @@ void MpDataStore::AddGroupData(Group *group, MpGroupData groupData) {
         MpLogger::error("AddGroupData called with invalid difficulty");
         return;
     }
+
     // if we already have data override it
     if (_groupData->contains(guid)) {
+
+        MpGroupData existingData = _groupData->at(guid);
+        if(groupData.difficulty == MP_DIFFICULTY_HEROIC || groupData.difficulty == MP_DIFFICULTY_NORMAL || groupData.difficulty != existingData.difficulty) {
+
+            // if we set a lower difficulty and we are in an instance we need to kick the group out and reset the instance.
+            Map* map = group->GetLeader()->GetMap();
+            if(group->InInstance()) {
+
+                auto instance = map->ToInstanceMap();
+                instance->Reset(2); // 2 = reset all
+
+                const Map::PlayerList players = map->GetPlayers();
+                for (auto itr = players.begin(); itr != players.end(); ++itr) {
+                    Player* player = itr->GetSource();
+                    player->GetSession()->SendNotification("The group leader has changed the difficulty setting. You have been removed from the instance.");
+                }
+            }
+        }
+
         _groupData->at(guid) = groupData;
+
     } else {
+
+        Map* map = group->GetLeader()->GetMap();
+        if(group->InInstance()) {
+
+            auto instance = map->ToInstanceMap();
+            instance->Reset(2); // 2 = reset all
+
+            const Map::PlayerList players = map->GetPlayers();
+            for (auto itr = players.begin(); itr != players.end(); ++itr) {
+                Player* player = itr->GetSource();
+                player->GetSession()->SendNotification("The group leader has changed the difficulty setting. You have been removed from the instance.");
+            }
+        }
+
         _groupData->emplace(guid, groupData);
+
     }
 
     MpLogger::debug("Add Group difficulty for group {} to {}", guid.GetCounter());
@@ -28,6 +64,19 @@ void MpDataStore::AddGroupData(Group *group, MpGroupData groupData) {
         guid.GetCounter(),
         groupData.difficulty
     );
+
+    const Group::MemberSlotList members = group->GetMemberSlots();
+    for (const auto &memberSlot : members) {
+        Player* player = ObjectAccessor::FindPlayer(memberSlot.guid);
+        if (player) {
+
+            CharacterDatabase.Execute("REPLACE INTO mp_character_instance (guid, difficulty) VALUES ({},{}) ",
+                player->GetGUID().GetCounter(),
+                groupData.difficulty
+            );
+
+        }
+    }
 }
 
 MpGroupData* MpDataStore::GetGroupData(Group* group) {
