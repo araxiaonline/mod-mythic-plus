@@ -77,17 +77,18 @@ public:
             return;
         }
 
-        // If made it here we need to add player data for the map and instance
-        MpPlayerData playerData = MpPlayerData{
-            .player = player,
-            .groupId = group->GetGUID().GetCounter(),
-            .mapId = mapId,
-            .instanceId = map->GetInstanceId(),
-            .difficulty = data->difficulty,
-            .deaths = 0
-        };
+        MpPlayerData* playerData = sMpDataStore->GetPlayerData(player->GetGUID());
+        if(!playerData) {
+            MpLogger::warn("PlayerData not found for player {} perhaps not in mythic+ group, bad player state?", player->GetName());
+        }
 
-        sMpDataStore->AddPlayerData(player->GetGUID(), playerData);
+        auto mapKey = sMpDataStore->GetInstanceDataKey(mapId, player->GetInstanceId());
+        playerData->instanceData.emplace(mapKey, MpPlayerInstanceData{
+            .deaths = 0,
+        });
+
+
+        sMpDataStore->SavePlayerInstanceData(player,playerData);
     }
 };
 

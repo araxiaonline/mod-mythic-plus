@@ -22,6 +22,7 @@ enum MpDifficulty {
     MP_DIFFICULTY_LEGENDARY = 4,
     MP_DIFFICULTY_ASCENDANT = 5
 };
+
 struct MpGroupData
 {
     Group* group;
@@ -45,14 +46,22 @@ struct MpGroupData
 
 };
 
+struct MpPlayerInstanceData {
+    uint32 deaths;
+};
+
 struct MpPlayerData
 {
     Player* player;
     MpDifficulty difficulty;
-    uint32 deaths;
     uint32 groupId;
-    uint32 instanceId;
-    uint32 mapId;
+
+    // list of maps and instance player is bound to and mythic data related to it
+    std::map<std::pair<uint32,uint32>,MpInstanceData> instanceData;
+
+    MpPlayerData() : player(nullptr), groupId(0) {
+        instanceData = std::map<std::pair<uint32,uint32>,MpInstanceData>();
+    }
 };
 
 struct MpScaleFactor
@@ -238,7 +247,7 @@ public:
     MpDataStore(const MpDataStore&) = delete;
     MpDataStore& operator=(const MpDataStore&) = delete;
 
-    const MpPlayerData* GetPlayerData(ObjectGuid guid) const {
+    MpPlayerData* GetPlayerData(ObjectGuid guid) {
         try {
             return &_playerData->at(guid);
         } catch (const std::out_of_range& oor) {
@@ -265,9 +274,11 @@ public:
     MpGroupData* GetGroupData(Group *group);
     void PushGroupInstanceKey(Group *group, uint32 mapId, uint32 instanceId);
 
+    // Data related to player settings and stags
     void AddPlayerData(ObjectGuid guid, MpPlayerData pd);
     void UpdatePlayerData(ObjectGuid guid, MpPlayerData pd);
     void RemovePlayerData(ObjectGuid guid);
+    void ResetPlayerData(ObjectGuid guid);
 
     // Each Map/Instance is a unique key that contains scaling information based on difficulty
     void AddInstanceData(uint32 mapId, uint32 instanceId, MpInstanceData );
