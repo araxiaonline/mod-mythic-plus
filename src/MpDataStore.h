@@ -57,10 +57,10 @@ struct MpPlayerData
     uint32 groupId;
 
     // list of maps and instance player is bound to and mythic data related to it
-    std::map<std::pair<uint32,uint32>,MpInstanceData> instanceData;
+    std::map<std::pair<uint32,uint32>,MpPlayerInstanceData> instanceData;
 
     MpPlayerData() : player(nullptr), groupId(0) {
-        instanceData = std::map<std::pair<uint32,uint32>,MpInstanceData>();
+        instanceData = std::map<std::pair<uint32,uint32>,MpPlayerInstanceData>();
     }
 };
 
