@@ -126,6 +126,10 @@ void MpDataStore::AddPlayerData(ObjectGuid guid, MpPlayerData pd) {
     _playerData->emplace(guid, pd);
 }
 
+void MpDataStore::UpdatePlayerData(ObjectGuid guid, MpPlayerData pd) {
+    _playerData->at(guid) = pd;
+}
+
 void MpDataStore::RemovePlayerData(ObjectGuid guid) {
     MpLogger::debug("RemovePlayerData for player {}", guid.GetCounter());
     _playerData->erase(guid);
@@ -273,4 +277,17 @@ int32 MpDataStore::LoadScaleFactors() {
     } while (result->NextRow());
 
     return int32(_scaleFactors->size());
+}
+
+// Writes current player data about their current instance run
+void MpDataStore::SavePlayerInstanceData(Player* player, MpPlayerData const* playerData)
+{
+    CharacterDatabase.Execute("REPLACE INTO mp_character_instance (character_guid, difficulty, deaths, map_id, instance_id, group_id) VALUES ({},{},{},{},{},{}) ",
+        player->GetGUID().GetCounter(),
+        playerData->difficulty,
+        playerData->deaths,
+        playerData->mapId,
+        playerData->instanceId,
+        playerData->groupId
+    );
 }

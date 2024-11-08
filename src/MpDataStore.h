@@ -48,8 +48,11 @@ struct MpGroupData
 struct MpPlayerData
 {
     Player* player;
-    uint8 difficulty;
+    MpDifficulty difficulty;
     uint32 deaths;
+    uint32 groupId;
+    uint32 instanceId;
+    uint32 mapId;
 };
 
 struct MpScaleFactor
@@ -263,6 +266,7 @@ public:
     void PushGroupInstanceKey(Group *group, uint32 mapId, uint32 instanceId);
 
     void AddPlayerData(ObjectGuid guid, MpPlayerData pd);
+    void UpdatePlayerData(ObjectGuid guid, MpPlayerData pd);
     void RemovePlayerData(ObjectGuid guid);
 
     // Each Map/Instance is a unique key that contains scaling information based on difficulty
@@ -301,6 +305,10 @@ public:
 
     // Used at initial server load
     int32 LoadScaleFactors();
+
+    // Database API calls
+    void MpDataStore::SavePlayerInstanceData(Player* player, MpPlayerData const* playerData);
+    void MpDataStore::SavePlayerDungeonStats(Group* group, MpGroupData const* groupData);
 
     static MpDataStore* instance() {
         static MpDataStore instance;
