@@ -23,33 +23,11 @@ enum MpDifficulty {
     MP_DIFFICULTY_ASCENDANT = 5
 };
 
-struct MpGroupData
-{
-    Group* group;
-    MpDifficulty difficulty;
-    uint32 deaths;
-
-    std::vector<std::pair<uint32,uint32>> instanceDataKeys;
-    MpGroupData() : group(nullptr), difficulty(MpDifficulty{}), deaths(0) {
-        instanceDataKeys.reserve(32);
-    }
-    MpGroupData(Group* group, MpDifficulty difficulty, uint32 deaths)
-        : group(group), difficulty(difficulty), deaths(deaths) {
-        instanceDataKeys.reserve(32);
-    }
-
-    std::string ToString() const {
-        return "MpGroupData: { group: " + std::to_string(group->GetGUID().GetCounter()) +
-               ", difficulty: " + std::to_string(difficulty) +
-               ", deaths: " + std::to_string(deaths) + " }";
-    }
-
-};
-
 struct MpPlayerInstanceData {
     uint32 deaths;
 };
 
+// struct used to track player performance in an instance.
 struct MpPlayerData
 {
     Player* player;
@@ -59,9 +37,87 @@ struct MpPlayerData
     // list of maps and instance player is bound to and mythic data related to it
     std::map<std::pair<uint32,uint32>,MpPlayerInstanceData> instanceData;
 
-    MpPlayerData() : player(nullptr), groupId(0) {
-        instanceData = std::map<std::pair<uint32,uint32>,MpPlayerInstanceData>();
+    MpPlayerData(Player* p, MpDifficulty diff, uint32_t groupId)
+        : player(p), difficulty(diff), groupId(groupId)  {}
+
+    void AddDeath(uint32 mapId, uint32 instanceId) {
+        auto key = std::make_pair(mapId, instanceId);
+        if(instanceData.contains(key)) {
+            instanceData[key].deaths++;
+        } else {
+            instanceData[key] = MpPlayerInstanceData{.deaths = 1};
+        }
     }
+
+    uint32 GetDeaths(uint32 mapId, uint32 instanceId) const {
+        auto key = std::make_pair(mapId, instanceId);
+        if(instanceData.contains(key)) {
+            return instanceData.at(key).deaths;
+        }
+        return 0;
+    }
+
+    void ResetDeathCount(uint32 mapId, uint32 instanceId) {
+        auto key = std::make_pair(mapId, instanceId);
+        if(instanceData.contains(key)) {
+            instanceData[key].deaths = 0;
+        }
+    }
+
+    void ResetAllDeathCounts() {
+        for(auto& [key, data] : instanceData) {
+            data.deaths = 0;
+        }
+    }
+};
+
+// Struct used to track entire group performance.
+struct MpGroupData
+{
+    Group* group;
+    MpDifficulty difficulty;
+    std::vector<MpPlayerData*> players;
+
+    MpGroupData() : group(nullptr), difficulty(MpDifficulty{}) {
+        players.reserve(5);
+    }
+
+    MpGroupData(Group* group, MpDifficulty difficulty)
+        : group(group), difficulty(difficulty) {
+        players.reserve(5);
+    }
+
+    uint32 GetDeaths(uint32 mapId, uint32 instanceId) const {
+        uint32 deaths = 0;
+        for (const MpPlayerData* player : players) {
+            deaths += player->GetDeaths(mapId, instanceId);
+        }
+        return deaths;
+    }
+
+    void ResetGroupDeaths(uint32 mapId, uint32 instanceId) {
+        for (MpPlayerData* player : players) {
+            player->ResetDeathCount(mapId, instanceId);
+        }
+    }
+
+    void AddPlayerData(MpPlayerData* playerData) {
+        players.push_back(playerData);
+    }
+
+    std::string ToString() const {
+        Map* map = group->GetLeader()->GetMap();
+
+        uint32 deaths = 0;
+        if(map) {
+            deaths = GetDeaths(map->GetId(), map->GetInstanceId());
+        }
+
+        return "MpGroupData: { group: " + std::to_string(group->GetGUID().GetCounter()) +
+               ", difficulty: " + std::to_string(difficulty) +
+               ", deaths: " + std::to_string(deaths) + " }";
+    }
+
 };
 
 struct MpScaleFactor
@@ -255,7 +311,7 @@ public:
         }
     }
 
-    const MpGroupData* GetGroupData(ObjectGuid guid) const {
+    MpGroupData* GetGroupData(ObjectGuid guid) {
 
         if (_groupData->contains(guid)) {
             return &_groupData->at(guid);
@@ -264,7 +320,7 @@ public:
         }
 
     }
-    const MpGroupData* GetGroupData(Player *player) const {
+    MpGroupData* GetGroupData(Player *player) {
         return GetGroupData(player->GetGroup()->GetGUID());
     };
 
@@ -318,8 +374,8 @@ public:
     int32 LoadScaleFactors();
 
     // Database API calls
-    void MpDataStore::SavePlayerInstanceData(Player* player, MpPlayerData const* playerData);
-    void MpDataStore::SavePlayerDungeonStats(Group* group, MpGroupData const* groupData);
+    void SavePlayerInstanceData(Player* player, MpPlayerData const* playerData);
+    //SavePlayerDungeonStats(Group* group, MpGroupData const* groupData);
 
     static MpDataStore* instance() {
         static MpDataStore instance;

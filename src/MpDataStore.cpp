@@ -1,5 +1,6 @@
 #include "CharacterDatabase.h"
 #include "MpDataStore.h"
+#include "Group.h"
 #include "MpLogger.h"
 
 // Adds an entry for the group difficult to memory and updats database
@@ -24,9 +25,9 @@ void MpDataStore::AddGroupData(Group *group, MpGroupData groupData) {
 
             // if we set a lower difficulty and we are in an instance we need to kick the group out and reset the instance.
             Map* map = group->GetLeader()->GetMap();
-            if(group->InInstance()) {
+            auto instance = map->ToInstanceMap();
+            if(instance->HavePlayers()) {
 
-                auto instance = map->ToInstanceMap();
                 instance->Reset(2); // 2 = reset all
 
                 const Map::PlayerList players = map->GetPlayers();
@@ -35,6 +36,7 @@ void MpDataStore::AddGroupData(Group *group, MpGroupData groupData) {
                     player->GetSession()->SendNotification("The group leader has changed the difficulty setting. You have been removed from the instance.");
                 }
             }
+
         }
 
         _groupData->at(guid) = groupData;
@@ -42,9 +44,9 @@ void MpDataStore::AddGroupData(Group *group, MpGroupData groupData) {
     } else {
 
         Map* map = group->GetLeader()->GetMap();
-        if(group->InInstance()) {
+        auto instance = map->ToInstanceMap();
+        if(instance->HavePlayers()) {
 
-            auto instance = map->ToInstanceMap();
             instance->Reset(2); // 2 = reset all
 
             const Map::PlayerList players = map->GetPlayers();
@@ -110,7 +112,7 @@ void MpDataStore::PushGroupInstanceKey(Group *group, uint32 mapId, uint32 instan
         return;
     }
 
-    _groupData->at(guid).instanceDataKeys.push_back(GetInstanceDataKey(mapId, instanceId));
+    // Need to potentialy reset here?
 }
 
 // This clears out any group data from memory and the database

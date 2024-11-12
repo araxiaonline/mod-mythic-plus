@@ -112,6 +112,10 @@ public:
             return;
         }
         sMpDataStore->RemoveInstanceData(map->GetId(), map->GetInstanceId());
+
+        // If there is player data for this map reset it to default values
+
+
     }
 };
 

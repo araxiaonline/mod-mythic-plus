@@ -18,22 +18,33 @@ class MythicPlus_GroupScript : public GroupScript
 
         Player* player = ObjectAccessor::FindPlayer(guid);
         if (!player) {
-            MpLogger::warn("Player not found for guid {}", guid);
+            MpLogger::warn("Player not found for guid {}", guid.GetCounter());
             return;
         }
 
+        MpGroupData *gd = sMpDataStore->GetGroupData(group->GetGUID());
         MpPlayerData* pd = sMpDataStore->GetPlayerData(guid);
         if(!pd) {
 
-            MpPlayerData playerData = MpPlayerData();
-            playerData.player = player;
-            playerData.groupId = group->GetGUID().GetCounter();
-
+            MpDifficulty difficulty = GetPlayerDifficulty(player);
+            MpPlayerData playerData = MpPlayerData(player, difficulty, group->GetGUID().GetCounter());
+            pd = &playerData;
             sMpDataStore->AddPlayerData(guid, playerData);
+        } else {
+
+            // If the player is joining a new group then reset the death counters otherwise let them ride
+            if (pd->groupId != group->GetGUID().GetCounter()) {
+                pd->groupId = group->GetGUID().GetCounter();
+                pd->ResetAllDeathCounts();
+            }
+        }
+
+        if(!gd) {
+            MpLogger::warn("Group data not found for group {}", group->GetGUID().GetCounter());
             return;
         }
 
-        // sMpDataStore->AddGroupData(group->GetGUID(), gd);
+        gd->AddPlayerData(pd);
     }
 
     void OnCreate(Group* group, Player* leader) override {
@@ -45,9 +56,21 @@ class MythicPlus_GroupScript : public GroupScript
             return;
         }
 
+        // Start a group and set the data up for the group
+        MpDifficulty difficulty = GetPlayerDifficulty(leader);
+        MpGroupData gd = MpGroupData(group, difficulty);
 
+        // Insert the leader of the group after group data struct is built
+        MpPlayerData* pd = sMpDataStore->GetPlayerData(leader->GetGUID());
+        if(pd) {
+            gd.AddPlayerData(pd);
+        } else {
+            MpPlayerData playerData = MpPlayerData(leader, difficulty, group->GetGUID().GetCounter());
+            gd.AddPlayerData(&playerData);
+        }
 
-        // sMpDataStore->AddGroupData(group->GetGUID(), gd);
+        // Store the data into our memory store
+        sMpDataStore->AddGroupData(group, gd);
     }
 
     void OnDisband(Group* group) override {
@@ -59,4 +82,19 @@ void Add_MP_GroupScripts()
 {
     MpLogger::debug("Add_MP_GroupScripts()");
     new MythicPlus_GroupScript();
+}
+
+// Get the difficulty for a player that is assigned
+MpDifficulty GetPlayerDifficulty(Player* player) {
+    if(!player) {
+        return;
+    }
+
+    MpPlayerData* pd = sMpDataStore->GetPlayerData(player->GetGUID());
+    if(pd) {
+        return pd->difficulty;
+    } else {
+        return player->GetDifficulty(false) == Difficulty::DUNGEON_DIFFICULTY_NORMAL ? MP_DIFFICULTY_NORMAL : MP_DIFFICULTY_HEROIC;
+    }
+
 }
