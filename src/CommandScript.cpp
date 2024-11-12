@@ -138,13 +138,13 @@ public:
         }
 
         if (difficulty == "mythic") {
-            sMpDataStore->AddGroupData(group, MpGroupData(group, MP_DIFFICULTY_MYTHIC, 0));
+            sMpDataStore->AddGroupData(group, MpGroupData(group, MP_DIFFICULTY_MYTHIC));
         }
         else if (difficulty == "legendary") {
-            sMpDataStore->AddGroupData(group,MpGroupData(group, MP_DIFFICULTY_LEGENDARY, 0));
+            sMpDataStore->AddGroupData(group,MpGroupData(group, MP_DIFFICULTY_LEGENDARY));
         }
         else if (difficulty == "ascendant") {
-            sMpDataStore->AddGroupData(group, MpGroupData(group, MP_DIFFICULTY_ASCENDANT, 0));
+            sMpDataStore->AddGroupData(group, MpGroupData(group, MP_DIFFICULTY_ASCENDANT));
         }
         else if (difficulty == "heroic") {
             sMpDataStore->RemoveGroupData(group);
@@ -209,7 +209,7 @@ public:
                     "  Group Deaths: %u\n"
                     "  Scale FactorStr %s\n",
                     (groupData->difficulty) ? groupData->difficulty : 0,
-                    (groupData->deaths) ? groupData->deaths : 0,
+                    (groupData->GetDeaths(player->GetMapId(), player->GetInstanceId())),
                     scaleFactors.ToString()
                 );
             } else {
