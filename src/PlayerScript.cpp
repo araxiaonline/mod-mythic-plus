@@ -26,11 +26,12 @@ public:
             return;
         }
 
-        MpPlayerData const *playerData = sMpDataStore->GetPlayerData(player->GetGUID());
+        MpPlayerData *playerData = sMpDataStore->GetPlayerData(player->GetGUID());
+        if (!playerData) {
+            return;
+        }
 
-
-        data->deaths++;
-
+        playerData->AddDeath(map->GetId(), map->GetInstanceId());
     }
 
     void OnSave(Player* player) override
@@ -86,7 +87,6 @@ public:
         playerData->instanceData.emplace(mapKey, MpPlayerInstanceData{
             .deaths = 0,
         });
-
 
         sMpDataStore->SavePlayerInstanceData(player,playerData);
     }

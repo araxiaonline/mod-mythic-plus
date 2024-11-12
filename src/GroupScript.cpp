@@ -76,25 +76,26 @@ class MythicPlus_GroupScript : public GroupScript
     void OnDisband(Group* group) override {
         sMpDataStore->RemoveGroupData(group);
     }
+
+    // Get the difficulty for a player that is assigned
+    MpDifficulty GetPlayerDifficulty(Player* player) {
+        if(!player) {
+            return MP_DIFFICULTY_NORMAL;
+        }
+
+        MpPlayerData* pd = sMpDataStore->GetPlayerData(player->GetGUID());
+        if(pd) {
+            return pd->difficulty;
+        } else {
+            return player->GetDifficulty(false) == Difficulty::DUNGEON_DIFFICULTY_NORMAL ? MP_DIFFICULTY_NORMAL : MP_DIFFICULTY_HEROIC;
+        }
+
+        return MP_DIFFICULTY_NORMAL;
+    }
 };
 
 void Add_MP_GroupScripts()
 {
     MpLogger::debug("Add_MP_GroupScripts()");
     new MythicPlus_GroupScript();
-}
-
-// Get the difficulty for a player that is assigned
-MpDifficulty GetPlayerDifficulty(Player* player) {
-    if(!player) {
-        return;
-    }
-
-    MpPlayerData* pd = sMpDataStore->GetPlayerData(player->GetGUID());
-    if(pd) {
-        return pd->difficulty;
-    } else {
-        return player->GetDifficulty(false) == Difficulty::DUNGEON_DIFFICULTY_NORMAL ? MP_DIFFICULTY_NORMAL : MP_DIFFICULTY_HEROIC;
-    }
-
 }
