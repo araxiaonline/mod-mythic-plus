@@ -44,7 +44,7 @@ public:
 
                 MpPlayerData const * playerData = sMpDataStore->GetPlayerData(player->GetGUID());
                 if(playerData) {
-                    sMpDataStore->SavePlayerInstanceData(player, playerData);
+                    // sMpDataStore->SavePlayerInstanceData(player, playerData);
                 }
 
             }
@@ -88,7 +88,12 @@ public:
             .deaths = 0,
         });
 
-        sMpDataStore->SavePlayerInstanceData(player,playerData);
+        sMpDataStore->DBUpdatePlayerInstanceData(player->GetGUID(), data->difficulty, map->GetId(), player->GetInstanceId(), 0);
+
+        if(group->GetLeaderGUID() == player->GetGUID()) {
+            sMpDataStore->DBUpdateGroupData(group->GetGUID(), data->difficulty, map->GetId(), player->GetInstanceId(), 0);
+        }
+
     }
 };
 

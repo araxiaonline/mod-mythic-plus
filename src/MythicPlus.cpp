@@ -476,6 +476,56 @@ int32 MythicPlus::ScaleHealSpell(SpellInfo const * spellInfo, uint32 heal, MpCre
     return int32(heal * scalingFactor * healMultiplier);
 }
 
+static bool IsFinalBoss(Creature* creature) {
+    CreatureTemplate const* cInfo = creature->GetCreatureTemplate();
+    std::array<uint32, 48> finalBosses = {
+        // --- WoW Classic ---
+        11519,  /* Bazzalan Ragefire */
+        639,    /* Edwin VanCleef Deadmines */
+        3654,   /* Mutanus the Devourer Wailing Caverns */
+        4275,   /* Archmage Arugal Shadowfang Keep */
+        1716,   /* Bazil Thredd Stockades */
+        4829,   /* Aku'mai blackfathom Deeps */
+        7800,   /* Mekgineer Thermaplugg Gnomeregan */
+        4421,   /* Charlga Razorflank Razorfen Kraul */
+        4543,   /* Bloodmage Thalnos Scarlet Monastery */
+        3975,   /* Herod Scarlet Monastery */
+        3977,   /* High Inquisitor Whitemane Scarlet Monastery */
+        7350,   /* Amnennar the Coldbringer Razorfen Downs */
+        2748,   /* Archaedas Uldaman */
+        7267,   /* Chief Ukorz Sandscalp Zul'Farrak */
+        12201,  /* Princess Theradras Maraudon */
+        5709,   /* Shade of Eranikus Sunken Temple */
+        9019,   /* Emperor Dagran Thaurissan Blackrock Depths */
+        9568,   /* Overlord Wyrmthalak Lower Blackrock Spire */
+        10363,  /* General Drakkisath Upper Blackrock Spire */
+        11492,  /* alzzin the Wildshaper Dire Maul */
+        11496,  /* Immol'thar Dire Maul */
+        11501,  /* King Gordok Dire Maul */
+        1853,   /* Darkmaster Gandling Scholomance */
+        10812,  /* Grand Crusader Dathrohan Stratholme */
+        10440,  /* Baron Rivendare Stratholme */
+
+        // --- The Burning Crusade ---
+        18344,  /* Nexus-Prince Shaffar - Mana-Tombs */
+        17942,  /* Quagmirran - The Slave Pens */
+        17882,  /* The Black Stalker - The Underbog */
+        17991,  /* Rokmar the Crackler - The Slave Pens (Heroic) */
+        17977,  /* Warp Splinter - The Botanica */
+        17881,  /* Aeonus - The Black Morass */
+        18732,  /* Grandmaster Vorpil - Shadow Labyrinth */
+        19221,  /* Nethermancer Sepethrea - The Mechanar */
+        20885,  /* Dalliah the Doomsayer - The Arcatraz */
+        17975,  /* High Botanist Freywinn - The Botanica */
+        16808,  /* Warchief Kargath Bladefist - The Shattered Halls */
+        18473,  /* Talon King Ikiss - Sethekk Halls */
+        20912,  /* Harbinger Skyriss - The Arcatraz */
+        22930,  /* Akama - Black Temple */
+
+        // --- Wrath of the Lich King ---
+
+    };
+}
 
 /**
  * Function is copied because was not accessible in core creature class
