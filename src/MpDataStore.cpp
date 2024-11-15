@@ -289,6 +289,10 @@ int32 MpDataStore::LoadScaleFactors() {
     return int32(_scaleFactors->size());
 }
 
+/**
+ * Database Calls below for storing player data.
+ * @todo refactor to use prepared statements
+*/
 void MpDataStore::DBUpdatePlayerInstanceData(ObjectGuid playerGuid, MpDifficulty difficulty, uint32 mapId, uint32 instanceId, uint32 deaths) {
     if (!playerGuid) {
         MpLogger::error("DBAddPlayerData called with invalid playerData");
@@ -304,16 +308,52 @@ void MpDataStore::DBUpdatePlayerInstanceData(ObjectGuid playerGuid, MpDifficulty
     );
 }
 
-void MpDataStore::DBUpdatePlayerDeaths(ObjectGuid playerGuid, uint32 deaths) {
-    if (!playerGuid) {
+void MpDataStore::DBResetPlayerDeaths(Player* player) {
+    if (!player) {
         MpLogger::error("DBUpdateDeaths called with invalid playerId");
         return;
     }
 
-    CharacterDatabase.Execute("UPDATE mp_player_instance_data SET deaths = {} WHERE guid = {}",
-        deaths,
-        playerGuid.GetCounter()
+    CharacterDatabase.Execute("UPDATE mp_player_instance_data SET deaths = 0 WHERE guid = {} and mapId = {} and instanceId = {}",
+        player->GetGUID().GetCounter(),
+        player->GetMapId(),
+        player->GetInstanceId()
     );
+}
+
+void MpDataStore::DBAddPlayerDeath(Player* player) {
+    if (!player) {
+        MpLogger::error("DBAddPlayerDeath called with invalid player");
+        return;
+    }
+
+    CharacterDatabase.Execute("UPDATE mp_player_instance_data SET deaths = deaths + 1 WHERE guid = {} and mapId = {} and instanceId = {}",
+        player->GetGUID().GetCounter(),
+        player->GetMapId(),
+        player->GetInstanceId()
+    );
+}
+
+// Logs death for player that occurs by a creature directly.
+void MpDataStore::DBAddPlayerDeath(Player* player, Creature* creature) {
+    if (!player) {
+        MpLogger::error("DBAddPlayerDeath called with invalid player");
+        return;
+    }
+
+    CharacterDatabase.Execute("UPDATE mp_player_instance_data SET deaths = deaths + 1 WHERE guid = {} and mapId = {} and instanceId = {}",
+        player->GetGUID().GetCounter(),
+        player->GetMapId(),
+        player->GetInstanceId()
+    );
+
+    CharacterDatabase.Execute("REPLACE INTO mp_player_death_stats (guid, mapId, instanceId, creatureId) VALUES ({},{},{},{}) ",
+        player->GetGUID().GetCounter(),
+        player->GetMapId(),
+        player->GetInstanceId(),
+        creature->GetEntry()
+    );
+
 }
 
 void MpDataStore::DBUpdateGroupData(ObjectGuid groupGuid, MpDifficulty difficulty, uint32 mapId, uint32 instanceId, uint32 deaths) {
@@ -328,6 +368,30 @@ void MpDataStore::DBUpdateGroupData(ObjectGuid groupGuid, MpDifficulty difficult
         mapId,
         instanceId,
         deaths
+    );
+}
+
+void MpDataStore::DBAddGroupDeath(Group* group, uint32 mapId, uint32 instanceId, MpDifficulty difficulty) {
+    if (!group) {
+        MpLogger::error("DBAddGroupDeath called with invalid group");
+        return;
+    }
+
+    if(!difficulty) {
+        MpLogger::error("DBAddGroupDeath called with invalid difficulty");
+        return;
+    }
+
+    if(!mapId || !instanceId) {
+        MpLogger::error("DBAddGroupDeath called with invalid mapId or instanceId");
+        return;
+    }
+
+    CharacterDatabase.Execute("UPDATE mp_group_data SET deaths = deaths + 1 WHERE guid = {} and mapId = {} and instanceId = {} and difficulty = {}",
+        group->GetGUID().GetCounter(),
+        mapId,
+        instanceId,
+        difficulty
     );
 }
 

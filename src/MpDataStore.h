@@ -23,6 +23,8 @@ enum MpDifficulty {
     MP_DIFFICULTY_ASCENDANT = 5
 };
 
+class MpDataStore;
+
 struct MpPlayerInstanceData {
     uint32 deaths;
 };
@@ -48,6 +50,7 @@ struct MpPlayerData
         } else {
             instanceData[key] = MpPlayerInstanceData{.deaths = 1};
         }
+
     }
 
     uint32 GetDeaths(uint32 mapId, uint32 instanceId) const {
@@ -78,11 +81,11 @@ struct MpGroupData
     Group* group;
     MpDifficulty difficulty;
     std::vector<MpPlayerData*> players;
-    MpDataStore* dataStore;
+
 
     MpGroupData() : group(nullptr), difficulty(MpDifficulty{}) {
         players.reserve(5);
-        dataStore = MpDataStore::instance();
+
     }
 
     MpGroupData(Group* group, MpDifficulty difficulty)
@@ -380,12 +383,16 @@ public:
 
     // Database API calls
     void DBUpdatePlayerInstanceData(ObjectGuid playerGuid, MpDifficulty difficulty, uint32 mapId = 0, uint32 instanceId = 0, uint32 deaths = 0);
-    void DBUpdatePlayerDeaths(ObjectGuid playerGuid, uint32 deaths);
+
+    void DBResetPlayerDeaths(Player* player);
+    void DBAddPlayerDeath(Player* player, Creature* killer);
+    void DBAddPlayerDeath(Player* player);
+
     void DBRemovePlayerData(ObjectGuid playerGuid);
     void DBUpdateGroupData(ObjectGuid groupGuid, MpDifficulty difficulty, uint32 mapId, uint32 instanceId, uint32 deaths);
     void DBUpdateGroupTimerDeaths(ObjectGuid groupGuid, uint32 mapId, uint32 instanceId, uint32 timer, uint32 deaths);
     void DBRemoveGroupData(ObjectGuid groupGuid);
-    void SavePlayerInstanceData(Player* player, MpPlayerData const* playerData);
+    void DBAddGroupDeath(Group* group, uint32 mapId, uint32 instanceId, MpDifficulty difficulty);
     //SavePlayerDungeonStats(Group* group, MpGroupData const* groupData);
 
     static MpDataStore* instance() {

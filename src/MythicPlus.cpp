@@ -476,7 +476,7 @@ int32 MythicPlus::ScaleHealSpell(SpellInfo const * spellInfo, uint32 heal, MpCre
     return int32(heal * scalingFactor * healMultiplier);
 }
 
-static bool IsFinalBoss(Creature* creature) {
+bool MythicPlus::IsFinalBoss(Creature* creature) {
     std::array<uint32, 128> finalBosses = {
         // --- WoW Classic Dungeons ---
         11519,  /* Bazzalan Ragefire */

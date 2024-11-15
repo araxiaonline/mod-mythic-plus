@@ -32,7 +32,6 @@ public:
             }
         }
 
-
         if(isHot) {
             damage = modifyIncomingDmgHeal(MythicPlus::UNIT_EVENT_HOT, target, attacker, damage, spellInfo);
         } else {

@@ -4,7 +4,6 @@
 #include "Player.h"
 #include "Group.h"
 #include "ScriptMgr.h"
-
 class MythicPlus_PlayerScript : public PlayerScript
 {
 public:
@@ -31,25 +30,22 @@ public:
             return;
         }
 
+        // Update in memory store
         playerData->AddDeath(map->GetId(), map->GetInstanceId());
-    }
 
-    void OnSave(Player* player) override
-    {
-        // if the player is in a group save the current player difficulty
-        Group* group = player->GetGroup();
-        if(group) {
-            MpGroupData* data = sMpDataStore->GetGroupData(group);
-            if(data) {
-
-                MpPlayerData const * playerData = sMpDataStore->GetPlayerData(player->GetGUID());
-                if(playerData) {
-                    // sMpDataStore->SavePlayerInstanceData(player, playerData);
-                }
-
-            }
+        // Track deaths and add to mp_player_death_stats
+        Creature* creature = killer->ToCreature();
+        if(creature) {
+            sMpDataStore->DBAddPlayerDeath(player, creature);
+        } else {
+            sMpDataStore->DBAddPlayerDeath(player);
         }
+
+        // update that group data in the database
+        sMpDataStore->DBAddGroupDeath(data->group, map->GetId(), map->GetInstanceId(), data->difficulty);
     }
+
+    void OnSave(Player* player) override { }
 
     // When a player is bound to an instance need to make sure they are saved in the data soure to retrieve later.
     void OnBindToInstance(Player* player, Difficulty /*difficulty*/, uint32 mapId, bool /*permanent*/) override
