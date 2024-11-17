@@ -1,21 +1,102 @@
-
-CREATE TABLE IF NOT EXISTS mp_character_instance (
-    character_guid        INT UNSIGNED     NOT NULL DEFAULT '0',
-    current_difficulty  TINYINT UNSIGNED NOT NULL DEFAULT '1',
-    deaths      INT UNSIGNED     DEFAULT '0',
-
-    PRIMARY KEY (guid)
+-- Used for tracking group instance data for mythic runs
+DROP TABLE IF EXISTS mp_group_data;
+CREATE TABLE mp_group_data (
+    groupId    INT UNSIGNED NOT NULL DEFAULT '0',
+    difficulty  INT UNSIGNED,
+    mapID       INT UNSIGNED,
+    instanceId  INT UNSIGNED,
+    instanceTimer INT UNSIGNED,
+    deaths        INT UNSIGNED,
+    PRIMARY KEY (groupId)
 );
 
-CREATE TABLE IF NOT EXISTS mp_character_dungeon_stats (
-    character_guid        INT UNSIGNED     NOT NULL DEFAULT '0',
-    dungeon_id  INT UNSIGNED     NOT NULL DEFAULT '0',
+-- Used for tracking current instance data for players
+DROP TABLE IF EXISTS mp_player_instance_data;
+CREATE TABLE mp_player_instance_data(
+    guid       INT UNSIGNED NOT NULL DEFAULT '0',
+    difficulty INT UNSIGNED NOT NULL DEFAULT '3',
+    mapId     INT UNSIGNED NOT NULL,
+    instanceId INT UNSIGNED,
+    deaths     INT UNSIGNED NOT NULL,
+
+    PRIMARY KEY (guid, mapId, instanceId)
+);
+
+-- Used for tracking player deaths to specific creatures in mythic runs
+DROP TABLE IF EXISTS mp_player_death_stats;
+CREATE TABLE mp_player_death_stats(
+  guid          INT UNSIGNED NOT NULL DEFAULT '0',
+  creatureEntry INT UNSIGNED NOT NULL,
+  numDeaths     INT UNSIGNED NOT NULL DEFAULT '0',
+  lastUpdated   TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+
+  PRIMARY KEY (guid),
+  INDEX idx_creature (creatureEntry)
+);
+
+--- Used for tracking player runs in mythic dungeons
+DROP TABLE IF EXISTS mp_player_runs;
+CREATE TABLE mp_player_runs(
+    runId       INT UNSIGNED AUTO_INCREMENT,
+    guid        INT UNSIGNED NOT NULL DEFAULT '0',
+    difficulty  INT UNSIGNED NOT NULL DEFAULT '3',
+    mapId       INT UNSIGNED,
+    groupDeaths INT UNSIGNED,
+    personalDeaths INT UNSIGNED,
+    completeTime   INT UNSIGNED,
+    botCount       TINYINT UNSIGNED DEFAULT '0',
+
+    PRIMARY KEY (runId),
+    INDEX idx_guid  (guid),
+    INDEX idx_mapId (mapId)
+);
+
+--- Used for tracking player stats in mythic dungeons
+DROP TABLE IF EXISTS mp_player_stats;
+CREATE TABLE mp_player_stats (
+    guid        INT UNSIGNED     NOT NULL DEFAULT '0',
+    mapId      INT UNSIGNED     NOT NULL DEFAULT '0',
     difficulty  TINYINT UNSIGNED NOT NULL DEFAULT '0',
     deaths      INT UNSIGNED     DEFAULT '0',
     runs        INT UNSIGNED     DEFAULT '0',
     completions INT UNSIGNED  DEFAULT '0',
-    failures    INT UNSIGNED  DEFAULT '0',
-    total_time      INT UNSIGNED  DEFAULT '0',
-    best_time    INT UNSIGNED  DEFAULT '0',
-    PRIMARY KEY (guid, dungeon_id, difficulty)
+    totalTime      INT UNSIGNED  DEFAULT '0',
+    bestTime    INT UNSIGNED  DEFAULT '0',
+    PRIMARY KEY (guid, mapId, difficulty)
+);
+
+--- Used to enable custom stat upgrads from materials and drops in mythic dungeons
+DROP TABLE IF EXISTS mp_player_stat_upgrades;
+CREATE TABLE mp_player_stat_upgrades
+(
+    guid       INT UNSIGNED NOT NULL,
+    statTypeId INT UNSIGNED NOT NULL,
+    bonus      Float        NOT NULL,
+    upgradeRank       INT UNSIGNED NOT NULL,
+    materialSpent     INT UNSIGNED NOT NULL DEFAULT '0',
+    diceSpent         INT UNSIGNED NOT NULL DEFAULT '0',
+
+    PRIMARY KEY (guid, statTypeId)
+);
+
+
+--- Used to track upgrade ranks for stat improvements and min/max values
+DROP TABLE IF EXISTS mp_stat_upgrade_ranks;
+CREATE TABLE mp_stat_upgrade_ranks
+(
+    upgradeRank INT UNSIGNED NOT NULL,
+    statTypeId  INT UNSIGNED NOT NULL,
+    materialId  INT UNSIGNED NOT NULL,
+    materialCost INT UNSIGNED NOT NULL,
+    minIncrease1 INT UNSIGNED NOT NULL,
+    maxIncrease1 INT UNSIGNED NOT NULL,
+    minIncrease2 INT UNSIGNED NOT NULL,
+    maxIncrease2 INT UNSIGNED NOT NULL,
+    minIncrease3 INT UNSIGNED NOT NULL,
+    maxIncrease3 INT UNSIGNED NOT NULL,
+    chanceCost1 INT UNSIGNED NOT NULL,
+    chanceCost2 INT UNSIGNED NOT NULL,
+    chanceCost3 INT UNSIGNED NOT NULL,
+
+    PRIMARY KEY (upgradeRank, statTypeId)
 );
