@@ -96,12 +96,24 @@ SELECT
     it.entry,
     it.name
 FROM item_template it
-WHERE it.entry IN (
-    33568, 4234, 4235, 2318, 783, 2319, 4232, 8170, 8171, 4304, 8169, 21887, 38557, 38561, 38558, 8167
-)
-  AND it.VerifiedBuild = 12340
-ORDER BY it.name;
-
+WHERE it.name IN (
+    'Borean Leather',
+    'Heavy Leather',
+    'Heavy Hide',
+    'Light Leather',
+    'Light Hide',
+    'Medium Leather',
+    'Medium Hide',
+    'Rugged Leather',
+    'Rugged Hide',
+    'Thick Leather',
+    'Thick Hide',
+    'Knothide Leather',
+    'Icy Dragonscale',
+    'Jormungar Scale',
+    'Nerubian Chitin',
+    'Turtle Scale'
+);
 -- Rare skinning material found in the world or dropped by enemies
 REPLACE INTO mp_material_types (materialId, entry, name)
 SELECT
@@ -109,12 +121,25 @@ SELECT
     it.entry,
     it.name
 FROM item_template it
-WHERE it.entry IN (
-    44128, 15416, 15415, 15412, 15414, 15410, 29548, 29547, 25708, 29539, 15417, 7392, 7286,
-    15408, 20498, 20500, 20501, 8165, 6470, 6471, 17012, 20381, 19767, 19768, 15419
-)
-  AND it.VerifiedBuild = 12340
-ORDER BY it.name;
+WHERE it.name IN (
+    'Black Dragonscale',
+    'Blue Dragonscale',
+    'Green Dragonscale',
+    'Red Dragonscale',
+    'Scale of Onyxia',
+    'Nether Dragonscales',
+    'Wind Scales',
+    'Thick Clefthoof Leather',
+    'Cobra Scales',
+    'Devilsaur Leather',
+    'Green Whelp Scale',
+    'Black Whelp Scale',
+    'Perfect Deviate Scale',
+    'Core Leather',
+    'Dreamscale',
+    'Primal Bat Leather',
+    'Primal Tiger Leather',
+);
 
 -- Common uncut gems that are easy to find in the world
 REPLACE INTO mp_material_types (materialId, entry, name)
@@ -153,8 +178,7 @@ WHERE
       "Autumn's Glow",
       'Twilight Opal',
       'Scarlet Ruby'
-  )
-ORDER BY it.name;
+  );
 
 -- Rare gems that are harder to find or drop in raids
 REPLACE INTO mp_material_types (materialId, entry, name)
@@ -180,5 +204,53 @@ WHERE
         'Eye of Zul',
         'Majestic Zircon',
         'Dreadstone'
-  )
-ORDER BY it.name;
+  );
+
+--- Common materials that related to water / frost
+REPLACE INTO mp_material_types (materialId, entry, name)
+SELECT
+    11 AS materialId,
+    it.entry,
+    it.name
+FROM item_template it
+WHERE
+    it.name IN (
+        -- Classic
+        'Elemental Water',
+        'Essence of Water',
+        'Glacial Fragments',
+
+        -- TBC
+        'Arctic Fur',
+        'Thick Dawnstone',
+
+        -- WotLK
+        'Eternal Water',
+        'Frost Lotus',
+        'Frostweave Cloth'
+    )
+
+--- Rare materials that related to water / frost
+REPLACE INTO mp_material_types (materialId, entry, name)
+SELECT
+    12 AS materialId, -- Unique ID for rare frost resistance materials
+    it.entry,
+    it.name
+FROM item_template it
+WHERE
+    it.name IN (
+        -- Classic
+        'Frozen Rune',
+        'Core of Earth',
+
+        -- TBC
+        'Frost-Infused Shard',
+        'Nether Residuum',
+        'Primal Water',
+
+        -- WotLK
+        'Primordial Saronite',
+        'Titanium Frostguard Ring',
+        'Icy Dragonscale',
+        'Eternal Water'
+    );
