@@ -225,7 +225,6 @@ WHERE
         'Thick Dawnstone',
 
         -- WotLK
-        'Eternal Water',
         'Frost Lotus',
         'Frostweave Cloth'
     )
