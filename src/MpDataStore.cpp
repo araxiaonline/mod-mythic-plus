@@ -35,9 +35,6 @@ void MpDataStore::AddGroupData(Group *group, MpGroupData groupData) {
     }
 
     auto instance = map->ToInstanceMap();
-    if(!instance) {
-        MpLogger::error("AddGroupData called with null instance map for group leader");
-    }
 
     // if we already have data override it
     if (_groupData->contains(guid)) {
@@ -46,7 +43,7 @@ void MpDataStore::AddGroupData(Group *group, MpGroupData groupData) {
         if(groupData.difficulty == MP_DIFFICULTY_HEROIC || groupData.difficulty == MP_DIFFICULTY_NORMAL || groupData.difficulty != existingData.difficulty) {
 
             // if we set a lower difficulty and we are in an instance we need to kick the group out and reset the instance.
-            if(instance->HavePlayers()) {
+            if(instance && instance->HavePlayers()) {
 
                 instance->Reset(2); // 2 = reset all
 
@@ -68,7 +65,7 @@ void MpDataStore::AddGroupData(Group *group, MpGroupData groupData) {
 
     } else {
 
-        if(instance->HavePlayers()) {
+        if(instance && instance->HavePlayers()) {
 
             instance->Reset(2); // 2 = reset all
 
@@ -100,11 +97,7 @@ void MpDataStore::AddGroupData(Group *group, MpGroupData groupData) {
         Player* player = ObjectAccessor::FindPlayer(memberSlot.guid);
         if (player) {
 
-            CharacterDatabase.Execute("REPLACE INTO mp_character_instance (guid, difficulty) VALUES ({},{}) ",
-                player->GetGUID().GetCounter(),
-                groupData.difficulty
-            );
-
+            DBUpdatePlayerInstanceData(player->GetGUID(), groupData.difficulty);
         }
     }
 }
@@ -327,7 +320,7 @@ void MpDataStore::DBUpdatePlayerInstanceData(ObjectGuid playerGuid, MpDifficulty
         return;
     }
 
-    CharacterDatabase.Execute("REPLACE INTO mp_player_instance_data (guid, mapId, instanceId, deaths) VALUES ({},{},{},{},{}) ",
+    CharacterDatabase.Execute("REPLACE INTO mp_player_instance_data (guid, difficulty, mapId, instanceId, deaths) VALUES ({},{},{},{},{}) ",
         playerGuid.GetCounter(),
         difficulty,
         mapId,

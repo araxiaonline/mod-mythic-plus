@@ -101,6 +101,11 @@ public:
         );
         sMpDataStore->AddInstanceData(map->GetId(), map->GetInstanceId(), instanceData);
 
+        // Save the instance data for the user to the database
+        if (player) {
+            sMpDataStore->DBUpdatePlayerInstanceData(player->GetGUID(), groupData->difficulty, map->GetId(), map->GetInstanceId(), 0);
+        }
+
         // Once we have instance data set we can scale the remaining characters in our instance
         sMythicPlus->ScaleRemaining(player, &instanceData);
     }
