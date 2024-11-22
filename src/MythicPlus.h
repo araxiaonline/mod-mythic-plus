@@ -120,6 +120,8 @@ public:
     // This scales a heal spell up based on the how much % the original heal spell was
     int32 ScaleHealSpell(SpellInfo const * spellInfo, uint32 heal, MpCreatureData* creatureData, Creature* creature, Creature* target, float healMultiplier);
 
+    static bool IsFinalBoss(Creature* creature);
+
     private:
         MythicPlus() { }
         ~MythicPlus() { }

@@ -80,8 +80,6 @@ public:
         playerData->instanceData.emplace(mapKey, MpPlayerInstanceData{
             .deaths = 0,
         });
-
-        sMpDataStore->SavePlayerInstanceData(player,playerData);
     }
 };
 
