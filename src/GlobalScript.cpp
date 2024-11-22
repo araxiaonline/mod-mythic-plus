@@ -11,7 +11,7 @@ public:
     MythicPlus_GlobalScript() : GlobalScript("MythicPlus_GlobalScript") { }
 
     // This adds the mythic+ item scaling to the loot table for enemies
-    void OnBeforeDropAddItem(Player const* player, Loot& loot, bool /*canRate*/, uint16 /*lootMode*/, LootStoreItem* LootStoreItem, LootStore const& store) override {
+    void OnBeforeDropAddItem(Player const* player, Loot& /*loot*/, bool /*canRate*/, uint16 /*lootMode*/, LootStoreItem* LootStoreItem, LootStore const& store) override {
 
         if(LootStoreItem->itemid == 0) {
             return;

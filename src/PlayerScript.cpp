@@ -4,14 +4,15 @@
 #include "Player.h"
 #include "Group.h"
 #include "ScriptMgr.h"
-
 class MythicPlus_PlayerScript : public PlayerScript
 {
 public:
     MythicPlus_PlayerScript() : PlayerScript("MythicPlus_PlayerScript") { }
 
-    void OnPlayerJustDied(Player* player, Unit* killer)
+    void OnPlayerKilledByCreature(Player* player, Unit* killer)
     {
+        MpLogger::debug("OnPlayerJustDied: %s", player->GetName());
+
         Map* map = player->GetMap();
         if(!sMythicPlus->IsMapEligible(map)) {
             return;
@@ -23,33 +24,32 @@ public:
 
         MpGroupData *data = sMpDataStore->GetGroupData(player->GetGroup());
         if (!data) {
+            MpLogger::error("OnPlayerJustDied: No group data found for %s", player->GetName());
             return;
         }
 
         MpPlayerData *playerData = sMpDataStore->GetPlayerData(player->GetGUID());
         if (!playerData) {
+            MpLogger::error("OnPlayerJustDied: No player data found for %s", player->GetName());
             return;
         }
 
+        // Update in memory store
         playerData->AddDeath(map->GetId(), map->GetInstanceId());
-    }
 
-    void OnSave(Player* player) override
-    {
-        // if the player is in a group save the current player difficulty
-        Group* group = player->GetGroup();
-        if(group) {
-            MpGroupData* data = sMpDataStore->GetGroupData(group);
-            if(data) {
-
-                MpPlayerData const * playerData = sMpDataStore->GetPlayerData(player->GetGUID());
-                if(playerData) {
-                    sMpDataStore->SavePlayerInstanceData(player, playerData);
-                }
-
-            }
+        // Track deaths and add to mp_player_death_stats
+        Creature* creature = killer->ToCreature();
+        if(creature) {
+            sMpDataStore->DBAddPlayerDeath(player, creature);
+        } else {
+            sMpDataStore->DBAddPlayerDeath(player);
         }
+
+        // update that group data in the database
+        sMpDataStore->DBAddGroupDeath(data->group, map->GetId(), map->GetInstanceId(), data->difficulty);
     }
+
+    void OnSave(Player* player) override { }
 
     // When a player is bound to an instance need to make sure they are saved in the data soure to retrieve later.
     void OnBindToInstance(Player* player, Difficulty /*difficulty*/, uint32 mapId, bool /*permanent*/) override
@@ -88,7 +88,12 @@ public:
             .deaths = 0,
         });
 
-        sMpDataStore->SavePlayerInstanceData(player,playerData);
+        sMpDataStore->DBUpdatePlayerInstanceData(player->GetGUID(), data->difficulty, map->GetId(), player->GetInstanceId(), 0);
+
+        if(group->GetLeaderGUID() == player->GetGUID()) {
+            sMpDataStore->DBUpdateGroupData(group->GetGUID(), data->difficulty, map->GetId(), player->GetInstanceId(), 0);
+        }
+
     }
 };
 

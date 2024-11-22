@@ -476,6 +476,140 @@ int32 MythicPlus::ScaleHealSpell(SpellInfo const * spellInfo, uint32 heal, MpCre
     return int32(heal * scalingFactor * healMultiplier);
 }
 
+bool MythicPlus::IsFinalBoss(Creature* creature) {
+    std::array<uint32, 128> finalBosses = {
+        // --- WoW Classic Dungeons ---
+        11519,  /* Bazzalan Ragefire */
+        639,    /* Edwin VanCleef Deadmines */
+        3654,   /* Mutanus the Devourer Wailing Caverns */
+        4275,   /* Archmage Arugal Shadowfang Keep */
+        1716,   /* Bazil Thredd Stockades */
+        4829,   /* Aku'mai blackfathom Deeps */
+        7800,   /* Mekgineer Thermaplugg Gnomeregan */
+        4421,   /* Charlga Razorflank Razorfen Kraul */
+        4543,   /* Bloodmage Thalnos Scarlet Monastery */
+        3975,   /* Herod Scarlet Monastery */
+        3977,   /* High Inquisitor Whitemane Scarlet Monastery */
+        7350,   /* Amnennar the Coldbringer Razorfen Downs */
+        2748,   /* Archaedas Uldaman */
+        7267,   /* Chief Ukorz Sandscalp Zul'Farrak */
+        12201,  /* Princess Theradras Maraudon */
+        5709,   /* Shade of Eranikus Sunken Temple */
+        9019,   /* Emperor Dagran Thaurissan Blackrock Depths */
+        9568,   /* Overlord Wyrmthalak Lower Blackrock Spire */
+        10363,  /* General Drakkisath Upper Blackrock Spire */
+        11492,  /* alzzin the Wildshaper Dire Maul */
+        11496,  /* Immol'thar Dire Maul */
+        11501,  /* King Gordok Dire Maul */
+        1853,   /* Darkmaster Gandling Scholomance */
+        10812,  /* Grand Crusader Dathrohan Stratholme */
+        10440,  /* Baron Rivendare Stratholme */
+
+        // --- WoW Classic Raids ---
+        11583,  /* Nefarian Blackwing Lair */
+        11502,  /* Ragnaros Molten Core */
+        14834,  /* Hakkar Zul'Gurub */
+        15727,  /* C'Thun Temple of Ahn'Qiraj */
+        15339,  /* Ossirian the Unscarred Ruins of Ahn'Qiraj */
+
+        // --- The Burning Crusade ---
+        17536,  /* Nazan - Hellfire Ramparts Normal */
+        17536,  /* Nazan - Hellfire Ramparts Normal */
+        17377,  /* Kelidan the Breaker - Blood Furnace Normal */
+        18607,  /* Kelidan the Breaker - Blood Furnace Heroic */
+        17942,  /* Quagmirran - The Slave Pens Normal */
+        19894,  /* Quagmirran - The Slave Pens Heoric */
+        17882,  /* The Black Stalker - The Underbog Normal */
+        20184,  /* The Black Stalker - The Underbog Heroic */
+        24420,  /* The Black Stalker - The Underbog Heroic(2) */
+        18344,  /* Nexus-Prince Shaffar - Mana-Tombs Normal */
+        20256,  /* Nexus-Prince Shaffar - Mana-Tombs Heroic */
+        18373,  /* Exarch Maladaar - Auchenai Crypts Normal */
+        20306,  /* Exarch Maladaar - Auchenai Crypts Heoric */
+        18096,  /* Epoch Hunter - Old Hillsbrad Foothills Normal */
+        20531,  /* Epoch Hunter - Old Hillsbrad Foothills Heroic */
+        18473,  /* Talon King Ikiss - Sethekk Halls Normal */
+        20706,  /* Talon King Ikiss - Sethekk Halls Heroic */
+        17798,  /* Warlord Kalithresh - The Steamvault Normal */
+        20633,  /* Warlord Kalithresh - The Steamvault Heroic */
+        18708,  /* Murmur - Shadow Labyrinth Normal */
+        20657,  /* Murmur - Shadow Labyrinth Heroic */
+        16808,  /* Warchief Kargath Bladefist - The Shattered Halls Normal */
+        20597,  /* Warchief Kargath Bladefist - The Shattered Halls Heroic */
+        17881,  /* Aeonus - The Black Morass Normal */
+        20737,  /* Aeonus - The Black Morass Heroic */
+        17977,  /* Warp Splinter - The Botanica Normal */
+        21582,  /* Warp Splinter - The Botanica Heroic */
+        19220,  /* Pathaleon the Calculator - The Mechanar Normal */
+        21537,  /* Pathaleon the Calculator - The Mechanar Heroic */
+        20912,  /* Harbinger Skyriss - The Arcatraz Normal */
+        21601,  /* Harbinger Skyriss - The Arcatraz Heroic */
+        19622,  /* Kael'thas Sunstrider - Magisters' Terrace Normal */
+        24857,  /* Kael'thas Sunstrider - Magisters' Terrace Heroic */
+
+        // --- Burning Crusade Raids ---
+        15690,  /* Prince Malchezaar - Karazhan */
+        23863,  /* Zul'jin - Zul'Aman */
+        19044,  /* Gruul the Dragonkiller - Gruul's Lair */
+        17257,  /* Magtheridon - Magtheridon's Lair */
+        21212,  /* Lady Vashj - Serpentshrine Cavern */
+        24664,  /* Kael'thas Sunstrider - The Eye */
+        24855,  /* Kael'thas Sunstrider - The Eye */
+        17968,  /* Archimonde - Hyjal Summit */
+        22917,  /* Illidan Stormrage - Black Temple */
+        25315,  /* Kil'jaeden - Sunwell Plateau */
+
+        // --- Wrath of the Lich King ---
+        23954,  /* Ingvar the Plunderer - Utgarde Keep Normal */
+        31673,  /* Ingvar the Plunderer - Utgarde Keep Heroic */
+        26861,  /* King Ymiron - Utgarde Pinnacle Normal */
+        30788,  /* King Ymiron - Utgarde Pinnacle Heroic */
+        26723,  /* Keristrasza - The Nexus Normal */
+        30540,  /* Keristrasza - The Nexus Heroic */
+        26632,  /* The Prophet Tharon'ja - Drak'Tharon Keep Normal */
+        31360,  /* The Prophet Tharon'ja - Drak'Tharon Keep Heroic */
+        27656,  /* Ley-Guardian Eregos - The Oculus Normal */
+        31561,  /* Ley-Guardian Eregos - The Oculus Heroic */
+        29311,  /* Herald Volazj - Ahn'kahet: The Old Kingdom Normal */
+        31464,  /* Herald Volazj - Ahn'kahet: The Old Kingdom Heroic */
+        29120,  /* Anub'arak - Azjol-Nerub Normal */
+        31610,  /* Anub'arak - Azjol-Nerub Heroic */
+        29306,  /* Gal'darah - Gundrak Normal */
+        31368,  /* Gal'darah - Gundrak Heroic */
+        26533,  /* Mal'Ganis - Culling of Stratholme Normal */
+        31217,  /* Mal'Ganis - Culling of Stratholme Heroic */
+        31134,  /* Cyanigosa - Violet Hold Normal */
+        31506,  /* Cyanigosa - Violet Hold Heroic */
+        27978,  /* Sjonnir the Ironshaper - Halls of Stone Normal */
+        31386,  /* Sjonnir the Ironshaper - Halls of Stone Heroic */
+        28923,  /* Loken - Halls of Lightning Normal */
+        31538,  /* Loken - Halls of Lightning Heroic */
+        35451,  /* The Black Knight - Trial of the Champion Normal */
+        35490,  /* The Black Knight - Trial of the Champion Heroic */
+        36502,  /* Devourer of Souls - The Forge of Souls Normal */
+        37677,  /* Devourer of Souls - The Forge of Souls Heroic */
+        36658,  /* Scourgelord Tyrannus - Pit of Saron Normal */
+        36938,  /* Scourgelord Tyrannus - Pit of Saron Heroic */
+        37226,  /* The Lich King Encounter - Halls of Reflection Normal */
+        39166,  /* The Lich King Encounter - Halls of Reflection Heroic */
+
+        // --- Wrath of the Lich King Raids ---
+        15990,  /* Kel'Thuzad - Naxxramas */
+        28859,  /* Malygos - The Eye of Eternity */
+        28860,  /* Sartharion - Obsidian Sanctum */
+        31125,  /* Archavon the Stone Watcher - Vault of Archavon */
+        33993,  /* Emalon the Storm Watcher - Vault of Archavon */
+        35013,  /* Koralon the Flame Watcher - Vault of Archavon */
+        38433,  /* Toravon the Ice Watcher - Vault of Archavon */
+        33288,  /* Yogg-Saron - Ulduar */
+        34564,  /* Anub'arak - Trial of the Crusader */
+        10184,  /* Onyxia - Onyxia's Lair (re-released in Wrath) */
+        36597,  /* The Lich King - Icecrown Citadel */
+        39863,  /* Halion - Ruby Sanctum */
+    };
+
+    return std::find(finalBosses.begin(), finalBosses.end(), creature->GetEntry()) != finalBosses.end();
+}
 
 /**
  * Function is copied because was not accessible in core creature class
