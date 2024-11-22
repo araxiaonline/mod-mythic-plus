@@ -10,8 +10,10 @@ class MythicPlus_PlayerScript : public PlayerScript
 public:
     MythicPlus_PlayerScript() : PlayerScript("MythicPlus_PlayerScript") { }
 
-    void OnPlayerJustDied(Player* player, Unit* killer)
+    void OnPlayerKilledByCreature(Creature* killer, Player* player)
     {
+        MpLogger::debug(">>>>>>>>>>>>>>>>>>>>>>> OnPlayerJustDied: %s", player->GetName());
+
         Map* map = player->GetMap();
         if(!sMythicPlus->IsMapEligible(map)) {
             return;
@@ -34,21 +36,8 @@ public:
         playerData->AddDeath(map->GetId(), map->GetInstanceId());
     }
 
-    void OnSave(Player* player) override
-    {
-        // if the player is in a group save the current player difficulty
-        Group* group = player->GetGroup();
-        if(group) {
-            MpGroupData* data = sMpDataStore->GetGroupData(group);
-            if(data) {
+    void OnSave(Player* player) {
 
-                MpPlayerData const * playerData = sMpDataStore->GetPlayerData(player->GetGUID());
-                if(playerData) {
-                    sMpDataStore->SavePlayerInstanceData(player, playerData);
-                }
-
-            }
-        }
     }
 
     // When a player is bound to an instance need to make sure they are saved in the data soure to retrieve later.
@@ -78,9 +67,13 @@ public:
             return;
         }
 
+        // get the player data or set it up
         MpPlayerData* playerData = sMpDataStore->GetPlayerData(player->GetGUID());
         if(!playerData) {
-            MpLogger::warn("PlayerData not found for player {} perhaps not in mythic+ group, bad player state?", player->GetName());
+            auto newPlayerData = std::make_unique<MpPlayerData>(player, data->difficulty, group->GetGUID().GetCounter());
+            sMpDataStore->AddPlayerData(player->GetGUID(), *newPlayerData);
+            playerData = newPlayerData.get();
+            newPlayerData.release();
         }
 
         auto mapKey = sMpDataStore->GetInstanceDataKey(mapId, player->GetInstanceId());
