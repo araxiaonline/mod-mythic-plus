@@ -9,8 +9,10 @@ class MythicPlus_PlayerScript : public PlayerScript
 public:
     MythicPlus_PlayerScript() : PlayerScript("MythicPlus_PlayerScript") { }
 
-    void OnPlayerJustDied(Player* player, Unit* killer)
+    void OnPlayerKilledByCreature(Player* player, Unit* killer)
     {
+        MpLogger::debug("OnPlayerJustDied: %s", player->GetName());
+
         Map* map = player->GetMap();
         if(!sMythicPlus->IsMapEligible(map)) {
             return;
@@ -22,11 +24,13 @@ public:
 
         MpGroupData *data = sMpDataStore->GetGroupData(player->GetGroup());
         if (!data) {
+            MpLogger::error("OnPlayerJustDied: No group data found for %s", player->GetName());
             return;
         }
 
         MpPlayerData *playerData = sMpDataStore->GetPlayerData(player->GetGUID());
         if (!playerData) {
+            MpLogger::error("OnPlayerJustDied: No player data found for %s", player->GetName());
             return;
         }
 

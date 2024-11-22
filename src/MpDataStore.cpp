@@ -84,14 +84,6 @@ void MpDataStore::AddGroupData(Group *group, MpGroupData groupData) {
         _groupData->emplace(guid, groupData);
 
     }
-
-    MpLogger::debug("Add Group difficulty for group {} to {}", guid.GetCounter());
-
-    CharacterDatabase.Execute("REPLACE INTO group_difficulty (guid, difficulty) VALUES ({},{}) ",
-        guid.GetCounter(),
-        groupData.difficulty
-    );
-
     const Group::MemberSlotList members = group->GetMemberSlots();
     for (const auto &memberSlot : members) {
         Player* player = ObjectAccessor::FindPlayer(memberSlot.guid);

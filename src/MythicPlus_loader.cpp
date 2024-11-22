@@ -25,7 +25,7 @@ void Addmod_mythic_plusScripts()
     Add_MP_CommandScripts();
     Add_MP_GlobalScripts();
     // Add_MP_GroupScripts();
-    // Add_MP_PlayerScripts();
+    Add_MP_PlayerScripts();
     Add_MP_UnitScripts();
     Add_MP_WorldScripts();
 
