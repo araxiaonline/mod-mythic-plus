@@ -5,6 +5,11 @@
 
 // Adds an entry for the group difficult to memory and updats database
 void MpDataStore::AddGroupData(Group *group, MpGroupData groupData) {
+    if(!group) {
+        MpLogger::error("AddGroupData called with null group pointer");
+        return;
+    }
+
     ObjectGuid guid = group->GetGUID();
 
     if (!guid) {
@@ -17,6 +22,23 @@ void MpDataStore::AddGroupData(Group *group, MpGroupData groupData) {
         return;
     }
 
+    Player* leader = group->GetLeader();
+    if(!leader) {
+        MpLogger::error("AddGroupData called with null group leader");
+        return;
+    }
+
+    Map* map = leader->GetMap();
+    if (!map) {
+        MpLogger::error("AddGroupData called with null map for group leader");
+        return;
+    }
+
+    auto instance = map->ToInstanceMap();
+    if(!instance) {
+        MpLogger::error("AddGroupData called with null instance map for group leader");
+    }
+
     // if we already have data override it
     if (_groupData->contains(guid)) {
 
@@ -24,8 +46,6 @@ void MpDataStore::AddGroupData(Group *group, MpGroupData groupData) {
         if(groupData.difficulty == MP_DIFFICULTY_HEROIC || groupData.difficulty == MP_DIFFICULTY_NORMAL || groupData.difficulty != existingData.difficulty) {
 
             // if we set a lower difficulty and we are in an instance we need to kick the group out and reset the instance.
-            Map* map = group->GetLeader()->GetMap();
-            auto instance = map->ToInstanceMap();
             if(instance->HavePlayers()) {
 
                 instance->Reset(2); // 2 = reset all
@@ -33,6 +53,11 @@ void MpDataStore::AddGroupData(Group *group, MpGroupData groupData) {
                 const Map::PlayerList players = map->GetPlayers();
                 for (auto itr = players.begin(); itr != players.end(); ++itr) {
                     Player* player = itr->GetSource();
+
+                    if(!player) {
+                        MpLogger::error("AddGroupData called with null player in instance");
+                    }
+
                     player->GetSession()->SendNotification("The group leader has changed the difficulty setting. You have been removed from the instance.");
                 }
             }
@@ -43,8 +68,6 @@ void MpDataStore::AddGroupData(Group *group, MpGroupData groupData) {
 
     } else {
 
-        Map* map = group->GetLeader()->GetMap();
-        auto instance = map->ToInstanceMap();
         if(instance->HavePlayers()) {
 
             instance->Reset(2); // 2 = reset all
@@ -52,6 +75,11 @@ void MpDataStore::AddGroupData(Group *group, MpGroupData groupData) {
             const Map::PlayerList players = map->GetPlayers();
             for (auto itr = players.begin(); itr != players.end(); ++itr) {
                 Player* player = itr->GetSource();
+
+                if(!player) {
+                    MpLogger::error("AddGroupData called with null player in instance");
+                }
+
                 player->GetSession()->SendNotification("The group leader has changed the difficulty setting. You have been removed from the instance.");
             }
         }
@@ -131,7 +159,7 @@ void MpDataStore::AddPlayerData(ObjectGuid guid, MpPlayerData pd) {
     Player* player = ObjectAccessor::FindPlayer(guid);
 }
 
-void MpDataStore::UpdatePlayerData(ObjectGuid guid, MpPlayerData pd) {
+void MpDataStore::UpdatePlayerData(ObjectGuid guid, MpPlayerData /*pd*/) {
     // _playerData->at(guid) = pd;
 }
 
