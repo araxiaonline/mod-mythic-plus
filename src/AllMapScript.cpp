@@ -14,7 +14,7 @@ public:
     {
     }
 
-    void OnCreateMap(Map* map) { }
+    void OnCreateMap(Map* /*map*/) { }
 
     /**
      * When a player enters the map check it needs to set up the instance data
