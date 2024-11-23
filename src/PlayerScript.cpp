@@ -23,17 +23,33 @@ public:
             return;
         }
 
+        Group* group = player->GetGroup();
+        if(!group) {
+            MpLogger::warn("Missing group data for player {}", player->GetName());
+            return;
+        }
+
         MpGroupData *data = sMpDataStore->GetGroupData(player->GetGroup());
         if (!data) {
+            MpLogger::warn("Missin group data for player {}", player->GetName());
             return;
         }
 
         MpPlayerData *playerData = sMpDataStore->GetPlayerData(player->GetGUID());
         if (!playerData) {
+            MpLogger::warn("Missin player data for player {}", player->GetName());
             return;
         }
 
         playerData->AddDeath(map->GetId(), map->GetInstanceId());
+
+        if(killer) {
+            sMpDataStore->DBAddPlayerDeath(player, killer, data->difficulty);
+        } else {
+            sMpDataStore->DBAddPlayerDeath(player);
+        }
+
+        sMpDataStore->DBAddGroupDeath(group, player->GetMapId(), player->GetInstanceId(), data->difficulty);
     }
 
     void OnSave(Player* player) {

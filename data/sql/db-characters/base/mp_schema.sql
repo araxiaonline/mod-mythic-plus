@@ -27,11 +27,10 @@ DROP TABLE IF EXISTS mp_player_death_stats;
 CREATE TABLE mp_player_death_stats(
   guid          INT UNSIGNED NOT NULL DEFAULT '0',
   creatureEntry INT UNSIGNED NOT NULL,
+  difficulty    TINYINT UNSIGNED NOT NULL DEFAULT '0'
   numDeaths     INT UNSIGNED NOT NULL DEFAULT '0',
   lastUpdated   TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-
-  PRIMARY KEY (guid),
-  INDEX idx_creature (creatureEntry)
+  PRIMARY KEY (guid, creatureEntry, difficulty)
 );
 
 --- Used for tracking player runs in mythic dungeons

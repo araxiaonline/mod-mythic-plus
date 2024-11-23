@@ -116,11 +116,13 @@ public:
         if (!sMythicPlus->IsMapEligible(map)) {
             return;
         }
+
+        // Removes currenct GroupData Instance Data and removes from database storage
         sMpDataStore->RemoveInstanceData(map->GetId(), map->GetInstanceId());
 
-        // If there is player data for this map reset it to default values
-
-
+        // remove group instance and group instance data from database during a reset
+        sMpDataStore->DBRemovePlayerInstanceData(map->GetInstanceId());
+        sMpDataStore->DBRemoveGroupInstanceData(map->GetInstanceId());
     }
 };
 
