@@ -113,6 +113,9 @@ public:
             newPlayerData.release();
         }
 
+        // Add this players data to the group data
+        data->AddPlayerData(playerData);
+
         auto mapKey = sMpDataStore->GetInstanceDataKey(mapId, player->GetInstanceId());
         playerData->instanceData.emplace(mapKey, MpPlayerInstanceData{
             .deaths = 0,

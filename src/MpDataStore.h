@@ -112,9 +112,18 @@ struct MpGroupData
     }
 
     void AddPlayerData(MpPlayerData* playerData) {
-        players.push_back(playerData);
+        // Check if the playerData is already in the vector
+        if (std::any_of(players.begin(), players.end(), [playerData](MpPlayerData* existingData) {
+            return existingData->player == playerData->player;
+        })) {
+
+        MpLogger::warn("PlayerData for player {} is already in the players vector", playerData->player->GetName());
+        return;
     }
 
+    // Add playerData to the vector
+    players.push_back(playerData);
+}
     std::string ToString() const {
         Map* map = group->GetLeader()->GetMap();
 
