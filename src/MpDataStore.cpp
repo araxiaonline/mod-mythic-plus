@@ -374,7 +374,7 @@ void MpDataStore::DBUpdateGroupData(ObjectGuid groupGuid, MpDifficulty difficult
         MpLogger::error("DBUpdateGroupData called with invalid groupGuid");
         return;
     }
-    CharacterDatabase.Execute("REPLACE INTO mp_group_data (guid, difficulty, mapId, instanceId, deaths) VALUES ({},{},{},{},{}) ",
+    CharacterDatabase.Execute("REPLACE INTO mp_group_data (groupId, difficulty, mapId, instanceId, deaths) VALUES ({},{},{},{},{}) ",
         groupGuid.GetCounter(),
         difficulty,
         mapId,
@@ -422,7 +422,7 @@ void MpDataStore::DBRemovePlayerInstanceData(uint32 instanceId) {
         return;
     }
 
-    CharacterDatabase.Execute("DELETE FROM mp_player_instance_data WHERE guid = {} ", instanceId);
+    CharacterDatabase.Execute("DELETE FROM mp_player_instance_data WHERE instanceId = {} ", instanceId);
 }
 
 
@@ -432,7 +432,7 @@ void MpDataStore::DBUpdateGroupTimerDeaths(ObjectGuid groupGuid, uint32 mapId, u
         return;
     }
 
-    CharacterDatabase.Execute("REPLACE INTO mp_group_data (guid, mapId, instanceId, instanceTimer, deaths) VALUES ({},{},{},{},{}) ",
+    CharacterDatabase.Execute("REPLACE INTO mp_group_data (groupId, mapId, instanceId, instanceTimer, deaths) VALUES ({},{},{},{},{}) ",
         groupGuid.GetCounter(),
         mapId,
         instanceId,
@@ -447,7 +447,7 @@ void MpDataStore::DBRemoveGroupData(ObjectGuid groupGuid) {
         return;
     }
 
-    CharacterDatabase.Execute("DELETE FROM mp_group_data WHERE guid = {} ", groupGuid.GetCounter());
+    CharacterDatabase.Execute("DELETE FROM mp_group_data WHERE groupId = {} ", groupGuid.GetCounter());
 }
 
 // Remove instance data using the instanceId

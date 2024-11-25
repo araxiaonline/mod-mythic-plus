@@ -4,6 +4,7 @@
 #include "Player.h"
 #include "Group.h"
 #include "ScriptMgr.h"
+#include "Chat.h"
 
 class MythicPlus_PlayerScript : public PlayerScript
 {
@@ -12,8 +13,6 @@ public:
 
     void OnPlayerKilledByCreature(Creature* killer, Player* player)
     {
-        MpLogger::debug(">>>>>>>>>>>>>>>>>>>>>>> OnPlayerJustDied: %s", player->GetName());
-
         Map* map = player->GetMap();
         if(!sMythicPlus->IsMapEligible(map)) {
             return;
@@ -50,6 +49,28 @@ public:
         }
 
         sMpDataStore->DBAddGroupDeath(group, player->GetMapId(), player->GetInstanceId(), data->difficulty);
+
+        uint32 totalDeaths = data->GetDeaths(player->GetMapId(), player->GetInstanceId());
+        if(totalDeaths > 1) {
+            // kick the group out of the instance
+
+            Map* map = player->GetMap();
+            Map::PlayerList players = map->GetPlayers();
+
+            if(!map || players.IsEmpty()) {
+                return;
+            }
+
+            // map->RemoveAllPlayers();
+            for(auto it = players.begin(); it != players.end(); ++it)
+            {
+                Player* player = it->GetSource();
+                player->GetSession()->SendNotification("Your group has died too many time to continue. %u", totalDeaths);
+            }
+            map->RemoveAllPlayers();
+            map->ToInstanceMap()->Reset(0);
+        }
+
     }
 
     void OnSave(Player* player) {
@@ -96,6 +117,9 @@ public:
         playerData->instanceData.emplace(mapKey, MpPlayerInstanceData{
             .deaths = 0,
         });
+
+        sMpDataStore->DBUpdatePlayerInstanceData(player->GetGUID(), data->difficulty, map->GetId(), map->GetInstanceId());
+        sMpDataStore->DBUpdateGroupData(group->GetGUID(), data->difficulty, map->GetId(), map->GetInstanceId(), 0);
     }
 };
 
