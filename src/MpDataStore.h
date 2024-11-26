@@ -27,7 +27,7 @@ enum MpDifficulty {
 class MpDataStore;
 
 struct MpPlayerInstanceData {
-    uint32 deaths;
+    uint32 deaths = 0;
 };
 
 // struct used to track player performance in an instance.
@@ -46,12 +46,14 @@ struct MpPlayerData
 
     void AddDeath(uint32 mapId, uint32 instanceId) {
         auto key = std::make_pair(mapId, instanceId);
+
         if(instanceData.contains(key)) {
             instanceData[key].deaths++;
         } else {
             instanceData[key] = MpPlayerInstanceData{.deaths = 1};
         }
 
+        MpLogger::info("========= Player {} added death to instance data {}", player->GetName(), instanceData[key].deaths);
     }
 
     uint32 GetDeaths(uint32 mapId, uint32 instanceId) const {
@@ -97,6 +99,10 @@ struct MpGroupData
     uint32 GetDeaths(uint32 mapId, uint32 instanceId) const {
         uint32 deaths = 0;
         for (const MpPlayerData* player : players) {
+
+            auto mapKey = std::make_pair(mapId, instanceId);
+            auto instanceData = player->instanceData;
+
             MpLogger::info(">>>>>>>>>>> Player: {} has {} deaths", player->player->GetName(), player->GetDeaths(mapId, instanceId));
             deaths += player->GetDeaths(mapId, instanceId);
         }
@@ -117,13 +123,14 @@ struct MpGroupData
             return existingData->player == playerData->player;
         })) {
 
-        MpLogger::warn("PlayerData for player {} is already in the players vector", playerData->player->GetName());
-        return;
+            MpLogger::warn("PlayerData for player {} is already in the players vector", playerData->player->GetName());
+            return;
+        }
+
+        // Add playerData to the vector
+        players.push_back(playerData);
     }
 
-    // Add playerData to the vector
-    players.push_back(playerData);
-}
     std::string ToString() const {
         Map* map = group->GetLeader()->GetMap();
 
@@ -149,8 +156,7 @@ struct MpScaleFactor
     std::string ToString() const {
         return "MpScaleFactor: { dmgBonus: " + std::to_string(dmgBonus) +
                ", healthBonus: " + std::to_string(healthBonus) +
-               ", healthBonus: " + std::to_string(healthBonus) +
-               ", maxDamageBonus: " + std::to_string(maxDamageBonus) + " }";
+               ", spellBonus: " + std::to_string(spellBonus) + "}";
     }
 
 };
@@ -286,7 +292,7 @@ struct MpCreatureData
 class MpDataStore {
 private:
     MpDataStore()
-    : _playerData(std::make_unique<std::unordered_map<ObjectGuid, MpPlayerData>>()),
+    : _playerData(std::make_unique<std::unordered_map<ObjectGuid, MpPlayerData*>>()),
       _instanceData(std::make_unique<std::map<std::pair<uint32, uint32>, MpInstanceData>>()),
       _groupData(std::make_unique<std::unordered_map<ObjectGuid, MpGroupData>>()),
       _instanceCreatureData(std::make_unique<std::unordered_map<ObjectGuid, MpCreatureData>>()),
@@ -299,7 +305,7 @@ private:
 
     inline ~MpDataStore() {}
 
-    std::unique_ptr<std::unordered_map<ObjectGuid, MpPlayerData>> _playerData;
+    std::unique_ptr<std::unordered_map<ObjectGuid, MpPlayerData*>> _playerData;
 
     // Instance data containes information about how to scale creatures
     std::unique_ptr<std::map<std::pair<uint32,uint32>,MpInstanceData>> _instanceData; // {mapId,instanceId}
@@ -324,7 +330,7 @@ public:
 
     MpPlayerData* GetPlayerData(ObjectGuid guid) {
         try {
-            return &_playerData->at(guid);
+            return _playerData->at(guid);
         } catch (const std::out_of_range& oor) {
             return nullptr;
         }
@@ -350,8 +356,7 @@ public:
     void PushGroupInstanceKey(Group *group, uint32 mapId, uint32 instanceId);
 
     // Data related to player settings and stags
-    void AddPlayerData(ObjectGuid guid, MpPlayerData pd);
-    void UpdatePlayerData(ObjectGuid guid, MpPlayerData pd);
+    void AddPlayerData(ObjectGuid guid, MpPlayerData* pd);
     void RemovePlayerData(ObjectGuid guid);
     void ResetPlayerData(ObjectGuid guid);
 

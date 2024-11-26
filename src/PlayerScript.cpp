@@ -107,10 +107,8 @@ public:
         // get the player data or set it up
         MpPlayerData* playerData = sMpDataStore->GetPlayerData(player->GetGUID());
         if(!playerData) {
-            auto newPlayerData = std::make_unique<MpPlayerData>(player, data->difficulty, group->GetGUID().GetCounter());
-            sMpDataStore->AddPlayerData(player->GetGUID(), *newPlayerData);
-            playerData = newPlayerData.get();
-            newPlayerData.release();
+            auto newPlayerData = MpPlayerData(player, data->difficulty, group->GetGUID().GetCounter());
+            sMpDataStore->AddPlayerData(player->GetGUID(), &newPlayerData);
         }
 
         // Add this players data to the group data

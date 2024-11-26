@@ -28,8 +28,7 @@ class MythicPlus_GroupScript : public GroupScript
 
             MpDifficulty difficulty = GetPlayerDifficulty(player);
             MpPlayerData playerData = MpPlayerData(player, difficulty, group->GetGUID().GetCounter());
-            pd = &playerData;
-            sMpDataStore->AddPlayerData(guid, playerData);
+            sMpDataStore->AddPlayerData(guid, &playerData);
         } else {
 
             // If the player is joining a new group then reset the death counters otherwise let them ride
