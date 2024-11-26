@@ -107,8 +107,8 @@ public:
         // get the player data or set it up
         MpPlayerData* playerData = sMpDataStore->GetPlayerData(player->GetGUID());
         if(!playerData) {
-            auto newPlayerData = MpPlayerData(player, data->difficulty, group->GetGUID().GetCounter());
-            sMpDataStore->AddPlayerData(player->GetGUID(), &newPlayerData);
+            playerData = new MpPlayerData(player, data->difficulty, group->GetGUID().GetCounter());
+            sMpDataStore->AddPlayerData(player->GetGUID(), playerData);
         }
 
         // Add this players data to the group data

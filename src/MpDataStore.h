@@ -303,7 +303,13 @@ private:
         _instanceCreatureData->reserve(500);
       };
 
-    inline ~MpDataStore() {}
+    inline ~MpDataStore() {
+        for (auto& [guid, playerData] : *_playerData) {
+            delete playerData;
+        }
+
+         _playerData->clear();
+    }
 
     std::unique_ptr<std::unordered_map<ObjectGuid, MpPlayerData*>> _playerData;
 
