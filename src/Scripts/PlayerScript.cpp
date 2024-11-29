@@ -1,5 +1,6 @@
 #include "MpLogger.h"
 #include "MpDataStore.h"
+#include "MpScheduler.h"
 #include "MythicPlus.h"
 #include "Player.h"
 #include "Group.h"
@@ -9,9 +10,9 @@
 class MythicPlus_PlayerScript : public PlayerScript
 {
 public:
-    MythicPlus_PlayerScript() : PlayerScript("MythicPlus_PlayerScript") { }
+    MythicPlus_PlayerScript() : PlayerScript("MythicPlus_PlayerScript") {}
 
-    void OnPlayerKilledByCreature(Creature* killer, Player* player)
+    void OnPlayerKilledByCreature(Creature* killer, Player* player) override
     {
         Map* map = player->GetMap();
         if(!sMythicPlus->IsMapEligible(map)) {
@@ -52,8 +53,6 @@ public:
 
         uint32 totalDeaths = data->GetDeaths(player->GetMapId(), player->GetInstanceId());
         if(totalDeaths > 1) {
-            // kick the group out of the instance
-
             Map* map = player->GetMap();
             Map::PlayerList players = map->GetPlayers();
 
@@ -61,19 +60,39 @@ public:
                 return;
             }
 
-            // map->RemoveAllPlayers();
-            for(auto it = players.begin(); it != players.end(); ++it)
-            {
-                Player* player = it->GetSource();
-                player->GetSession()->SendNotification("Your group has died too many time to continue. %u", totalDeaths);
+            Group* group = player->GetGroup();
+            if(!group) {
+                MpLogger::warn("Player {} is not in a group.", player->GetName());
+                return;
             }
-            map->RemoveAllPlayers();
-            map->ToInstanceMap()->Reset(0);
+
+            // map->RemoveAllPlayers();
+            MpLogger::info("Starting scheduled failure notification");
+            sMpScheduler->ScheduleWorldTask(1s, [](TaskContext ctx) {
+                MpLogger::info("<<<<<<<<<<<  Player Death Scheduler fire >>>>>>>>>>>>>");
+            });
+            // sMpScheduler->GetWorldScheduler().Schedule(1s, [playerName = player->GetName()](TaskContext ctx) {
+            //     MpLogger::info("<<<<<<<<<<<  Player Death Scheduler fire {} >>>>>>>>>>>>>", playerName);
+            //     return;
+            // });
+                    // std::vector<Player*> players = GetGroupMembers(player);
+                    // MpLogger::info("Failed mythic+ instance run notification fired. ");
+                    // WorldPacket data;
+
+                    // for(Player* player : players)
+                    // {
+                    //     MpLogger::info("Seding notification of failure to player: {}", player->GetName());
+                    //     player->GetSession()->SendShowBank(player->GetGUID());
+                    //     // player->GetSession()->SendNotification("Your group has died too many time to continue.");
+                    //     // ChatHandler::BuildChatPacket(data, CHAT_MSG_RAID_BOSS_EMOTE, LANG_UNIVERSAL, nullptr, player, message);
+                    //     // player->GetSession()->SendPacket(&data);
+                    // }
+
+                // map->ToInstanceMap()->Reset(0);
+            // );
+
         }
-
-    }
-
-    void OnSave(Player* player) {
+        return;
 
     }
 
@@ -122,6 +141,25 @@ public:
         sMpDataStore->DBUpdatePlayerInstanceData(player->GetGUID(), data->difficulty, map->GetId(), map->GetInstanceId());
         sMpDataStore->DBUpdateGroupData(group->GetGUID(), data->difficulty, map->GetId(), map->GetInstanceId(), 0);
     }
+
+    std::vector<Player*> GetGroupMembers(Player* currentPlayer)
+    {
+        std::vector<Player*> groupPlayers;
+
+        Group* group = currentPlayer->GetGroup();
+        if (!group)
+        {
+            MpLogger::warn("Player is not in a group.");
+            return groupPlayers;
+        }
+
+        group->DoForAllMembers([&](Player* member) {
+            groupPlayers.push_back(member);
+        });
+
+        return groupPlayers;
+    }
+
 };
 
 void Add_MP_PlayerScripts()
