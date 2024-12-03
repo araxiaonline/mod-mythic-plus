@@ -11,7 +11,6 @@ void Add_MP_Schedulers()
 {
     MpLogger::debug("Add_MP_Schedulers()");
     new MpScheduler_WorldScript();
-    sMpScheduler->StartScheduler();
 }
 
 void Addmod_mythic_plusScripts();

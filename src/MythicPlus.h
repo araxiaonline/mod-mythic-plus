@@ -8,6 +8,7 @@
 #include "Player.h"
 #include "SpellInfo.h"
 #include "Unit.h"
+#include "TaskScheduler.h"
 
 #include <map>
 #include <string>
@@ -121,6 +122,7 @@ public:
     int32 ScaleHealSpell(SpellInfo const * spellInfo, uint32 heal, MpCreatureData* creatureData, Creature* creature, Creature* target, float healMultiplier);
 
     static bool IsFinalBoss(Creature* creature);
+    static void GroupReset(Group* group, Map* map);
 
     private:
         MythicPlus() { }

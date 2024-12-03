@@ -476,6 +476,11 @@ int32 MythicPlus::ScaleHealSpell(SpellInfo const * spellInfo, uint32 heal, MpCre
     return int32(heal * scalingFactor * healMultiplier);
 }
 
+void MythicPlus::GroupReset(Group* group, Map* map) {
+    MpLogger::info(" <<< Group Death Limit reached >>>>");
+}
+
+
 bool MythicPlus::IsFinalBoss(Creature* creature) {
     std::array<uint32, 128> finalBosses = {
         // --- WoW Classic Dungeons ---

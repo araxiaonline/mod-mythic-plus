@@ -30,17 +30,11 @@ public:
         return _worldScheduler;
     }
 
-    void StartScheduler() {
-
-        MpLogger::info("Starting World Scheduler");
-        _worldScheduler.Schedule(1s, [&](TaskContext ctx) {
-            MpLogger::info("Insidie world scheduler");
-            return;
-        });
-    }
-
     void ScheduleWorldTask(std::chrono::nanoseconds const& time, std::function<void (TaskContext)> task) {
-        _worldScheduler.Schedule(time, MP_WORLD_TASK_GROUP, task);
+        // _worldScheduler.Schedule(time, MP_WORLD_TASK_GROUP, [](TaskContext ctx) {
+        //     MpLogger::info(" <<<<<  Testing no lambda >>>>>>>");
+        //     return;
+        // });
     }
 
 private:
