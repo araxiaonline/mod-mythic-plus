@@ -5,6 +5,7 @@
 #include "Player.h"
 #include "Group.h"
 #include "ScriptMgr.h"
+#include "TaskScheduler.h"
 #include "Chat.h"
 
 class MythicPlus_PlayerScript : public PlayerScript
@@ -12,7 +13,7 @@ class MythicPlus_PlayerScript : public PlayerScript
 public:
     MythicPlus_PlayerScript() : PlayerScript("MythicPlus_PlayerScript") {}
 
-    void OnPlayerKilledByCreature(Creature* killer, Player* player) override
+    void OnPlayerKilledByCreature(Creature* killer, Player* player)
     {
         Map* map = player->GetMap();
         if(!sMythicPlus->IsMapEligible(map)) {
@@ -52,26 +53,39 @@ public:
         sMpDataStore->DBAddGroupDeath(group, player->GetMapId(), player->GetInstanceId(), data->difficulty);
 
         uint32 totalDeaths = data->GetDeaths(player->GetMapId(), player->GetInstanceId());
+        MpLogger::info("Total Deaths: {}", totalDeaths);
         if(totalDeaths > 1) {
-            Map* map = player->GetMap();
-            Map::PlayerList players = map->GetPlayers();
+            MpLogger::debug(" :::: Player Deaths for Group too high! ::::::");
 
-            if(!map || players.IsEmpty()) {
-                return;
-            }
+            TaskScheduler& wScheduler = sMpScheduler->GetWorldScheduler();
+            wScheduler.Schedule(10s, MP_WORLD_TASK_GROUP, [player, map](TaskContext /*ctx*/) {
+                Group* group = player->GetGroup();
+                if(!group) {
+                    return;
+                }
 
-            Group* group = player->GetGroup();
-            if(!group) {
-                MpLogger::warn("Player {} is not in a group.", player->GetName());
-                return;
-            }
-
-            // map->RemoveAllPlayers();
-            MpLogger::info("Starting scheduled failure notification");
-            sMpScheduler->ScheduleWorldTask(1s, [](TaskContext ctx) {
-                MpLogger::info("<<<<<<<<<<<  Player Death Scheduler fire >>>>>>>>>>>>>");
+                MythicPlus::GroupReset(group, map);
             });
-            // sMpScheduler->GetWorldScheduler().Schedule(1s, [playerName = player->GetName()](TaskContext ctx) {
+        }
+//         if(totalDeaths > 1) {
+//             Map* map = player->GetMap();
+//             if(!map) {
+//                 return;
+//             }
+//             Group* group = player->GetGroup();
+//             if(!group) {
+//                 MpLogger::warn("Player {} is not in a group.", player->GetName());
+//                 return;
+//             }
+
+// // map->RemoveAllPlayers();
+//                 MpLogger::info("Starting scheduled failure notification");
+//                 // auto testlambda = [](TaskContext ctx) { return; };
+                // sMpScheduler->ScheduleWorldTask(1s, [](TaskContext ctx) {
+                //     MpLogger::info("<<<<<<<<<<<  Player Death Scheduler fire >>>>>>>>>>>>>");
+                // });
+
+                        // sMpScheduler->GetWorldScheduler().Schedule(1s, [playerName = player->GetName()](TaskContext ctx) {
             //     MpLogger::info("<<<<<<<<<<<  Player Death Scheduler fire {} >>>>>>>>>>>>>", playerName);
             //     return;
             // });
@@ -90,10 +104,7 @@ public:
 
                 // map->ToInstanceMap()->Reset(0);
             // );
-
-        }
-        return;
-
+    // }
     }
 
     // When a player is bound to an instance need to make sure they are saved in the data soure to retrieve later.
