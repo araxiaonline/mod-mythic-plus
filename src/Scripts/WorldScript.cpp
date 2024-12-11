@@ -1,6 +1,7 @@
 #include "Config.h"
 #include "MythicPlus.h"
 #include "MpDataStore.h"
+#include "AdvancementMgr.h"
 #include "MpLogger.h"
 #include "Player.h"
 #include "ScriptMgr.h"
@@ -95,6 +96,10 @@ public:
     {
         int32 size = sMpDataStore->LoadScaleFactors();
         MpLogger::info("Loaded {} Mythic+ Scaling Factors from database...", size);
+
+        size = sAdvancementMgr->LoadAdvencementRanks();
+        MpLogger::info("Loaded {} advancement ranks...", size);
+
     }
 };
 

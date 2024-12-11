@@ -6,12 +6,22 @@
 #include "Group.h"
 #include "ScriptMgr.h"
 #include "TaskScheduler.h"
+#include "AdvancementMgr.cpp"
 #include "Chat.h"
+#include "Channel.h"
+#include "ChannelMgr.h"
 
 class MythicPlus_PlayerScript : public PlayerScript
 {
 public:
     MythicPlus_PlayerScript() : PlayerScript("MythicPlus_PlayerScript") {}
+
+    /**
+     * Mythic+ special actions when a player dies:
+     * - Track the death for the group
+     * - Update the player death stats
+     * - Determine whether or not the Group failed the instance due to death count setting.
+     */
 
     void OnPlayerKilledByCreature(Creature* killer, Player* player)
     {
@@ -105,6 +115,46 @@ public:
                 // map->ToInstanceMap()->Reset(0);
             // );
     // }
+    }
+
+    void OnChat(Player* player, uint32 type, uint32 lang, std::string& msg, Channel* channel) override
+    {
+        if(!player || !channel) {
+            return;
+        }
+
+        // Handle chat message coming in to the data channel from the client. This allows backedend calls into the module
+        // from Eluna / AIO without the need to modify mod-eluna directly.
+        if(type == CHAT_MSG_CHANNEL && MP_DATA_CHAT_CHANNEL == channel->GetName()) {
+            MpLogger::info("Player {} sent a message {} to channel {}", player->GetName(), msg, channel->GetName());
+        }
+    }
+
+    /**
+     * When a player logs in add them to the data channel specifically for Mythic+ communication
+     * between UI and server module.
+     *
+     * Load advancement data for the player at load time used to apply buffs.
+     */
+    void OnLogin(Player* player) override
+    {
+        if(!player) {
+            return;
+        }
+
+        // Create a channel called MpEx if it does not exist
+        ChannelMgr* cmg = ChannelMgr::forTeam(TEAM_NEUTRAL);
+        Channel* channel = cmg->GetChannel("MpEx", player);
+
+        // If the channel does not yet, exist the first player to login to the server will ensure it is created.
+        if(!channel) {
+            channel = cmg->GetJoinChannel("MPEx",0);
+        }
+
+        // Load the player advancement data for the player when they login
+        int32 size = sAdvancementMgr->LoadPlayerAdvancements(player);
+        MpLogger::info("Loaded {} player advancements for player {}", size, player->GetName());
+
     }
 
     // When a player is bound to an instance need to make sure they are saved in the data soure to retrieve later.
