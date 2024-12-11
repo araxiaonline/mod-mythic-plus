@@ -1,6 +1,7 @@
 -- Used to track upgrade ranks for stat improvements and min/max values
 DROP TABLE IF EXISTS mp_stat_upgrade_ranks;
-CREATE TABLE mp_stat_upgrade_ranks (
+DROP TABLE IF EXISTS mp_upgrade_ranks;
+CREATE TABLE mp_upgrade_ranks (
     upgradeRank     INT UNSIGNED NOT NULL,
     advancementId   INT UNSIGNED NOT NULL,
     materialId1     INT UNSIGNED NOT NULL,

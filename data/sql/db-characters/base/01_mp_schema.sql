@@ -41,10 +41,11 @@ CREATE TABLE mp_player_runs (
     runId           INT UNSIGNED AUTO_INCREMENT,
     guid            INT UNSIGNED NOT NULL DEFAULT '0',
     difficulty      INT UNSIGNED NOT NULL DEFAULT '3',
-    mapId           INT UNSIGNED,
-    groupDeaths     INT UNSIGNED,
-    personalDeaths  INT UNSIGNED,
-    completeTime    INT UNSIGNED,
+    mapId           INT UNSIGNED NOT NULL DEFAULT '0',
+    groupDeaths     INT UNSIGNED NOT NULL DEFAULT '0',
+    personalDeaths  INT UNSIGNED NOT NULL DEFAULT '0',
+    startTime       INT UNSIGNED,
+    completeTime    TIMESTAMP,
     botCount        TINYINT UNSIGNED DEFAULT '0',
 
     PRIMARY KEY (runId),
@@ -68,8 +69,8 @@ CREATE TABLE mp_player_stats (
 );
 
 -- Used to enable custom stat upgrades from materials and drops in mythic dungeons
-DROP TABLE IF EXISTS mp_player_stat_upgrades;
-CREATE TABLE mp_player_stat_upgrades (
+DROP TABLE IF EXISTS mp_player_advancements;
+CREATE TABLE mp_player_advancements (
     guid          INT UNSIGNED NOT NULL,
     advancementId INT UNSIGNED NOT NULL,
     bonus         FLOAT        NOT NULL,

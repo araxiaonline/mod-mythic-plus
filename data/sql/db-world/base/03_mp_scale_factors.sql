@@ -1,17 +1,7 @@
 -- Last Update: 2021/08/15
 -- Description: Scale factors for Mythic+ dungeons used to normalize dungeon difficulty across expansions.
-DROP TABLE IF EXISTS mythic_plus_scale_factors;
-CREATE TABLE IF NOT EXISTS mythic_plus_scale_factors (
-    mapId SMALLINT PRIMARY KEY,
-    dmg_bonus INT,
-    spell_bonus INT,
-    hp_bonus INT,
-    difficulty  INT,
-    max INT
-);
-
 -- 1. Pre 60 level dungeons (13 dmg_bonus, 2 hp_bonus, max 23, difficulty 3)
-INSERT INTO mythic_plus_scale_factors (mapId, dmg_bonus, spell_bonus, hp_bonus, difficulty, max)
+INSERT INTO mp_scale_factors (mapId, dmg_bonus, spell_bonus, hp_bonus, difficulty, max)
 VALUES
     (389, 22, 19,2, 3, 23),  -- Ragefire Chasm
     (43,  19, 18,2, 3, 23),  -- Wailing Caverns
@@ -29,7 +19,7 @@ VALUES
 ON DUPLICATE KEY UPDATE mapId = mapId;
 
 -- 2. Level 60 dungeons for classic (15 dmg_bonus, 3 hp_bonus, max 25, difficulty 3)
-INSERT INTO mythic_plus_scale_factors (mapId, dmg_bonus, spell_bonus, hp_bonus, difficulty, max)
+INSERT INTO mp_scale_factors (mapId, dmg_bonus, spell_bonus, hp_bonus, difficulty, max)
 VALUES
     (289, 17, 20,3, 3, 25),  -- Scholomance
     (109, 17, 20,3, 3, 25),  -- Sunken Temple
@@ -41,7 +31,7 @@ VALUES
 ON DUPLICATE KEY UPDATE mapId = mapId;
 
 -- 3. Pre 70 dungeons in Burning Crusade (15 dmg_bonus, 4 hp_bonus, max 26, difficulty 3)
-INSERT INTO mythic_plus_scale_factors (mapId, dmg_bonus, spell_bonus, hp_bonus, difficulty, max)
+INSERT INTO mp_scale_factors (mapId, dmg_bonus, spell_bonus, hp_bonus, difficulty, max)
 VALUES
     (542, 16, 14,4, 3, 26),  -- Hellfire The Blood Furnace
     (543, 16, 14,4, 3, 26),  -- Hellfire Ramparts
@@ -54,7 +44,7 @@ VALUES
 ON DUPLICATE KEY UPDATE mapId = mapId;
 
 -- 4. Level 70 dungeons in Burning Crusade (14 dmg_bonus, 4 hp_bonus, max 29, difficulty 3)
-INSERT INTO mythic_plus_scale_factors (mapId, dmg_bonus, spell_bonus, hp_bonus, difficulty, max)
+INSERT INTO mp_scale_factors (mapId, dmg_bonus, spell_bonus, hp_bonus, difficulty, max)
 VALUES
     (540, 14, 13,4, 3, 29),  -- Shattered Halls
     (556, 14, 13,4, 3, 29),  -- Auchindoun: Sethekk Halls
@@ -66,7 +56,7 @@ VALUES
 ON DUPLICATE KEY UPDATE mapId = mapId;
 
 -- 5. Pre 80 dungeons in Wrath of the Lich King (17 dmg_bonus, 3 hp_bonus, max 30, difficulty 3)
-INSERT INTO mythic_plus_scale_factors (mapId, dmg_bonus, spell_bonus, hp_bonus, difficulty, max)
+INSERT INTO mp_scale_factors (mapId, dmg_bonus, spell_bonus, hp_bonus, difficulty, max)
 VALUES
     (574, 19, 12,3, 3, 30),  -- Utgarde Keep
     (619, 19, 12,3, 3, 30),  -- Ahn'kahet: The Old Kingdom
@@ -77,7 +67,7 @@ VALUES
 ON DUPLICATE KEY UPDATE mapId = mapId;
 
 -- 6. Level 80 dungeons in Wrath of the Lich King (19 dmg_bonus, 4 hp_bonus, max 33, difficulty 3)
-INSERT INTO mythic_plus_scale_factors (mapId, dmg_bonus, spell_bonus, hp_bonus, difficulty, max)
+INSERT INTO mp_scale_factors (mapId, dmg_bonus, spell_bonus, hp_bonus, difficulty, max)
 VALUES
     (595, 19, 13,5, 3, 33),  -- The Culling of Stratholme
     (604, 19, 13,5, 3, 33),  -- Gundrak
