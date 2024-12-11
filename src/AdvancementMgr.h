@@ -3,6 +3,7 @@
 
 #include "SharedDefines.h"
 #include "Player.h"
+
 #include <memory>
 #include <unordered_map>
 #include <map>
@@ -53,8 +54,8 @@ public:
         return &instance;
     }
 
-    void LoadAdvencementRanks();
-    void LoadPlayerAdvancements(Player* player);
+    int32 LoadAdvencementRanks();
+    int32 LoadPlayerAdvancements(Player* player);
 
 private:
     AdvancementMgr() {}
@@ -63,5 +64,5 @@ private:
 };
 
 
-#define sMpScheduler AdvancementMgr::instance()
+#define sAdvancementMgr AdvancementMgr::instance()
 #endif

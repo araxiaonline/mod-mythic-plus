@@ -32,7 +32,7 @@
  *   This loads the ranks from the database and stores them into memory for access.  This should only be
  *   called on server start-up as it is static data that should only change no new builds.
  */
-void AdvancementMgr::LoadAdvencementRanks() {
+int32 AdvancementMgr::LoadAdvencementRanks() {
     _advancementRanks.clear();
 
     //
@@ -62,7 +62,7 @@ void AdvancementMgr::LoadAdvencementRanks() {
     QueryResult result = WorldDatabase.Query(query);
     if (!result) {
         MpLogger::error("Failed to load mythic scale factors from database");
-        return;
+        return 0;
     }
 
     do {
@@ -107,7 +107,7 @@ void AdvancementMgr::LoadAdvencementRanks() {
 
     } while (result->NextRow());
 
-    MpLogger::info("Loaded {} advancement ranks", _advancementRanks.size());
+    return _advancementRanks.size();
 }
 
 /**
@@ -122,7 +122,7 @@ void AdvancementMgr::LoadAdvencementRanks() {
  *   This loads the player advancements when a player logs in stores it into memory for access by spell scripts that
  *   are applied to the player on login to apply the bonuses.
  */
-void AdvancementMgr::LoadPlayerAdvancements(Player* player) {
+int32 AdvancementMgr::LoadPlayerAdvancements(Player* player) {
 
     constexpr std::string_view query = R"(
     SELECT
@@ -139,7 +139,7 @@ void AdvancementMgr::LoadPlayerAdvancements(Player* player) {
 
     // If the player does not have any upgrades just return not a problem until they purchase one.
     if(!result) {
-        return;
+        return 0;
     }
 
     do {
@@ -157,5 +157,6 @@ void AdvancementMgr::LoadPlayerAdvancements(Player* player) {
 
     } while (result->NextRow());
 
-    MpLogger::info("Loaded {} player advancements for player {}", _playerAdvancements.size(), player->GetName());
+    return result->GetRowCount();
+
 }
