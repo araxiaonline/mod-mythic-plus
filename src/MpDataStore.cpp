@@ -269,7 +269,7 @@ int32 MpDataStore::LoadScaleFactors() {
     _scaleFactors->clear();
 
     //                                                 0       1          2              3        4        5
-    QueryResult result = WorldDatabase.Query("SELECT mapId, dmg_bonus, spell_bonus, hp_bonus, difficulty, max FROM mythic_plus_scale_factors");
+    QueryResult result = WorldDatabase.Query("SELECT mapId, dmg_bonus, spell_bonus, hp_bonus, difficulty, max FROM mp_scale_factors");
     if (!result) {
         MpLogger::error("Failed to load mythic scale factors from database");
         return 0;
