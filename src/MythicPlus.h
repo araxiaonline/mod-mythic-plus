@@ -15,6 +15,31 @@
 #include <vector>
 #include <unordered_map>
 
+/**
+ * In order to allow communication from client UIs without modifying mod-eluna directly to support
+ * this mods functionality the following custom chat channel below is for all MP UI Client interactions.
+ *
+ * It uses a very basic plaintext encoding of messages:
+ * -- Group Action Calls
+ *  g:groupId:action:input1:input2:input3...
+ * -- Player Action Calls
+ * p:playerGuid:action:input1:input2:input3...
+ * i.e) p:5793:UpgradeAdvancement:0:10:2  (For player 5793 call UpgradeAdvancement for Strength to rank 10, using dice cost level 2)
+ *
+ * -- World Action Calls
+ * w:action:input1:input2...
+ */
+inline const std::string_view MP_DATA_CHAT_CHANNEL = "MPEx";
+
+/**
+ * Main Class for the mod responsible for controls related to scaling instances,
+ * handling logic related to setting up instances for MythicPlus to work.
+ *
+ * MpDataStore is heavily used as well for storing data in memory and interactions with
+ * database storage.
+ *
+ * This is a singleton instance that can be accessed through sMythicPlus.
+ */
 class MythicPlus
 {
 public:
