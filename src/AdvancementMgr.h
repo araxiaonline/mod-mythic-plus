@@ -18,7 +18,8 @@ enum MpAdvancements {
     MP_ADV_RESIST_NATURE    = 6,
     MP_ADV_RESIST_FROST     = 7,
     MP_ADV_RESIST_SHADOW    = 8,
-    MP_ADV_RESIST_ARCANE    = 9
+    MP_ADV_RESIST_ARCANE    = 9,
+    MP_ADV_MAX              = 10
 };
 
 /**
@@ -31,14 +32,43 @@ struct MpAdvancementRank
     MpAdvancements advancementId;
     std::unordered_map<uint32 /*item_entry*/,uint32 /*quantity*/> materialCost;
 
-    std::tuple<uint32 /*low-cost*/, uint32 /*mid-cost*/, uint32 /*high-cost*/> rollCost;
+    std::array<int, 3> rollCost; // 0 = low, 1 = mid, 2 = high
 
     // Range of status based on bet dice roll.
     std::pair<uint32 /*min*/, uint32 /*max*/> lowRange;
     std::pair<uint32 /*min*/, uint32 /*max*/> midRange;
     std::pair<uint32 /*min*/, uint32 /*max*/> highRange;
+
+    // Used to validate this struct is set correctly
+    bool IsValid() {
+        return (rank > 0 && advancementId >= 0 && advancementId < MP_ADV_MAX);
+    }
+
+    // Check if the map has an the item entry for the passed in material
+    bool HasMaterial(uint32 itemEntry) {
+        return materialCost.contains(itemEntry);
+    }
 };
 
+// Struct is used for tracking player advancement bonuses for improving stats
+struct MpPlayerRank
+{
+    uint32 rank;
+    MpAdvancements advancementId;
+    uint32 diceSpent;
+    float bonus;
+
+    MpPlayerRank() : rank(0), diceSpent(0), bonus(0.0f) {}
+};
+
+/**
+ * This singleton class is responsible for managing the advancement system
+ * used to improve player stats enough to challenge harder difficulties on existing dungeons.
+ *
+ * Advancements are purchased by players using based on the mp_material_type table with a "bet"
+ * on dice roll.  This enables players to increase their stats in a random way that is not
+ * guaranteed to be successful. (Similar to how DND stats rolls work on character creation. )
+ */
 class AdvancementMgr
 {
 
@@ -46,7 +76,10 @@ class AdvancementMgr
 std::map<std::pair<uint32 /*rank*/, MpAdvancements>, MpAdvancementRank> _advancementRanks;
 
 // Map of player advancements [player_guid][advancement_id] = rank
-std::unordered_map<uint32 /*player_guid*/, std::unordered_map<MpAdvancements, uint32 /*rank*/>> _playerAdvancements;
+std::unordered_map<uint32 /*player_guid*/, std::unordered_map<MpAdvancements, MpPlayerRank>> _playerAdvancements;
+
+// Map of different material types used fo advancing stats for players
+std::unordered_map<uint32 /*material_id*/, std::vector<uint32> /* item entries */> _materialTypes;
 
 public:
     static AdvancementMgr* instance() {
@@ -54,15 +87,50 @@ public:
         return &instance;
     }
 
+    // Loads advancement information from the database into memory when players are logged in or server starts.
     int32 LoadAdvencementRanks();
+    int32 LoadMaterialTypes();
     int32 LoadPlayerAdvancements(Player* player);
+
+    // Methods for looking up advancment rank data
+    MpAdvancementRank* GetAdvancementRank(uint32 rank, MpAdvancements advancement);
+
+    // Methods for updating and setting data related to current player advancements
+    MpPlayerRank* AdvancementMgr::GetPlayerAdvancementRank(Player* player, MpAdvancements advancement);
+
+    /**
+     * This upgrades a player Advancement on the server side, which will handle the following actions:
+     * 1. Validating player has enough dice and materials to upgrade the advancement
+     * 2. Rolling the dice to see what bonus is rewarded
+     * 3. Removing the dice and materials from the player inventory
+     * 4. Updating the player advancement rank in memory and database
+     *
+     * Since different materials can be used for each advancement, at the moment only support one material type from the list. supporting
+     * mixed materials is more complicated and the UI to support it is much more complex, while this is not as nice it is much simpler to implement.
+     * That means all materials have to be selected and passed in at the time of making this call.
+     */
+    bool UpgradeAdvancement(Player* player, MpAdvancements advancement, uint32 diceCostLevel, uint32 itemEntry1, uint32 itemEntry2, uint32 itemEntry3);
+
+    // Used to reset all advancements for a specific player
+    bool ResetPlayerAdvancements(Player* player);
 
 private:
     AdvancementMgr() {}
     ~AdvancementMgr() {}
 
-};
+    // Will reset all the player advancements and refund the spent dice and material with a penalty for the reset.
+    void _ResetPlayerAdvancement(Player* player, MpAdvancements advancement);
 
+    // Rolls the dice to see how much a bonus is given based on the dice spend level
+    float _RollAdvancement(MpAdvancementRank* advancementRank, uint32 diceCostLevel);
+
+    // Determines if a player has required items to upgrade
+    bool _PlayerHasItems(Player* player, MpAdvancementRank* advancementRank, uint32 diceCostLevel, uint32 itemEntry1, uint32 itemEntry2, uint32 itemEntry3);
+
+    // Removes items from player inventory based on the required advancement rank.
+    void _ChargeItemCost(Player *player, MpAdvancementRank* advancementRank, uint32 diceCostLevel, uint32 itemEntry1, uint32 itemEntry2, uint32 itemEntry3);
+
+};
 
 #define sAdvancementMgr AdvancementMgr::instance()
 #endif
