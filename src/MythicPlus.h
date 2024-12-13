@@ -31,6 +31,9 @@
  */
 inline const std::string_view MP_DATA_CHAT_CHANNEL = "MPEx";
 
+// Used to limit the total advancment rank and allow for changing the max rank in one place.
+inline const uint8 MP_MAX_ADVANCEMENT_RANK = 50;
+
 /**
  * Main Class for the mod responsible for controls related to scaling instances,
  * handling logic related to setting up instances for MythicPlus to work.
@@ -85,7 +88,6 @@ public:
     // Scaling modifiers
     uint32 meleeAttackPowerDampener;
     uint32 meleeAttackPowerStart;
-
 
     enum MP_UNIT_EVENT_TYPE
     {
