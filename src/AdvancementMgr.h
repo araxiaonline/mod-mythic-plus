@@ -96,7 +96,7 @@ public:
     MpAdvancementRank* GetAdvancementRank(uint32 rank, MpAdvancements advancement);
 
     // Methods for updating and setting data related to current player advancements
-    MpPlayerRank* AdvancementMgr::GetPlayerAdvancementRank(Player* player, MpAdvancements advancement);
+    MpPlayerRank* GetPlayerAdvancementRank(Player* player, MpAdvancements advancement);
 
     /**
      * This upgrades a player Advancement on the server side, which will handle the following actions:
@@ -128,7 +128,10 @@ private:
     bool _PlayerHasItems(Player* player, MpAdvancementRank* advancementRank, uint32 diceCostLevel, uint32 itemEntry1, uint32 itemEntry2, uint32 itemEntry3);
 
     // Removes items from player inventory based on the required advancement rank.
-    void _ChargeItemCost(Player *player, MpAdvancementRank* advancementRank, uint32 diceCostLevel, uint32 itemEntry1, uint32 itemEntry2, uint32 itemEntry3);
+    void _ChargeItemCost(Player* player, MpAdvancementRank* advancementRank, uint32 diceCostLevel, uint32 itemEntry1, uint32 itemEntry2, uint32 itemEntry3);
+
+    // This will save the advancement purchase to the history database
+    void _DBSaveAdvancement(Player* player, MpAdvancementRank* advancementRank, MpPlayerRank* playerRank, uint32 diceCost, float roll);
 
 };
 
