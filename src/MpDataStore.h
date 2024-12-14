@@ -99,11 +99,6 @@ struct MpGroupData
     uint32 GetDeaths(uint32 mapId, uint32 instanceId) const {
         uint32 deaths = 0;
         for (const MpPlayerData* player : players) {
-
-            auto mapKey = std::make_pair(mapId, instanceId);
-            auto instanceData = player->instanceData;
-
-            MpLogger::info(">>>>>>>>>>> Player: {} has {} deaths", player->player->GetName(), player->GetDeaths(mapId, instanceId));
             deaths += player->GetDeaths(mapId, instanceId);
         }
         return deaths;

@@ -13,6 +13,14 @@ enum MP_SCHEDULE_GROUP {
 /**
  * Global scheduler specifically for handling events fired inside of mythic
  * scripts
+ *
+ * Example usage:
+ *  void ScheduleWorldTask(std::chrono::nanoseconds const& time, std::function<void (TaskContext)> task) {
+ *       sMpScheduler.Schedule(time, MP_WORLD_TASK_GROUP, [](TaskContext ctx) {
+ *          // do the things you want for Mp Task Group
+ *          return;
+ *      });
+ *  }
  */
 class MpScheduler
 {
@@ -28,13 +36,6 @@ public:
 
     TaskScheduler& GetWorldScheduler() {
         return _worldScheduler;
-    }
-
-    void ScheduleWorldTask(std::chrono::nanoseconds const& time, std::function<void (TaskContext)> task) {
-        // _worldScheduler.Schedule(time, MP_WORLD_TASK_GROUP, [](TaskContext ctx) {
-        //     MpLogger::info(" <<<<<  Testing no lambda >>>>>>>");
-        //     return;
-        // });
     }
 
 private:
