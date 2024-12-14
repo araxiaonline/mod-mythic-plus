@@ -171,43 +171,26 @@ int32 AdvancementMgr::LoadPlayerAdvancements(Player* player) {
 /**
  * Load Material Types from the database into memory
  */
-int32 AdvancementMgr::LoadPlayerAdvancements(Player* player) {
+int32 AdvancementMgr::LoadMaterialTypes() {
 
     constexpr std::string_view query = R"(
     SELECT
-        guid,
-        advancementId,
-        bonus,
-        upgradeRank,
-        diceSpent
-    FROM mp_player_advancements
-    WHERE guid = {}
+        materialId,
+        entry
+    FROM mp_material_types
     )";
 
-    QueryResult result = CharacterDatabase.Query(query, player->GetGUID().GetCounter());
-
-    // If the player does not have any upgrades just return not a problem until they purchase one.
-    if(!result) {
-        return 0;
-    }
+    QueryResult result = WorldDatabase.Query(query);
 
     do {
         Field* fields = result->Fetch();
-        uint32 guid = fields[0].Get<uint32>();
-        uint32 advancementId = fields[1].Get<uint32>();
-        float bonus = fields[2].Get<float>();
-        uint32 upgradeRank = fields[3].Get<uint32>();
-        uint32 diceSpent = fields[4].Get<uint32>();
+        uint32 materialId = fields[0].Get<uint32>();
+        uint32 entry = fields[1].Get<uint32>();
 
-        MpAdvancements advancement = static_cast<MpAdvancements>(advancementId);
-        MpPlayerRank playerRank = MpPlayerRank();
-        playerRank.rank = upgradeRank;
-        playerRank.advancementId = advancement;
-        playerRank.diceSpent = diceSpent;
-        playerRank.bonus = bonus;
-
-        // List of all ranks keyed by rank, advancementId
-        _playerAdvancements[guid][advancement] = playerRank;
+        if(!_materialTypes.contains(materialId)) {
+            _materialTypes.emplace(materialId,std::vector<uint32>());
+        }
+        _materialTypes.at(materialId).push_back(entry);
 
     } while (result->NextRow());
 

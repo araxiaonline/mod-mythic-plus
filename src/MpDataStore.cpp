@@ -136,12 +136,10 @@ void MpDataStore::RemoveGroupData(Group *group) {
     CharacterDatabase.Execute("DELETE FROM group_difficulty WHERE guid = {}) ", group->GetGUID().GetCounter());
 }
 
+// Adds PlayerData related to MythicRun Status to map
 void MpDataStore::AddPlayerData(ObjectGuid guid, MpPlayerData* pd) {
-    MpLogger::debug("AddPlayerData for player {}", guid.GetCounter());
     _playerData->emplace(guid, pd);
 
-    // get the player
-    Player* player = ObjectAccessor::FindPlayer(guid);
 }
 
 void MpDataStore::RemovePlayerData(ObjectGuid guid) {
