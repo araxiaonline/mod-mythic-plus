@@ -100,6 +100,9 @@ public:
         size = sAdvancementMgr->LoadAdvencementRanks();
         MpLogger::info("Loaded {} advancement ranks...", size);
 
+        size = sAdvancementMgr->LoadMaterialTypes();
+        MpLogger::info("Loaded {} material types...", size);
+
     }
 };
 
