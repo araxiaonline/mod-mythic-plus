@@ -196,7 +196,7 @@ void MythicPlus::AddScaledCreature(Creature* creature, MpInstanceData* instanceD
     // creature->SetAI(ai);
 
     // We know the creature is scaled and in the instance to fire the event.
-    sCreatureHooks->AddToInstance(creature);
+    // sCreatureHooks->AddToInstance(creature);
     std::string name = creature->GetName();
 
     // Assign random affix for now.
