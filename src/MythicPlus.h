@@ -15,22 +15,6 @@
 #include <vector>
 #include <unordered_map>
 
-/**
- * In order to allow communication from client UIs without modifying mod-eluna directly to support
- * this mods functionality the following custom chat channel below is for all MP UI Client interactions.
- *
- * It uses a very basic plaintext encoding of messages:
- * -- Group Action Calls
- *  g:groupId:action:input1:input2:input3...
- * -- Player Action Calls
- * p:playerGuid:action:input1:input2:input3...
- * i.e) p:5793:UpgradeAdvancement:0:10:2  (For player 5793 call UpgradeAdvancement for Strength to rank 10, using dice cost level 2)
- *
- * -- World Action Calls
- * w:action:input1:input2...
- */
-inline const std::string_view MP_DATA_CHAT_CHANNEL = "MPEx";
-
 // Used to limit the total advancment rank and allow for changing the max rank in one place.
 inline const uint8 MP_MAX_ADVANCEMENT_RANK = 50;
 
