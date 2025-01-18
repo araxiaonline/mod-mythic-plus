@@ -6,10 +6,7 @@
 #include "Group.h"
 #include "ScriptMgr.h"
 #include "TaskScheduler.h"
-#include "AdvancementMgr.cpp"
-#include "Chat.h"
-#include "Channel.h"
-#include "ChannelMgr.h"
+#include "AdvancementMgr.h"
 
 class MythicPlus_PlayerScript : public PlayerScript
 {
@@ -23,7 +20,7 @@ public:
      * - Determine whether or not the Group failed the instance due to death count setting.
      */
 
-    void OnPlayerKilledByCreature(Creature* killer, Player* player)
+    void OnPlayerKilledByCreature(Creature* killer, Player* player) override
     {
         Map* map = player->GetMap();
         if(!sMythicPlus->IsMapEligible(map)) {

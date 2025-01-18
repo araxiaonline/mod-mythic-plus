@@ -1,15 +1,13 @@
 #include "MpLogger.h"
-#include "MpDataStore.h"
-#include "MpScheduler.h"
 #include "MythicPlus.h"
 #include "Player.h"
-#include "Group.h"
 #include "ScriptMgr.h"
-#include "TaskScheduler.h"
-#include "AdvancementMgr.cpp"
+#include "AdvancementMgr.h"
 #include "Chat.h"
 #include "Channel.h"
 #include "ChannelMgr.h"
+#include "MpEventProcessor.h"
+#include <boost/algorithm/string/predicate.hpp> // For starts_with
 
 #include <vector>
 #include <string>
@@ -26,20 +24,29 @@
 
 class MythicPlus_PlayerMessageEvents : public PlayerScript
 {
+public:
+    MythicPlus_PlayerMessageEvents() : PlayerScript("MythicPlus_PlayerMessageEvents") {}
 
     /**
-     * Listen to all messages from a playerand process them if
+     * Listens to AddOn Chat channel for Mythic+ communication between UI and server mythic+ functionality
      */
-     void OnChat(Player* player, uint32 type, uint32 lang, std::string& msg, Channel* channel) override
+    void OnChat(Player* player, uint32 type, uint32 lang, std::string& msg, Player* receiver) override
     {
-        if(!player || !channel) {
+        // All communication from the client should be a whisper to themselves over tha addon channel
+        if(!player || !receiver) {
             return;
         }
 
-        // Handle chat message coming in to the data channel from the client. This allows backedend calls into the module
-        // from Eluna / AIO without the need to modify mod-eluna directly.
-        if(type == CHAT_MSG_CHANNEL && MP_DATA_CHAT_CHANNEL == channel->GetName()) {
-            MpLogger::info("Player {} sent a message {} to channel {}", player->GetName(), msg, channel->GetName());
+        if(lang == LANG_ADDON) {
+            if(msg.empty()) {
+                MpLogger::info("Empty AddOn message received from player: {}", player->GetName());
+                return;
+            }
+
+            // if the message begins with our prefix for our data channel then process the event
+            if(boost::starts_with(msg, MP_DATA_CHAT_CHANNEL)) {
+                sMpEventProcessor->ProcessMessage(player, msg);
+            }
         }
     }
 
@@ -49,67 +56,36 @@ class MythicPlus_PlayerMessageEvents : public PlayerScript
      *
      * Load advancement data for the player at load time used to apply buffs.
      */
-    void OnLogin(Player* player) override
-    {
-        if(!player) {
-            return;
-        }
+    // void OnLogin(Player* player) override
+    // {
+    //     if(!player) {
+    //         return;
+    //     }
 
-        // Create a channel called MpEx if it does not exist
-        ChannelMgr* cmg = ChannelMgr::forTeam(TEAM_NEUTRAL);
-        Channel* channel = cmg->GetChannel(static_cast<std::string>(MP_DATA_CHAT_CHANNEL), player);
+    //     // Create a channel called MpEx if it does not exist
+    //     MpLogger::info("Player {} logged in on team {}", player->GetName(), player->GetTeamId());
+    //     ChannelMgr* cmg = ChannelMgr::forTeam(player->GetTeamId());
 
-        // If the channel does not yet, exist the first player to login to the server will ensure it is created.
-        if(!channel) {
-            channel = cmg->GetJoinChannel(static_cast<std::string>(MP_DATA_CHAT_CHANNEL),0);
-        }
+    //     if(!cmg) {
+    //         MpLogger::error("Failed to get channel manager for team {}", player->GetTeamId());
+    //         return;
+    //     }
 
-    }
+    //     Channel* channel = cmg->GetChannel(static_cast<std::string>(MP_DATA_CHAT_CHANNEL), player);
+    //     if(!channel) {
+    //         MpLogger::error("Failed to get mythic data channel for player {}", player->GetName());
+    //         Channel* nchan = new Channel(static_cast<std::string>(MP_DATA_CHAT_CHANNEL), 17, 0, player->GetTeamId());
+    //         if(!nchan) {
+    //             MpLogger::error("Failed to create mythic data channel for player {}", player->GetName());
+    //             return;
+    //         }
+    //     }
+
+    // }
 };
 
-// Split the string passed in by delimiters
-std::vector<std::string> splitString(const std::string& s, char delimiter) {
-    std::vector<std::string> tokens;
-    size_t start = 0;
-    size_t end = s.find(delimiter);
-
-    while (end != std::string::npos) {
-        if (end != start) {
-            tokens.emplace_back(s.substr(start, end - start));
-        }
-        start = end + 1;
-        end = s.find(delimiter, start);
-    }
-
-    // Add the last token if it's not empty
-    if (start < s.length()) {
-        tokens.emplace_back(s.substr(start));
-    }
-
-    return tokens;
-}
-
-/**
- * Parse the incoming message into its parts:
- * - p:playerGuid:action:input1:input2:input3...
- * i.e) p:5793:UpgradeAdvancement:0:10:2
- */
-void parsePlayerMessage(Player* player, std::string& msg)
+void Add_MP_PlayerMessageEvents()
 {
-    if(!player) {
-        MpLogger::error("Null player passed to parsePlayerMessage");
-        return;
-    }
-
-    if(msg[0] != 'p') {
-        MpLogger::warn("Invalid player message format received from player {} message: {}", player->GetName(), msg);
-        return;
-    }
-
-    std::vector<std::string> actionArgs;
-    char delimiter = '|';
-
-    // split the protocol into valid parts
-    std::vector<std::string> parts = splitString(msg, delimiter);
-
+    MpLogger::debug("Add_MP_PlayerEventMessages");
+    new MythicPlus_PlayerMessageEvents();
 }
