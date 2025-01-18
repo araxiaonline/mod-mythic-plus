@@ -1,9 +1,11 @@
 #include "Config.h"
 #include "MythicPlus.h"
 #include "MpDataStore.h"
+#include "AdvancementMgr.h"
 #include "MpLogger.h"
 #include "Player.h"
 #include "ScriptMgr.h"
+#include "MpEventHandlers.cpp"
 
 class MythicPlus_WorldScript : public WorldScript
 {
@@ -95,6 +97,16 @@ public:
     {
         int32 size = sMpDataStore->LoadScaleFactors();
         MpLogger::info("Loaded {} Mythic+ Scaling Factors from database...", size);
+
+        size = sAdvancementMgr->LoadAdvancementRanks();
+        MpLogger::info("Loaded {} advancement ranks...", size);
+
+        size = sAdvancementMgr->LoadMaterialTypes();
+        MpLogger::info("Loaded {} material types...", size);
+
+        // Registering event handlers for the Mythic+ events from client
+        MP_Register_EventHandlers();
+        MpLogger::info("Registered Mythic+ Event Handlers...");
     }
 };
 

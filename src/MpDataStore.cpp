@@ -136,12 +136,10 @@ void MpDataStore::RemoveGroupData(Group *group) {
     CharacterDatabase.Execute("DELETE FROM group_difficulty WHERE guid = {}) ", group->GetGUID().GetCounter());
 }
 
+// Adds PlayerData related to MythicRun Status to map
 void MpDataStore::AddPlayerData(ObjectGuid guid, MpPlayerData* pd) {
-    MpLogger::debug("AddPlayerData for player {}", guid.GetCounter());
     _playerData->emplace(guid, pd);
 
-    // get the player
-    Player* player = ObjectAccessor::FindPlayer(guid);
 }
 
 void MpDataStore::RemovePlayerData(ObjectGuid guid) {
@@ -269,7 +267,7 @@ int32 MpDataStore::LoadScaleFactors() {
     _scaleFactors->clear();
 
     //                                                 0       1          2              3        4        5
-    QueryResult result = WorldDatabase.Query("SELECT mapId, dmg_bonus, spell_bonus, hp_bonus, difficulty, max FROM mythic_plus_scale_factors");
+    QueryResult result = WorldDatabase.Query("SELECT mapId, dmg_bonus, spell_bonus, hp_bonus, difficulty, max FROM mp_scale_factors");
     if (!result) {
         MpLogger::error("Failed to load mythic scale factors from database");
         return 0;

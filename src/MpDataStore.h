@@ -15,7 +15,8 @@
 #include <vector>
 #include <memory>
 
-enum MpDifficulty {
+enum MpDifficulty
+{
     MP_DIFFICULTY_NORMAL    = 0,
     MP_DIFFICULTY_HEROIC    = 1,
     MP_DIFFICULTY_EPIC      = 2,
@@ -26,7 +27,8 @@ enum MpDifficulty {
 
 class MpDataStore;
 
-struct MpPlayerInstanceData {
+struct MpPlayerInstanceData
+{
     uint32 deaths = 0;
 };
 
@@ -99,11 +101,6 @@ struct MpGroupData
     uint32 GetDeaths(uint32 mapId, uint32 instanceId) const {
         uint32 deaths = 0;
         for (const MpPlayerData* player : players) {
-
-            auto mapKey = std::make_pair(mapId, instanceId);
-            auto instanceData = player->instanceData;
-
-            MpLogger::info(">>>>>>>>>>> Player: {} has {} deaths", player->player->GetName(), player->GetDeaths(mapId, instanceId));
             deaths += player->GetDeaths(mapId, instanceId);
         }
         return deaths;
@@ -289,7 +286,8 @@ struct MpCreatureData
     /**@todo Add Affixes and Aura Spell methods */
 };
 
-class MpDataStore {
+class MpDataStore
+{
 private:
     MpDataStore()
     : _playerData(std::make_unique<std::unordered_map<ObjectGuid, MpPlayerData*>>()),

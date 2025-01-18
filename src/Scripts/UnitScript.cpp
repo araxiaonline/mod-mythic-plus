@@ -32,6 +32,7 @@ public:
             }
         }
 
+
         if(isHot) {
             damage = modifyIncomingDmgHeal(MythicPlus::UNIT_EVENT_HOT, target, attacker, damage, spellInfo);
         } else {
@@ -186,7 +187,6 @@ public:
          * @TODO: Add more granular control over the scaling of healing spells
          */
         if(sMythicPlus->EligibleHealTarget(target) && (eventType == MythicPlus::UNIT_EVENT_HEAL || eventType == MythicPlus::UNIT_EVENT_HOT)) {
-            bool isHeal = true;
             if(creature->IsDungeonBoss()) {
                 if(spellInfo) {
                     alteredDmgHeal = sMythicPlus->ScaleHealSpell(spellInfo, damageOrHeal, sMpDataStore->GetCreatureData(attacker->GetGUID()), creature, attacker->ToCreature(), instanceData->boss.spell);

@@ -113,8 +113,6 @@ bool MythicPlus::EligibleDamageTarget(Unit* target)
 
 bool MythicPlus::IsCreatureEligible(Creature* creature)
 {
-    CreatureTemplate const * cInfo = creature->GetCreatureTemplate();
-
     if (!creature) {
         return false;
     }
@@ -198,7 +196,7 @@ void MythicPlus::AddScaledCreature(Creature* creature, MpInstanceData* instanceD
     // creature->SetAI(ai);
 
     // We know the creature is scaled and in the instance to fire the event.
-    sCreatureHooks->AddToInstance(creature);
+    // sCreatureHooks->AddToInstance(creature);
     std::string name = creature->GetName();
 
     // Assign random affix for now.
@@ -461,7 +459,6 @@ int32 MythicPlus::ScaleHealSpell(SpellInfo const * spellInfo, uint32 heal, MpCre
     auto effects = spellInfo->GetEffects();
     for (uint8 i = 0; i < effects.size(); ++i)
     {
-        SpellEffectInfo effect = effects[i];
         MpLogger::debug(" >>> Spell {} effect {} value: {} by creature {}", spellInfo->SpellName[i], effects[i].Effect, heal, creature->GetName());
     }
 
@@ -475,6 +472,11 @@ int32 MythicPlus::ScaleHealSpell(SpellInfo const * spellInfo, uint32 heal, MpCre
     MpLogger::debug(" >>> Spell {} healed scaled from for spell  New Heal: {} using: scaling Factor: {} and damage Multi: {}",spellInfo->SpellName[0], heal, scalingFactor, healMultiplier);
     return int32(heal * scalingFactor * healMultiplier);
 }
+
+void MythicPlus::GroupReset(Group* /*group*/, Map* /* map */) {
+    // Stubbed out for later implementation
+}
+
 
 bool MythicPlus::IsFinalBoss(Creature* creature) {
     std::array<uint32, 128> finalBosses = {

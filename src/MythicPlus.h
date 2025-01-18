@@ -8,12 +8,25 @@
 #include "Player.h"
 #include "SpellInfo.h"
 #include "Unit.h"
+#include "TaskScheduler.h"
 
 #include <map>
 #include <string>
 #include <vector>
 #include <unordered_map>
 
+// Used to limit the total advancment rank and allow for changing the max rank in one place.
+inline const uint8 MP_MAX_ADVANCEMENT_RANK = 50;
+
+/**
+ * Main Class for the mod responsible for controls related to scaling instances,
+ * handling logic related to setting up instances for MythicPlus to work.
+ *
+ * MpDataStore is heavily used as well for storing data in memory and interactions with
+ * database storage.
+ *
+ * This is a singleton instance that can be accessed through sMythicPlus.
+ */
 class MythicPlus
 {
 public:
@@ -59,7 +72,6 @@ public:
     // Scaling modifiers
     uint32 meleeAttackPowerDampener;
     uint32 meleeAttackPowerStart;
-
 
     enum MP_UNIT_EVENT_TYPE
     {
@@ -121,6 +133,7 @@ public:
     int32 ScaleHealSpell(SpellInfo const * spellInfo, uint32 heal, MpCreatureData* creatureData, Creature* creature, Creature* target, float healMultiplier);
 
     static bool IsFinalBoss(Creature* creature);
+    static void GroupReset(Group* group, Map* map);
 
     private:
         MythicPlus() { }
