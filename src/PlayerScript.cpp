@@ -65,7 +65,7 @@ public:
             for(auto it = players.begin(); it != players.end(); ++it)
             {
                 Player* player = it->GetSource();
-                player->GetSession()->SendNotification("Your group has died too many time to continue. %u", totalDeaths);
+                ChatHandler(player->GetSession()).PSendSysMessage("Your group has died too many time to continue. %u", totalDeaths);
             }
             map->RemoveAllPlayers();
             map->ToInstanceMap()->Reset(0);

@@ -2,6 +2,7 @@
 #include "MpDataStore.h"
 #include "Group.h"
 #include "MpLogger.h"
+#include "Chat.h"
 
 // Adds an entry for the group difficult to memory and updats database
 void MpDataStore::AddGroupData(Group *group, MpGroupData groupData) {
@@ -55,7 +56,7 @@ void MpDataStore::AddGroupData(Group *group, MpGroupData groupData) {
                         MpLogger::error("AddGroupData called with null player in instance");
                     }
 
-                    player->GetSession()->SendNotification("The group leader has changed the difficulty setting. You have been removed from the instance.");
+                    ChatHandler(player->GetSession()).SendNotification("The group leader has changed the difficulty setting. You have been removed from the instance.");
                 }
             }
 
@@ -77,7 +78,7 @@ void MpDataStore::AddGroupData(Group *group, MpGroupData groupData) {
                     MpLogger::error("AddGroupData called with null player in instance");
                 }
 
-                player->GetSession()->SendNotification("The group leader has changed the difficulty setting. You have been removed from the instance.");
+                ChatHandler(player->GetSession()).SendNotification("The group leader has changed the difficulty setting. You have been removed from the instance.");
             }
         }
 
