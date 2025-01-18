@@ -7,8 +7,10 @@
 #include <memory>
 #include <unordered_map>
 #include <map>
+#include <mutex>
 
-enum MpAdvancements {
+enum MpAdvancements
+{
     MP_ADV_STRENGTH         = 0,
     MP_ADV_AGILITY          = 1,
     MP_ADV_STAMINA          = 2,
@@ -71,6 +73,9 @@ struct MpPlayerRank
  */
 class AdvancementMgr
 {
+
+// Shared mutex for handling writes to shared player advancement data
+std::mutex _playerAdvancementMutex;
 
 // All advancement levels for each stat [rank][advancement_id] = AdvancementLevel
 std::map<std::pair<uint32 /*rank*/, MpAdvancements>, MpAdvancementRank> _advancementRanks;

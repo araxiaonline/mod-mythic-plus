@@ -6,7 +6,8 @@
 #include "TaskScheduler.h"
 #include <chrono>
 
-enum MP_SCHEDULE_GROUP {
+enum MP_SCHEDULE_GROUP
+{
     MP_WORLD_TASK_GROUP = 100
 };
 
@@ -25,8 +26,7 @@ enum MP_SCHEDULE_GROUP {
 class MpScheduler
 {
 public:
-    static MpScheduler* instance ()
-    {
+    static MpScheduler* instance () {
         static MpScheduler instance;
         return &instance;
     }

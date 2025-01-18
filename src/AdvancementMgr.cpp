@@ -8,6 +8,7 @@
 
 #include <string_view>
 #include <tuple>
+#include <mutex>
 
 /**
  * Table schema for upgrade ranks populated by go script:
@@ -35,7 +36,7 @@
  *   This loads the ranks from the database and stores them into memory for access.  This should only be
  *   called on server start-up as it is static data that should only change no new builds.
  */
-int32 AdvancementMgr::LoadAdvencementRanks() {
+int32 AdvancementMgr::LoadAdvancementRanks() {
     _advancementRanks.clear();
 
     //
@@ -127,6 +128,8 @@ int32 AdvancementMgr::LoadAdvencementRanks() {
  */
 int32 AdvancementMgr::LoadPlayerAdvancements(Player* player) {
 
+    std::lock_guard<std::mutex> lock(_playerAdvancementMutex);
+
     constexpr std::string_view query = R"(
     SELECT
         guid,
@@ -140,7 +143,7 @@ int32 AdvancementMgr::LoadPlayerAdvancements(Player* player) {
 
     QueryResult result = CharacterDatabase.Query(query, player->GetGUID().GetCounter());
 
-    // If the player does not have any upgrades just return not a problem until they purchase one.
+    // If the player does not have any upgrades just return perfectly fine not a problem until they purchase one.
     if(!result) {
         return 0;
     }
@@ -206,7 +209,7 @@ MpAdvancementRank* AdvancementMgr::GetAdvancementRank(uint32 rank, MpAdvancement
     }
     else
     {
-        MpLogger::error("Advancment Id {} and rank {} could not be found", rank, advancement);
+        MpLogger::error("Advancement Id {} and rank {} could not be found", rank, advancement);
         return nullptr;
     }
 }
@@ -228,6 +231,8 @@ MpPlayerRank* AdvancementMgr::GetPlayerAdvancementRank(Player* player, MpAdvance
 
 bool AdvancementMgr::UpgradeAdvancement(Player* player, MpAdvancements advancement, uint32 diceCostLevel, uint32 itemEntry1, uint32 itemEntry2, uint32 itemEntry3)
 {
+    std::lock_guard<std::mutex> lock(_playerAdvancementMutex);
+
     // Validators to make sure inputs are correct to perform the upgrade
     if(!player) {
         MpLogger::error("Could not upgrade advancement for player, player was nullpointer");
@@ -238,7 +243,7 @@ bool AdvancementMgr::UpgradeAdvancement(Player* player, MpAdvancements advanceme
         return false;
     }
     if(itemEntry1 == 0) {
-        MpLogger::error("Material1 can not be 0 can not perform advancement upgrade for player {} Advancment {}", player->GetName(), advancement);
+        MpLogger::error("Material1 can not be 0 can not perform advancement upgrade for player {} Advancement {}", player->GetName(), advancement);
         return false;
     }
 
@@ -286,20 +291,17 @@ bool AdvancementMgr::UpgradeAdvancement(Player* player, MpAdvancements advanceme
     return true;
 }
 
-bool AdvancementMgr::ResetPlayerAdvancements(Player* player)
+bool AdvancementMgr::ResetPlayerAdvancements(Player* /*player*/)
 {
+    std::lock_guard<std::mutex> lock(_playerAdvancementMutex);
+
     return true;
 }
 
-/******************
- *
- * Private Methods
- *
- ******************/
-
 void AdvancementMgr::_ResetPlayerAdvancement(Player* player, MpAdvancements advancement)
 {
-
+    std::lock_guard<std::mutex> lock(_playerAdvancementMutex);
+    return;
 }
 
 // Roll them stats DnD style.
