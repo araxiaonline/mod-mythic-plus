@@ -3,22 +3,39 @@
 #include "MythicPlus.h"
 #include "MpLogger.h"
 #include "Player.h"
+#include <boost/algorithm/string/replace.hpp>
 
 #include <string_view>
 #include <string>
 #include <vector>
 
-bool MpEventProcessor::ProcessMessage(Player* player, const std::string& message) {
+bool MpEventProcessor::ProcessMessage(Player* player, const std::string& msg) {
 
     if(!player) {
         MpLogger::error("Null player passed to processMessage");
         return false;
     }
 
+    // check prefix of message channel is formatted correctly
+    if(! msg.starts_with(MP_DATA_CHAT_CHANNEL)) {
+        MpLogger::error("Invalid message format received from player {} message: {}", player->GetName(), msg);
+        return false;
+    }
+
+    std::string message = msg;
+
+    // shift the message identifier off the front including first '|' character
+    message.erase(0, MP_DATA_CHAT_CHANNEL.size()+1);
+
+    // clean up the message before passing it to the parser
+    boost::replace_all(message, "||", "|");
+
     EventParseRslt result = _parsePlayerMessage(player, message);
     MpEvent event = std::get<0>(result);
     uint32 guid = std::get<1>(result);
     std::vector<std::string> args = std::get<2>(result);
+
+    MpLogger::info("MpEvent Processor - event: {} guid: {} args: {}", event, guid, args.size());
 
     // If th message was not able to be parsed it is a failure
     if(event == MpEvent::Invalid) {
@@ -52,7 +69,7 @@ bool MpEventProcessor::Dispatch(MpEvent event, Player* player, std::vector<std::
         return false;
     }
 
-    return _eventHandlers[event]->Execute(args);
+    return _eventHandlers[event]->Execute(player, args);
 }
 
 // Find our eventId using the string name
