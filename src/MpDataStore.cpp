@@ -1,5 +1,6 @@
 #include "CharacterDatabase.h"
 #include "MpDataStore.h"
+#include "Chat.h"
 #include "Group.h"
 #include "MpLogger.h"
 
@@ -54,8 +55,9 @@ void MpDataStore::AddGroupData(Group *group, MpGroupData groupData) {
                     if(!player) {
                         MpLogger::error("AddGroupData called with null player in instance");
                     }
-
-                    player->GetSession()->SendNotification("The group leader has changed the difficulty setting. You have been removed from the instance.");
+                    ChatHandler(player->GetSession()).SendSysMessage("The group leader has changed the difficulty setting. You have been removed from the instance.");
+                    //("The group leader has changed the difficulty setting. You have been removed from the instance.");
+                    // player->GetSession()->SendNotification("The group leader has changed the difficulty setting. You have been removed from the instance.");
                 }
             }
 
@@ -77,7 +79,10 @@ void MpDataStore::AddGroupData(Group *group, MpGroupData groupData) {
                     MpLogger::error("AddGroupData called with null player in instance");
                 }
 
-                player->GetSession()->SendNotification("The group leader has changed the difficulty setting. You have been removed from the instance.");
+                if(player) {
+                    ChatHandler(player->GetSession()).SendSysMessage("The group leader has changed the difficulty setting. You have been removed from the instance.");
+                    // player->GetSession()->SendNotification("The group leader has changed the difficulty setting. You have been removed from the instance."); -- previous implementation for older core users
+                }
             }
         }
 

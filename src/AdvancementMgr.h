@@ -93,11 +93,11 @@ public:
     }
 
     // Loads advancement information from the database into memory when players are logged in or server starts.
-    int32 LoadAdvencementRanks();
+    int32 LoadAdvancementRanks();
     int32 LoadMaterialTypes();
     int32 LoadPlayerAdvancements(Player* player);
 
-    // Methods for looking up advancment rank data
+    // Methods for looking up advancement rank data
     MpAdvancementRank* GetAdvancementRank(uint32 rank, MpAdvancements advancement);
 
     // Methods for updating and setting data related to current player advancements

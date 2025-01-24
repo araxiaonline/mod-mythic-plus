@@ -27,7 +27,7 @@ public:
     virtual ~MpEventInterface() = default;
     [[nodiscard]] virtual bool Execute(Player* player, std::vector<std::string>& args) = 0;
 
-    [[nodiscard]] virtual  const std::string& EventName() const = 0;
+    [[nodiscard]] virtual  const std::string EventName() const = 0;
 };
 
 using EventParseRslt = std::tuple<MpEvent, uint32_t, std::vector<std::string>>;

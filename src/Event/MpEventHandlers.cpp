@@ -27,10 +27,19 @@ enum class MP_EVENT_CODE
 
 };
 
+// Send an error event to the client
+bool SendEventError(Player* player, const std::string& method, MP_EVENT_CODE code, std::string message)
+{
+    std::vector<std::string> clientError = { std::to_string(static_cast<int>(code)), message };
+    MpLogger::error("Event Processor) Sending client error: {} {}", code, message);
+    sMpClientDispatcher->Dispatch(MpClientEvent::Error, player, clientError);
+    return false;
+}
+
 class UpdateAdvancements : public MpEventInterface
 {
     public:
-        const std::string& EventName() const override
+        const std::string EventName() const override
         {
             return "UpgradeAdvancement";
         }
@@ -72,7 +81,7 @@ class UpdateAdvancements : public MpEventInterface
             if(! sAdvancementMgr->UpgradeAdvancement(player, static_cast<MpAdvancements>(advancementId), diceLevel, itemEntry1, itemEntry2, itemEntry3)) {
                 return SendEventError(player, EventName(),MP_EVENT_CODE::INVALID_ARGUMENT, "Failed to upgrade advancement for player " + player->GetName());
             }
-            std::vector<std::string> eventData = {"0", "success"};
+            eventData = {"0", "success"};
 
             // Send response back to the client
             sMpClientDispatcher->Dispatch(MpClientEvent::UpgradeAdvancement, player, eventData);
@@ -84,7 +93,7 @@ class UpdateAdvancements : public MpEventInterface
 class GetAdvancementRank : public MpEventInterface
 {
     public:
-        const std::string& EventName() const override
+        const std::string EventName() const override
         {
             return "GetAdvancementRank";
         }
@@ -114,7 +123,7 @@ class GetAdvancementRank : public MpEventInterface
                 return SendEventError(player, EventName(),MP_EVENT_CODE::INVALID_ARGUMENT, "Failed to get advancement rank for player " + player->GetName());
             }
 
-            std::vector<std::string> eventData = {std::to_string(rank->rank), std::to_string(rank->advancementId)};
+            eventData = {std::to_string(rank->rank), std::to_string(rank->advancementId)};
 
             // Send response back to the client
             sMpClientDispatcher->Dispatch(MpClientEvent::GetAdvancementRank, player, eventData);
@@ -122,15 +131,6 @@ class GetAdvancementRank : public MpEventInterface
             return true;
         }
 };
-
-// Send an error event to the client
-bool SendEventError(Player* player, const std::string& method, MP_EVENT_CODE code, std::string message)
-{
-    std::vector<std::string> clientError = { std::to_string(static_cast<int>(code)), message };
-    MpLogger::error("Event Processor) Sending client error: {}", clientError);
-    sMpClientDispatcher->Dispatch(MpClientEvent::Error, player, clientError);
-    return false;
-}
 
 void MP_Register_EventHandlers()
 {
