@@ -261,7 +261,8 @@ bool AdvancementMgr::UpgradeAdvancement(Player* player, MpAdvancements advanceme
 
     if(playerRank->rank == MP_MAX_ADVANCEMENT_RANK) {
         MpLogger::error("Player {} has reached the maximum rank for advancement {}", player->GetName(), advancement);
-        return false;
+
+        throw std::runtime_error("Player has reached the maximum rank for advancement");
     }
 
     uint32 newRank = playerRank->rank + 1;
@@ -274,7 +275,8 @@ bool AdvancementMgr::UpgradeAdvancement(Player* player, MpAdvancements advanceme
     // If the player has the items needed to upgrade this advancement, then remove the items from the player inventory and apply the upgrade
     if(!_PlayerHasItems(player, advancementRank, diceCostLevel, itemEntry1, itemEntry2, itemEntry3)) {
         MpLogger::info("Player {} does not have the required items to upgrade advancement {}", player->GetName(), advancement);
-        return false;
+
+        throw std::runtime_error("Player does not have the required items to upgrade advancement");
     }
 
     // Charge the player the cost of the upgrade
@@ -298,7 +300,7 @@ bool AdvancementMgr::ResetPlayerAdvancements(Player* /*player*/)
     return true;
 }
 
-void AdvancementMgr::_ResetPlayerAdvancement(Player* player, MpAdvancements advancement)
+void AdvancementMgr::_ResetPlayerAdvancement(Player* /*player*/, MpAdvancements /*advancement*/)
 {
     std::lock_guard<std::mutex> lock(_playerAdvancementMutex);
     return;
@@ -308,6 +310,7 @@ void AdvancementMgr::_ResetPlayerAdvancement(Player* player, MpAdvancements adva
 float AdvancementMgr::_RollAdvancement(MpAdvancementRank* advancementRank, uint32 diceCostLevel)
 {
     uint32 min, max;
+    min = max = 0;
 
     switch (diceCostLevel)
     {

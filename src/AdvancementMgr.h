@@ -11,16 +11,18 @@
 
 enum MpAdvancements
 {
-    MP_ADV_STRENGTH         = 0,
-    MP_ADV_AGILITY          = 1,
-    MP_ADV_STAMINA          = 2,
-    MP_ADV_INTELLECT        = 3,
-    MP_ADV_SPIRIT           = 4,
-    MP_ADV_RESIST_FIRE      = 5,
-    MP_ADV_RESIST_NATURE    = 6,
-    MP_ADV_RESIST_FROST     = 7,
-    MP_ADV_RESIST_SHADOW    = 8,
-    MP_ADV_RESIST_ARCANE    = 9,
+    MP_ADV_INTELLECT        = 0,
+    MP_ADV_SPIRIT           = 1,
+    MP_ADV_STRENGTH         = 3,
+    MP_ADV_AGILITY          = 4,
+    MP_ADV_STAMINA          = 5,
+
+    MP_ADV_RESIST_ARCANE    = 5,
+    MP_ADV_RESIST_FIRE      = 6,
+    MP_ADV_RESIST_NATURE    = 7,
+    MP_ADV_RESIST_FROST     = 8,
+    MP_ADV_RESIST_SHADOW    = 9,
+
     MP_ADV_MAX              = 10
 };
 

@@ -39,13 +39,13 @@ public:
 
         MpGroupData *data = sMpDataStore->GetGroupData(player->GetGroup());
         if (!data) {
-            MpLogger::warn("Missin group data for player {}", player->GetName());
+            MpLogger::warn("Missing group data for player {}", player->GetName());
             return;
         }
 
         MpPlayerData *playerData = sMpDataStore->GetPlayerData(player->GetGUID());
         if (!playerData) {
-            MpLogger::warn("Missin player data for player {}", player->GetName());
+            MpLogger::warn("Missing player data for player {}", player->GetName());
             return;
         }
 

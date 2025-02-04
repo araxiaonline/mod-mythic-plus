@@ -21,7 +21,8 @@ bool MpClientDispatcher::Dispatch(MpClientEvent event, Player* player, std::vect
 
     // Build the message string in same format to send to the client.
     std::string_view eventName = MpClientEventNames.at(event);
-    std::string message = std::to_string(player->GetGUID().GetCounter()) + "|" + eventName.data();
+    uint32 playerGuid = player->GetGUID().GetCounter();
+    std::string message = "s|" + std::to_string(playerGuid) + "|" + std::string(eventName);
     for(auto& arg : args) {
         message += "|" + arg;
     }
@@ -29,17 +30,19 @@ bool MpClientDispatcher::Dispatch(MpClientEvent event, Player* player, std::vect
     std::string prefix = std::string(MP_DATA_CHAT_CHANNEL);
     std::string fullmsg = prefix + "\t" + message;
 
+    MpLogger::debug("Dispatching client event: {} length {} for event {}", fullmsg, fullmsg.length(), std::string(eventName));
+
     WorldPacket data(SMSG_MESSAGECHAT, 100);
-    data << uint8(CHAT_MSG_ADDON);
+    data << uint8(ChatMsg::CHAT_MSG_WHISPER);
     data << int32(LANG_ADDON);
-    data << player->GetGUID().GetCounter();
+    data << player->GetGUID();
     data << uint32(0);
-    data << player->GetGUID().GetCounter();
+    data << player->GetGUID();
     data << uint32(fullmsg.length() + 1);
     data << fullmsg;
     data << uint8(0);
+
     player->GetSession()->SendPacket(&data);
-    return 0;
 
     return true;
 }
