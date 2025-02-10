@@ -13,18 +13,18 @@ enum MpAdvancements
 {
     MP_ADV_INTELLECT        = 0,
     MP_ADV_SPIRIT           = 1,
-    MP_ADV_STRENGTH         = 3,
-    MP_ADV_AGILITY          = 4,
-    MP_ADV_STAMINA          = 5,
-
+    MP_ADV_STRENGTH         = 2,
+    MP_ADV_AGILITY          = 3,
+    MP_ADV_STAMINA          = 4,
     MP_ADV_RESIST_ARCANE    = 5,
     MP_ADV_RESIST_FIRE      = 6,
     MP_ADV_RESIST_NATURE    = 7,
     MP_ADV_RESIST_FROST     = 8,
     MP_ADV_RESIST_SHADOW    = 9,
-
     MP_ADV_MAX              = 10
 };
+
+std::string MpAdvancementsToString(MpAdvancements advancement);
 
 /**
  * Advancement Rank represents each level for a stat increase that has can be purchases.
@@ -42,6 +42,11 @@ struct MpAdvancementRank
     std::pair<uint32 /*min*/, uint32 /*max*/> lowRange;
     std::pair<uint32 /*min*/, uint32 /*max*/> midRange;
     std::pair<uint32 /*min*/, uint32 /*max*/> highRange;
+
+    // materialId levels
+    std::pair<uint32 /*materialId*/, uint32 /*quantity*/> material1;
+    std::pair<uint32 /*materialId*/, uint32 /*quantity*/> material2;
+    std::pair<uint32 /*materialId*/, uint32 /*quantity*/> material3;
 
     // Used to validate this struct is set correctly
     bool IsValid() {
@@ -97,7 +102,7 @@ public:
     // Loads advancement information from the database into memory when players are logged in or server starts.
     int32 LoadAdvancementRanks();
     int32 LoadMaterialTypes();
-    int32 LoadPlayerAdvancements(Player* player);
+    void LoadPlayerAdvancements(Player* player);
 
     // Methods for looking up advancement rank data
     MpAdvancementRank* GetAdvancementRank(uint32 rank, MpAdvancements advancement);
@@ -116,7 +121,7 @@ public:
      * mixed materials is more complicated and the UI to support it is much more complex, while this is not as nice it is much simpler to implement.
      * That means all materials have to be selected and passed in at the time of making this call.
      */
-    bool UpgradeAdvancement(Player* player, MpAdvancements advancement, uint32 diceCostLevel, uint32 itemEntry1, uint32 itemEntry2, uint32 itemEntry3);
+    uint32 UpgradeAdvancement(Player* player, MpAdvancements advancement, uint32 diceCostLevel, uint32 itemEntry1, uint32 itemEntry2, uint32 itemEntry3);
 
     // Used to reset all advancements for a specific player
     bool ResetPlayerAdvancements(Player* player);
@@ -136,6 +141,9 @@ private:
 
     // Removes items from player inventory based on the required advancement rank.
     void _ChargeItemCost(Player* player, MpAdvancementRank* advancementRank, uint32 diceCostLevel, uint32 itemEntry1, uint32 itemEntry2, uint32 itemEntry3);
+
+    // This will save the advancement for the player advancement in memory and database
+    void _SaveAdvancement(Player* player, MpAdvancementRank* advancementRank, MpPlayerRank* playerRank, uint32 diceCost, float roll, uint32 itemEntry1, uint32 itemEntry2 = 0, uint32 itemEntry3 = 0);
 
     // This will save the advancement purchase to the history database
     void _DBSaveAdvancement(Player* player, MpAdvancementRank* advancementRank, MpPlayerRank* playerRank, uint32 diceCost, float roll);
