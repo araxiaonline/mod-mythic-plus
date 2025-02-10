@@ -14,6 +14,7 @@ enum class MpEvent
     UpgradeAdvancement,     // Upgrades a player advancement 1 level
     ResetAdvancement,       // Resets a player Advancement back to 0
     ResetAllAdvancements,   // Resets all player advancements
+    GetPlayerRank,          // Get the rank requirements for an advancement to the next levels
     GetAdvancementRank      // Get the details about the rank of a specific advancement (cost, bonus, etc)
 };
 
@@ -24,6 +25,7 @@ enum class MpClientEvent
     UpgradeAdvancement,
     ResetAdvancement,
     ResetAllAdvancements,
+    GetPlayerRank,
     GetAdvancementRank
 };
 
@@ -32,6 +34,7 @@ inline std::unordered_map<std::string_view, MpEvent> MpEventMap = {{
     {"UpgradeAdvancement", MpEvent::UpgradeAdvancement},
     {"ResetAdvancement", MpEvent::ResetAdvancement},
     {"ResetAllAdvancements", MpEvent::ResetAllAdvancements},
+    {"GetPlayerRank", MpEvent::GetPlayerRank},
     {"GetAdvancementRank", MpEvent::ResetAllAdvancements}
 }};
 
@@ -40,6 +43,7 @@ inline std::unordered_map<MpClientEvent, std::string_view> MpClientEventNames = 
     {MpClientEvent::UpgradeAdvancement, "UpgradeAdvancement"},
     {MpClientEvent::ResetAdvancement, "ResetAdvancement"},
     {MpClientEvent::ResetAllAdvancements, "ResetAllAdvancements"},
+    {MpClientEvent::GetPlayerRank, "GetPlayerRank"},
     {MpClientEvent::GetAdvancementRank, "GetAdvancementRank"}
 }};
 

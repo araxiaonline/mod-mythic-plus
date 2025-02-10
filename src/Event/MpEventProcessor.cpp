@@ -2,6 +2,7 @@
 #include "MpEventProcessor.h"
 #include "MythicPlus.h"
 #include "MpLogger.h"
+#include "MpClientDispatcher.h"
 #include "Player.h"
 #include <boost/algorithm/string/replace.hpp>
 
@@ -65,6 +66,10 @@ void MpEventProcessor::RegisterHandler(MpEvent event, std::shared_ptr<MpEventInt
 // This fires the execution to the actual event.
 bool MpEventProcessor::Dispatch(MpEvent event, Player* player, std::vector<std::string>& args) {
     if(!_eventHandlers.contains(event)) {
+
+        // Send a client message back also to the player
+        std::vector<std::string> clientError = { std::to_string(static_cast<int>(event)), "No handler registered for event: " + std::to_string(static_cast<int>(event)) };
+        sMpClientDispatcher->Dispatch(MpClientEvent::Error, player, clientError);
         MpLogger::warn("No handler registered for event: {}", event);
         return false;
     }
