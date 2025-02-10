@@ -88,13 +88,13 @@ CREATE TABLE mp_player_advancement_history (
     bonus         FLOAT        NOT NULL,
     upgradeRank   INT UNSIGNED NOT NULL,
     diceSpent     INT UNSIGNED NOT NULL DEFAULT '0',
-    materialId1   INT UNSIGNED NOT NULL,
-    materialId2   INT UNSIGNED NOT NULL,
-    materialId3   INT UNSIGNED NOT NULL,
-    materialCost1 INT UNSIGNED NOT NULL,
-    materialCost2 INT UNSIGNED NOT NULL,
-    materialCost3 INT UNSIGNED NOT NULL,
+    entryId1      INT UNSIGNED NOT NULL,
+    entryId2      INT UNSIGNED,
+    entryId3      INT UNSIGNED,
+    itemCost1     INT UNSIGNED NOT NULL,
+    itemCost2     INT UNSIGNED,
+    itemCost3     INT UNSIGNED,
     added         TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-    PRIMARY KEY (guid, advancementId)
+    PRIMARY KEY (guid, advancementId, upgradeRank)
 );
 
