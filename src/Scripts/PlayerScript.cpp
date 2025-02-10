@@ -116,9 +116,10 @@ public:
 
     void OnLogin(Player* player) override
     {
+        MpLogger::info("Player {} logged in", player->GetName());
+
         // Load the player advancement data for the player when they login
-        int32 size = sAdvancementMgr->LoadPlayerAdvancements(player);
-        MpLogger::info("Loaded {} player advancements for player {}", size, player->GetName());
+        sAdvancementMgr->LoadPlayerAdvancements(player);
     }
 
     // When a player is bound to an instance need to make sure they are saved in the data soure to retrieve later.
