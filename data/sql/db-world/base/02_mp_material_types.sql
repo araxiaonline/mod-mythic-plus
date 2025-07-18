@@ -535,3 +535,5 @@ WHERE
         'Eternal Mana',               -- Central crafting material for arcane resistance gear.
         'Saronite Animus'            -- Rare drop from arcane-themed enemies in Icecrown Citadel.
     );
+
+REPLACE INTO mp_material_types (materialId, entry, name) VALUES (23, 911002, 'Veilstone');
