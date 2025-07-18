@@ -35,7 +35,7 @@ inline std::unordered_map<std::string_view, MpEvent> MpEventMap = {{
     {"ResetAdvancement", MpEvent::ResetAdvancement},
     {"ResetAllAdvancements", MpEvent::ResetAllAdvancements},
     {"GetPlayerRank", MpEvent::GetPlayerRank},
-    {"GetAdvancementRank", MpEvent::ResetAllAdvancements}
+    {"GetAdvancementRank", MpEvent::GetAdvancementRank}
 }};
 
 inline std::unordered_map<MpClientEvent, std::string_view> MpClientEventNames = {{

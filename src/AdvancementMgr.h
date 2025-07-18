@@ -121,7 +121,7 @@ public:
      * mixed materials is more complicated and the UI to support it is much more complex, while this is not as nice it is much simpler to implement.
      * That means all materials have to be selected and passed in at the time of making this call.
      */
-    uint32 UpgradeAdvancement(Player* player, MpAdvancements advancement, uint32 diceCostLevel, uint32 itemEntry1, uint32 itemEntry2, uint32 itemEntry3);
+    uint32 UpgradeAdvancement(Player* player, MpAdvancements advancement, uint32 diceCostLevel);
 
     // Used to reset all advancements for a specific player
     bool ResetPlayerAdvancements(Player* player);

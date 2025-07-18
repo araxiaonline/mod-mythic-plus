@@ -104,6 +104,9 @@ public:
         size = sAdvancementMgr->LoadMaterialTypes();
         MpLogger::info("Loaded {} material types...", size);
 
+        sMpDataStore->LoadPlayerHealthAvg();
+        MpLogger::info("Loaded player health averages used for scaling calculations...");
+
         // Registering event handlers for the Mythic+ events from client
         MP_Register_EventHandlers();
         MpLogger::info("Registered Mythic+ Event Handlers...");

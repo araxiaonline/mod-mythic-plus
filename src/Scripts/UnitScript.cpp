@@ -148,7 +148,7 @@ public:
              */
             switch (eventType) {
                 case MythicPlus::UNIT_EVENT_MELEE:
-                    if(creature->IsDungeonBoss() || creature->GetEntry() == 23682) {
+                    if(creature->IsDungeonBoss() || creature->isWorldBoss() || creature->GetEntry() == 23682) {
                         alteredDmgHeal = damageOrHeal * instanceData->boss.melee;
                     } else {
                         alteredDmgHeal = damageOrHeal * instanceData->creature.melee;
@@ -157,25 +157,24 @@ public:
                     break;
                 case MythicPlus::UNIT_EVENT_DOT:
                 case MythicPlus::UNIT_EVENT_SPELL:
-                    if(creature->IsDungeonBoss() || creature->GetEntry() == 23682) {
+                    if(creature->IsDungeonBoss() || creature->isWorldBoss() || creature->GetEntry() == 23682) {
                         if(spellInfo) {
+                            MpLogger::debug("Scaling spell {} using ScaleDamageSpell() Original Damage: {} New Damage: {}", spellInfo->SpellName[0], damageOrHeal, alteredDmgHeal);
                             alteredDmgHeal = sMythicPlus->ScaleDamageSpell(spellInfo, damageOrHeal, sMpDataStore->GetCreatureData(attacker->GetGUID()), creature, target, instanceData->boss.spell);
                         } else {
                             alteredDmgHeal = damageOrHeal * instanceData->boss.spell;
+                            MpLogger::debug("Scaling spell {} using flat modifier Original Damage: {} New Damage: {}", spellInfo->SpellName[0], damageOrHeal, alteredDmgHeal);
                         }
                     } else {
                         if(spellInfo) {
+                            MpLogger::debug("Scaling spell {} using ScaleDamageSpell() Original Damage: {} New Damage: {}", spellInfo->SpellName[0], damageOrHeal, alteredDmgHeal);
                             alteredDmgHeal = sMythicPlus->ScaleDamageSpell(spellInfo, damageOrHeal, sMpDataStore->GetCreatureData(attacker->GetGUID()), creature, target, instanceData->creature.spell);
                         } else {
+                            MpLogger::debug("Scaling spell {} using flat modifier Original Damage: {} New Damage: {}", spellInfo->SpellName[0], damageOrHeal, alteredDmgHeal);
                             alteredDmgHeal = damageOrHeal * instanceData->creature.spell;
                         }
                     }
 
-                    if(spellInfo) {
-                        MpLogger::debug("Incoming spell New Damage: {}({}) {} hits {} spell: {} ID: {}", alteredDmgHeal, damageOrHeal, attacker->GetName(), target->GetName(), spellInfo->SpellName[0], spellInfo->Id);
-                    } else {
-                        MpLogger::debug("Incoming spell New Damage: {}({}) {} hits {}", alteredDmgHeal, damageOrHeal, attacker->GetName(), target->GetName());
-                    }
                     break;
                 case MythicPlus::UNIT_EVENT_HEAL:
                 case MythicPlus::UNIT_EVENT_HOT:

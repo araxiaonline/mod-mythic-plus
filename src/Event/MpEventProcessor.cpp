@@ -68,7 +68,7 @@ bool MpEventProcessor::Dispatch(MpEvent event, Player* player, std::vector<std::
     if(!_eventHandlers.contains(event)) {
 
         // Send a client message back also to the player
-        std::vector<std::string> clientError = { std::to_string(static_cast<int>(event)), "No handler registered for event: " + std::to_string(static_cast<int>(event)) };
+        std::vector<std::string> clientError = { "Error", "No handler registered for event: " + std::to_string(static_cast<int>(event)) };
         sMpClientDispatcher->Dispatch(MpClientEvent::Error, player, clientError);
         MpLogger::warn("No handler registered for event: {}", event);
         return false;

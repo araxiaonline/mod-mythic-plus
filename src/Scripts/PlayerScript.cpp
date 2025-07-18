@@ -120,6 +120,13 @@ public:
 
         // Load the player advancement data for the player when they login
         sAdvancementMgr->LoadPlayerAdvancements(player);
+
+        // Cast all unique advancement spells
+        for(uint32 i = 1; i <= 10; ++i) {
+            uint32 spellId = 80000000 + i;
+            MpLogger::info("Casting spell {} to player {}", spellId, player->GetName());
+            player->AddAura(spellId, player);
+        }
     }
 
     // When a player is bound to an instance need to make sure they are saved in the data soure to retrieve later.

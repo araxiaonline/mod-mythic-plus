@@ -157,7 +157,7 @@ public:
             group->SetDungeonDifficulty(DUNGEON_DIFFICULTY_NORMAL);
         }
         else {
-            handler->PSendSysMessage("|cFFFF0000 Invalid difficulty level. Expected values are 'mythic', 'legendary', or 'ascendant'.");
+            handler->PSendSysMessage("|cFFFF0000 Invalid difficulty level. Expected values are 'normal', 'heroic', 'mythic', 'legendary', or 'ascendant'.");
             return true;
         }
 
@@ -311,8 +311,8 @@ public:
             auto groupData = sMpDataStore->GetGroupData(player->GetGroup()->GetGUID());
 
             if(groupData) {
-                uint32 value = std::stoi(args[0]);
-                sMpDataStore->SetDamageScaleFactor(player->GetMapId(), groupData->difficulty, value);
+                float value = std::stof(args[0]);
+                sMpDataStore->SetMeleeScaleFactor(player->GetMapId(), groupData->difficulty, value);
                 handler->PSendSysMessage(Acore::StringFormat("Melee scale factor set to: {}", value));
                 return true;
             }
@@ -339,7 +339,7 @@ public:
             auto groupData = sMpDataStore->GetGroupData(player->GetGroup()->GetGUID());
 
             if(groupData) {
-                uint32 value = std::stoi(args[0]);
+                float value = std::stof(args[0]);
                 sMpDataStore->SetSpellScaleFactor(player->GetMapId(), groupData->difficulty, value);
                 handler->PSendSysMessage(Acore::StringFormat("Spell scale factor set to: {}", value));
                 return true;
@@ -367,7 +367,7 @@ public:
             auto groupData = sMpDataStore->GetGroupData(player->GetGroup()->GetGUID());
 
             if(groupData) {
-                uint32 value = std::stoi(args[0]);
+                float value = std::stof(args[0]);
                 sMpDataStore->SetHealthScaleFactor(player->GetMapId(), groupData->difficulty, value);
                 handler->PSendSysMessage(Acore::StringFormat("Health scale factor set to: {}", value));
                 return true;
