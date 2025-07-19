@@ -132,6 +132,9 @@ public:
     // This scales a heal spell up based on the how much % the original heal spell was
     int32 ScaleHealSpell(SpellInfo const * spellInfo, uint32 heal, MpCreatureData* creatureData, Creature* creature, Creature* target, float healMultiplier);
 
+    // Calculate spell damage based on player health pools
+    int32 CalculateSpellDamage(uint32 baseDamage, int originalLevel, int targetLevel);
+
     static bool IsFinalBoss(Creature* creature);
     static void GroupReset(Group* group, Map* map);
 
@@ -145,6 +148,8 @@ float GetTypeDamageModifier(int32 rank);
 float CalculateScaling(int levelDifference, float scaleFactor, float constant = 1.25f, float growthFactor = 20.0f);
 uint32 CalculateNewHealth(Creature* creature, CreatureTemplate const* cInfo, uint32 mapId, MpDifficulty difficulty, uint32 origHealth, float confHPMod);
 float CalculateNewBaseDamage(CreatureTemplate const* cInfo, uint32 mapId, MpDifficulty difficulty, float origDamage);
+
+
 
 #define sMythicPlus MythicPlus::instance()
 

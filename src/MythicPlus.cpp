@@ -297,31 +297,7 @@ void MythicPlus::ScaleCreature(uint8 level, Creature* creature, MpMultipliers* m
         creature->SetModifierValue(UNIT_MOD_MANA, BASE_VALUE, (float)mana * 3.0f);
     }
 
-    // Scale the creatures damage
-
     MpInstanceData *instanceData = sMpDataStore->GetInstanceData(creature->GetMapId(), creature->GetInstanceId());
-    // int32 meleeDamage = sMpDataStore->GetMeleeScaleFactor(creature->GetMapId(), instanceData->difficulty);
-
-    // Calculate the level difference
-    // float levelDifference = creature->GetLevel() - origLevel;
-
-    // New formula with adjusted divisor for smoother scaling
-    float scalingFactor;
-
-    // uint32 ap = uint32(sMythicPlus->meleeAttackPowerStart - sMythicPlus->meleeAttackPowerDampener);
-
-    // cInfo->DifficultyEntry
-
-    // Calculate base scaling first, then apply creature type modifier
-    // float baseScaling = CalculateScaling(levelDifference, meleeDamage);
-
-    // if (creature->IsDungeonBoss() || creature->isElite() || cInfo->rank >= CREATURE_ELITE_ELITE) {
-    //     // Full scaling for bosses and elites
-    //     scalingFactor = baseScaling;
-    // } else {
-    //     // Reduced scaling for normal creatures to achieve ~60% of elite damage
-    //     scalingFactor = baseScaling * 0.6f;
-    // }
 
     // Handle new melee/range scaling with simple formula (for simplicity range will just be 80% of melee bonus)
     float meleeMultiplier = sMpDataStore->GetMeleeScaleFactor(creature->GetMapId(), instanceData->difficulty);
@@ -356,6 +332,17 @@ void MythicPlus::ScaleCreature(uint8 level, Creature* creature, MpMultipliers* m
 
 }
 
+int32 MythicPlus::CalculateSpellDamage(uint32 baseDamage, int originalLevel, int targetLevel) {
+    float origHpPool = sMpDataStore->GetPlayerHealthAvg(originalLevel);
+    float targetHpPool = sMpDataStore->GetPlayerHealthAvg(targetLevel);
+
+    // Using a % of expected damage of the average player pool creates a better consistent experience when scaling spells
+    float percentDamage = baseDamage / origHpPool;
+    int32 scaledDamage = static_cast<int32>(std::ceil(percentDamage * targetHpPool));
+
+    return scaledDamage;
+}
+
 int32 MythicPlus::ScaleDamageSpell(SpellInfo const * spellInfo, uint32 damage, MpCreatureData* creatureData, Creature* creature, Unit* target, float damageMultiplier)
 {
     if (!spellInfo) {
@@ -363,113 +350,74 @@ int32 MythicPlus::ScaleDamageSpell(SpellInfo const * spellInfo, uint32 damage, M
         return damage;
     }
 
-    if(!creatureData) {
-        // this is probably a summoned object or totem so going to cheat here and just use the flat modifer
+    MpInstanceData *instanceData = sMpDataStore->GetInstanceData(creature->GetMapId(), creature->GetInstanceId());
+    if (!instanceData) {
+        MpLogger::debug("No instance data found for spell scaling, using original damage");
+        return damage;
+    }
 
-        // Handle totems and summons - scale based on owner's elite status
+    float scaleFactor = sMpDataStore->GetSpellScaleFactor(creature->GetMapId(), instanceData->difficulty);
+
+    // calculate the global modifier x instance modifier
+    float totalModifier = damageMultiplier * scaleFactor;
+
+    // If for some reason there is not a creature, just use the global modifier x instance modifier
+    if(!creature) {
+        MpLogger::error("Invalid creature ScaleDamageSpell()");
+        return damage * totalModifier;
+    }
+
+    // Use the already calculated damage as the base for scaling
+    int32 newDamage = damage;
+
+    // Handle Summoned unit modifiers as
+    if(!creatureData) {
+
+        // handle if bot pets if NPCBot is installed.
+        #ifdef NPCBOT
+            if(creature->IsNPCBotOrPet()) {
+                return damage;
+            }
+        #endif
+
+        // Handle totems and summons - scale based on owner's details because they will not have creature data
         if(creature->IsTotem() || creature->IsSummon()) {
             Unit* owner = creature->GetOwner();
             if(owner && owner->IsCreature()) {
                 Creature* ownerCreature = owner->ToCreature();
-                MpInstanceData *instanceData = sMpDataStore->GetInstanceData(creature->GetMapId(), creature->GetInstanceId());
-                int32 spellBonus = sMpDataStore->GetSpellScaleFactor(creature->GetMapId(), instanceData->difficulty);
 
-                // Calculate level difference (use owner's scaling)
-                float levelDifference = ownerCreature->GetLevel() - 80; // Assume original level 80 for simplicity
+                // Look up the owner creature's original level from MpDataStore
+                MpCreatureData* ownerCreatureData = sMpDataStore->GetCreatureData(ownerCreature->GetGUID());
+                if (ownerCreatureData) {
+                    int32 ownerOriginalLevel = ownerCreatureData->originalLevel;
 
-                // Apply same scaling rules as owner
-                float baseTotemScaling = CalculateScaling(levelDifference, spellBonus);
-
-                float scalingFactor;
-                if (ownerCreature->IsDungeonBoss() || ownerCreature->isElite() || ownerCreature->GetCreatureTemplate()->rank >= CREATURE_ELITE_ELITE) {
-                    // Elite owner - use elite spell scaling
-                    scalingFactor = baseTotemScaling * 0.85f;
+                    if (ownerCreature->GetCreatureTemplate()->rank == CREATURE_ELITE_NORMAL) {
+                        totalModifier = totalModifier * 0.5f;
+                    }
+                    newDamage = CalculateSpellDamage(damage, ownerOriginalLevel, ownerCreature->GetLevel());
                 } else {
-                    // Normal owner - use normal creature spell scaling
-                    scalingFactor = baseTotemScaling * 0.5f;
+                    // Fallback if no creature data found - use current level
+                    if(ownerCreature->GetCreatureTemplate()->rank == CREATURE_ELITE_NORMAL) {
+                        totalModifier = totalModifier * 0.5f;
+                    }
+                    newDamage = CalculateSpellDamage(damage, ownerCreature->GetLevel(), ownerCreature->GetLevel());
+                    MpLogger::debug("No creature data found for owner {}, using current level for scaling", ownerCreature->GetGUID().ToString());
                 }
-
-                return int32(damage * scalingFactor * damageMultiplier);
-            } else {
-                return damage * damageMultiplier;
             }
         }
-
-        MpLogger::error("Invalid creature data ScaleDamageSpell()");
-        return damage * damageMultiplier;
-    }
-
-    if(!creature) {
-        MpLogger::error("Invalid creature ScaleDamageSpell()");
-        return damage * damageMultiplier;
-    }
-
-    int32 originalLevel = creatureData->originalLevel;
-
-    MpInstanceData *instanceData = sMpDataStore->GetInstanceData(creature->GetMapId(), creature->GetInstanceId());
-    int32 spellBonus = sMpDataStore->GetSpellScaleFactor(creature->GetMapId(), instanceData->difficulty);
-
-    // Calculate the level difference
-    float levelDifference = creature->GetLevel() - originalLevel;
-
-    // Calculate base spell scaling first, then apply creature type modifier
-    float baseSpellScaling = CalculateScaling(levelDifference, spellBonus);
-
-    float scalingFactor;
-    if (creature->IsDungeonBoss() || creature->isElite() || creature->GetCreatureTemplate()->rank >= CREATURE_ELITE_ELITE) {
-        // Reduced scaling for elite/boss spells to prevent them from hitting too hard
-        scalingFactor = baseSpellScaling * 0.85f;
+        else {
+            MpLogger::error("Invalid creature data ScaleDamageSpell()");
+            return damage * totalModifier;
+        }
     } else {
-        // Much more reduced scaling for normal creature spells to achieve ~60% of elite damage
-        scalingFactor = baseSpellScaling * 0.5f;
-    }
-
-    int32 totalDamage = 0;
-    auto effects = spellInfo->GetEffects();
-    for (uint8 i = 0; i < effects.size(); ++i)
-    {
-        SpellEffectInfo effect = effects[i];
-        if(effect.IsAura()) {
-            switch(spellInfo->Effects[i].ApplyAuraName) {
-                case SPELL_AURA_PERIODIC_DAMAGE:
-                case SPELL_AURA_PERIODIC_DAMAGE_PERCENT:
-                case SPELL_AURA_POWER_BURN:
-                case SPELL_AURA_PERIODIC_LEECH:
-                case SPELL_AURA_PERIODIC_TRIGGER_SPELL:
-                case SPELL_AURA_PERIODIC_TRIGGER_SPELL_WITH_VALUE:
-                case SPELL_AURA_PERIODIC_DUMMY:
-                case SPELL_AURA_DUMMY:
-                    totalDamage += effect.CalcValue(creature, nullptr, target);
-                    break;
-                default:
-                    break;
-            }
-        } else {
-            switch(effect.Effect)
-            {
-                case SPELL_EFFECT_WEAPON_PERCENT_DAMAGE:
-                case SPELL_EFFECT_WEAPON_DAMAGE:
-                case SPELL_EFFECT_NORMALIZED_WEAPON_DMG:
-                    return damage;
-
-                case SPELL_EFFECT_SCHOOL_DAMAGE:
-                case SPELL_EFFECT_ENVIRONMENTAL_DAMAGE:
-                case SPELL_EFFECT_POWER_BURN:
-                case SPELL_EFFECT_HEALTH_LEECH:
-                case SPELL_EFFECT_TRIGGER_SPELL:
-                case SPELL_EFFECT_TRIGGER_SPELL_WITH_VALUE:
-                case SPELL_EFFECT_DUMMY:
-                    totalDamage += effect.CalcValue(creature, nullptr, target);
-                    break;
-                default:
-                    break;
-            }
+        newDamage = CalculateSpellDamage(damage, creatureData->originalLevel, creature->GetLevel());
+        if (creature->GetCreatureTemplate()->rank == CREATURE_ELITE_NORMAL) {
+            // Reduced scaling for elite/boss spells to prevent them from hitting too hard
+            totalModifier = totalModifier * 0.5f;
         }
     }
 
-    if(totalDamage == 0) {
-        return damage;
-    }
+
 
     MpLogger::debug(" >>> Spell {} damage scaled from for spell  New Damage: {} using: scaling Factor: {} and damage Multi: {}",spellInfo->SpellName[0], totalDamage, scalingFactor, damageMultiplier);
 
