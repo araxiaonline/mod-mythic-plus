@@ -692,7 +692,7 @@ uint32 CalculateNewHealth(Creature* creature, CreatureTemplate const* cInfo, uin
     float healthVariation;
 
     //  This is the fine grained hpScaleFactor set for the instance (and/or) creature overrides in the database.
-    int32 hpScaleFactor = sMpDataStore->GetHealthScaleFactor(mapId, difficulty);
+    float hpScaleFactor = sMpDataStore->GetHealthScaleFactor(mapId, difficulty);
 
     // Add some variance to the healthpool so enemies are not all the same
     if(creature->IsDungeonBoss() || creature->isWorldBoss() || creature->isElite() || cInfo->rank == CREATURE_ELITE_RARE) {
