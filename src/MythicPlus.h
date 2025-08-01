@@ -69,9 +69,13 @@ public:
     uint32 legendaryItemOffset;
     uint32 ascendantItemOffset;
 
-    // Scaling modifiers
+    // Scaling modifiers (Deprecated)
     uint32 meleeAttackPowerDampener;
     uint32 meleeAttackPowerStart;
+
+    // Spell Damage Diminishing Returns
+    float diminishingExponent;
+    std::unordered_map<MpDifficulty, uint32> diminishingThresholds;
 
     enum MP_UNIT_EVENT_TYPE
     {
@@ -134,6 +138,9 @@ public:
 
     // Calculate spell damage based on player health pools
     int32 CalculateSpellDamage(uint32 baseDamage, int originalLevel, int targetLevel);
+
+    // Calculate heal scaling based on creature health percentages
+    int32 CalculateHealScaling(uint32 baseHeal, uint32 originalHealth, uint32 currentMaxHealth);
 
     static bool IsFinalBoss(Creature* creature);
     static void GroupReset(Group* group, Map* map);

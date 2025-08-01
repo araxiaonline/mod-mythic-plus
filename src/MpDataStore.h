@@ -225,6 +225,7 @@ struct MpCreatureData
 
     // Original information about the creature that was altered.
     uint8 originalLevel;
+    uint32 originalInstanceHealth; // Health the creature would have in instance before Mythic+ scaling
 
     CreatureBaseStats const* originalStats;
     MpDifficulty difficulty;
@@ -234,7 +235,7 @@ struct MpCreatureData
     std::vector<std::string> affixes;
 
     MpCreatureData(Creature* creature)
-        : creature(creature), scaled(false)
+        : creature(creature), scaled(false), originalInstanceHealth(0)
     {
         if(creature) {
             originalLevel = creature->GetLevel();
@@ -242,6 +243,9 @@ struct MpCreatureData
                 originalLevel,
                 creature->GetCreatureTemplate()->unit_class
             );
+
+            originalInstanceHealth = creature->GetMaxHealth();
+
         }
 
         auras.reserve(3);
@@ -264,7 +268,7 @@ struct MpCreatureData
 
         std::string origStatsStr;
         if(originalStats) {
-            uint32 health = *originalStats->BaseHealth;
+            uint32 health = originalInstanceHealth;
             uint32 mana = originalStats->BaseMana;
             uint32 armor = originalStats->BaseArmor;
             uint32 ap = originalStats->AttackPower;

@@ -223,9 +223,9 @@ MpScaleFactor MpDataStore::GetScaleFactor(int32 mapId, int32 difficulty) const {
     // Just send back untouched bonus database will override.
     return MpScaleFactor{
         .meleeBonus = 1.0f,
-        .healthBonus = 1.0f,
         .spellBonus = 1.0f,
-        .healBonus = 1.0f
+        .healBonus = 1.0f,
+        .healthBonus = 1.0f
     };
 }
 
@@ -302,9 +302,9 @@ int32 MpDataStore::LoadScaleFactors() {
 
         MpScaleFactor scaleFactor = {
             .meleeBonus = meleeBonus,
-            .healthBonus = healthBonus,
             .spellBonus = spellBonus,
-            .healBonus = healBonus
+            .healBonus = healBonus,
+            .healthBonus = healthBonus
         };
 
         _scaleFactors->emplace(GetScaleFactorKey(mapId, difficulty), scaleFactor);
@@ -321,11 +321,11 @@ void MpDataStore::LoadPlayerHealthAvg() {
         SELECT
             Level,
             ROUND(CASE
-                WHEN Level BETWEEN 1  AND 30 THEN ((AVG(Stamina) - 20) * 10 + AVG(BaseHP) + 20) * 1.0
-                WHEN Level BETWEEN 31 AND 50 THEN ((AVG(Stamina) - 20) * 10 + AVG(BaseHP) + 20) * 1.3
-                WHEN Level BETWEEN 51 AND 59 THEN ((AVG(Stamina) - 20) * 10 + AVG(BaseHP) + 20) * 1.6
-                WHEN Level BETWEEN 60 AND 69 THEN ((AVG(Stamina) - 20) * 10 + AVG(BaseHP) + 20) * 2.0
-                WHEN Level BETWEEN 70 AND 79 THEN ((AVG(Stamina) - 20) * 10 + AVG(BaseHP) + 20) * 2.5
+                WHEN Level BETWEEN 1  AND 30 THEN ((AVG(Stamina) - 20) * 10 + AVG(BaseHP) + 20) * 1.5
+                WHEN Level BETWEEN 31 AND 50 THEN ((AVG(Stamina) - 20) * 10 + AVG(BaseHP) + 20) * 1.7
+                WHEN Level BETWEEN 51 AND 59 THEN ((AVG(Stamina) - 20) * 10 + AVG(BaseHP) + 20) * 2.0
+                WHEN Level BETWEEN 60 AND 69 THEN ((AVG(Stamina) - 20) * 10 + AVG(BaseHP) + 20) * 2.3
+                WHEN Level BETWEEN 70 AND 79 THEN ((AVG(Stamina) - 20) * 10 + AVG(BaseHP) + 20) * 2.6
                 WHEN Level BETWEEN 80 AND 84 THEN ((AVG(Stamina) - 20) * 10 + AVG(BaseHP) + 20) * 3.0
                 WHEN Level >= 85           THEN ((AVG(Stamina) - 20) * 10 + AVG(BaseHP) + 20) * 4.0
                 ELSE                            ((AVG(Stamina) - 20) * 10 + AVG(BaseHP) + 20)

@@ -6,8 +6,8 @@
 #
 ##########################################################
 
-Appender.MythicPlusLog=2,5,0,mod-mythic-plus.log,w
-Appender.MythicPlusConsole=1,5,0,"1 9 3 6 5 8"
+Appender.MythicPlusLog=2,4,0,mod-mythic-plus.log,w
+# Appender.MythicPlusConsole=1,5,0,"1 9 3 6 5 8"
 Logger.module.MythicPlus=5,MythicPlusLog MythicPlusConsole
 
 ##########################################################
@@ -36,11 +36,13 @@ MythicPlus.EnableDeathLimits = 1
 
 ##########################################################
 #
-# Mythic+ Stat Modifiers By Difficuty
+# Mythic+ Global Stat Modifiers By Difficulty
 #   - These values are used to adjust the difficulty of enemies and bosses base
 #     stats based on the difficulty of the dungeon.
 #   - Bosses will only receive their multiplier not the Dungeon multiplier to prevent multiplicative scaling.
+#   - These values are used to scale the difficulty of all dungeons across new difficulty modes.
 #
+#   To scale individual instances you should use the mp_scale_factors table per instance to increase/reduce Modifiers
 ##########################################################
 
 MythicPlus.Mythic.DungeonHealth = 1.25
@@ -103,7 +105,7 @@ MythicPlus.Ascendant.DeathAllowance = 15
 #   - These values are used to set the offset to where items per difficulty will map to.
 #   - Item drops in this mode use the original item entry + on offset to determine the new item entry reward.
 #   - This enables a fast lookup at loot drop time as it is just an addition operation.
-#   - If using the base geneated sql the settings below will map to it.  If the offset is incorrect,
+#   - If using the base generated sql the settings below will map to it.  If the offset is incorrect,
 #     the item will not be found and the original low level item will be rewarded.
 #
 ##########################################################
@@ -111,6 +113,18 @@ MythicPlus.Ascendant.DeathAllowance = 15
 MythicPlus.Mythic.ItemOffset = 20000000
 MythicPlus.Legendary.ItemOffset = 21000000
 MythicPlus.Ascendant.ItemOffset = 22000000
+
+##########################################################
+# Diminishing Returns
+#   - These values are used to set the diminishing returns for the different difficulties.
+#   - The diminishing returns are used to limit the amount of damage that can be done to a target.
+#   - The diminishing returns are based on the difficulty of the dungeon and the amount of damage that has been done to the target.
+##########################################################
+
+MythicPlus.DiminishingExponent = 0.98
+MythicPlus.DiminishingThreshold.Mythic = 10000
+MythicPlus.DiminishingThreshold.Legendary = 20000
+MythicPlus.DiminishingThreshold.Ascendant = 40000
 
 ##############
 # Scaling Adjusters
