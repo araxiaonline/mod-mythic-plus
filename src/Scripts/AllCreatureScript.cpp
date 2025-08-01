@@ -14,6 +14,25 @@ public:
     // {
     // }
 
+    void OnCreatureRespawn(Creature* creature) override
+    {
+        Map* map = creature->GetMap();
+        if (!sMythicPlus->IsMapEligible(map)) {
+            return;
+        }
+
+        if (!sMythicPlus->IsCreatureEligible(creature)) {
+            return;
+        }
+
+        // If we have instance data, scale the creature, otherwise add it to be scaled later
+        if (MpInstanceData* instanceData = sMpDataStore->GetInstanceData(map->GetId(), map->GetInstanceId())) {
+            sMythicPlus->AddScaledCreature(creature, instanceData);
+        } else {
+            sMythicPlus->AddCreatureForScaling(creature);
+        }
+    }
+
     // void OnAllCreatureUpdate(Creature* creature, uint32 diff) override
     // {
     // }

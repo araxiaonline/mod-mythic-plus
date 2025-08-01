@@ -89,10 +89,6 @@ public:
         sMythicPlus->legendaryItemOffset = sConfigMgr->GetOption<uint32>("MythicPlus.Legendary.ItemOffset", 21000000);
         sMythicPlus->ascendantItemOffset = sConfigMgr->GetOption<uint32>("MythicPlus.Ascendant.ItemOffset", 22000000);
 
-        // Deprecated part of old attack power scaling
-        sMythicPlus->meleeAttackPowerDampener = sConfigMgr->GetOption<uint32>("MythicPlus.MeleeAttackPowerDampener", 2000);
-        sMythicPlus->meleeAttackPowerStart = sConfigMgr->GetOption<uint32>("MythicPlus.MeleeAttackPowerStart", 10000);
-
         // Get diminishing returns from configuration
         sMythicPlus->diminishingExponent = sConfigMgr->GetOption<float>("MythicPlus.DiminishingExponent", 0.975f);
         sMythicPlus->diminishingThresholds = {
@@ -100,6 +96,10 @@ public:
             {MpDifficulty::MP_DIFFICULTY_LEGENDARY, sConfigMgr->GetOption<uint32>("MythicPlus.DiminishingThreshold.Legendary", 20000)},
             {MpDifficulty::MP_DIFFICULTY_ASCENDANT, sConfigMgr->GetOption<uint32>("MythicPlus.DiminishingThreshold.Ascendant", 40000)}
         };
+
+        sMythicPlus->elementalMeleeReducer = sConfigMgr->GetOption<float>("MythicPlus.ElementalMeleeReducer", 0.50f);
+        sMythicPlus->normalEnemyReducer = sConfigMgr->GetOption<float>("MythicPlus.NormalEnemyReducer", 0.50f);
+        sMythicPlus->nonCreatureSpellReducer = sConfigMgr->GetOption<float>("MythicPlus.NonCreatureSpellReducer", 0.50f);
     }
 
     void OnStartup() override

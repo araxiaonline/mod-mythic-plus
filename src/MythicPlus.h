@@ -77,6 +77,12 @@ public:
     float diminishingExponent;
     std::unordered_map<MpDifficulty, uint32> diminishingThresholds;
 
+    // Specialized variables used in calculations
+    float elementalMeleeReducer;
+    float normalEnemyReducer;
+    float nonCreatureSpellReducer;
+
+
     enum MP_UNIT_EVENT_TYPE
     {
         UNIT_EVENT_MELEE,

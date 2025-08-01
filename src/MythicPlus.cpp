@@ -243,7 +243,10 @@ void MythicPlus::ScaleAll(Player* player, MpInstanceData* instanceData)
 {
     std::vector<MpCreatureData*> creatures = sMpDataStore->GetInstanceCreatures(player->GetMapId(), player->GetInstanceId());
     for (MpCreatureData* creatureData : creatures) {
-        ScaleCreature(creatureData->creature->GetLevel(), creatureData->creature, &instanceData->creature, instanceData->difficulty);
+        // Only scale living creatures
+        if (creatureData->creature && creatureData->creature->IsAlive()) {
+            ScaleCreature(creatureData->creature->GetLevel(), creatureData->creature, &instanceData->creature, instanceData->difficulty);
+        }
     }
 }
 
@@ -321,8 +324,8 @@ void MythicPlus::ScaleCreature(uint8 level, Creature* creature, MpMultipliers* m
     // Additionally need to add in a decrease in attack power for normal non elite enemies
     if (creature->GetCreatureTemplate()->rank == CREATURE_ELITE_NORMAL) {
         // Reduced scaling for elite/boss spells to prevent them from hitting too hard
-        ap *= 0.5f;
-        rangeAp *= 0.5f;
+        ap *= normalEnemyReducer;
+        rangeAp *= normalEnemyReducer;
     }
 
     MpCreatureData* creatureData = sMpDataStore->GetCreatureData(creature->GetGUID());
@@ -454,13 +457,13 @@ int32 MythicPlus::ScaleDamageSpell(SpellInfo const * spellInfo, uint32 damage, M
                     int32 ownerOriginalLevel = ownerCreatureData->originalLevel;
 
                     if (ownerCreature->GetCreatureTemplate()->rank == CREATURE_ELITE_NORMAL) {
-                        totalModifier = totalModifier * 0.75f;
+                        totalModifier = totalModifier * normalEnemyReducer;
                     }
                     newDamage = CalculateSpellDamage(damage, ownerOriginalLevel, ownerCreature->GetLevel());
                 } else {
                     // Fallback if no creature data found - use current level
                     if(ownerCreature->GetCreatureTemplate()->rank == CREATURE_ELITE_NORMAL) {
-                        totalModifier = totalModifier * 0.75f;
+                        totalModifier = totalModifier * normalEnemyReducer;
                     }
                     newDamage = CalculateSpellDamage(damage, ownerCreature->GetLevel(), ownerCreature->GetLevel());
                     MpLogger::debug("No creature data found for owner {}, using current level for scaling", ownerCreature->GetGUID().ToString());
@@ -564,7 +567,7 @@ int32 MythicPlus::ScaleHealSpell(SpellInfo const * spellInfo, uint32 heal, MpCre
                 MpCreatureData* ownerCreatureData = sMpDataStore->GetCreatureData(ownerCreature->GetGUID());
                 if (ownerCreatureData) {
                     if (ownerCreature->GetCreatureTemplate()->rank == CREATURE_ELITE_NORMAL) {
-                        totalModifier = totalModifier * 0.7f; // Less reduction for heals than damage
+                        totalModifier = totalModifier * normalEnemyReducer; // Less reduction for heals than damage
                     }
                     // Scale heal based on target's health, not caster's health
                     if (target) {
@@ -579,7 +582,7 @@ int32 MythicPlus::ScaleHealSpell(SpellInfo const * spellInfo, uint32 heal, MpCre
                 } else {
                     // Fallback if no creature data found - use current level
                     if(ownerCreature->GetCreatureTemplate()->rank == CREATURE_ELITE_NORMAL) {
-                        totalModifier = totalModifier * 0.7f; // Less reduction for heals than damage
+                        totalModifier = totalModifier * normalEnemyReducer; // Less reduction for heals than damage
                     }
                     // Scale heal based on target's health, not caster's health
                     if (target) {
@@ -854,7 +857,7 @@ uint32 CalculateNewHealth(Creature* creature, CreatureTemplate const* cInfo, uin
 
     // if it is a heroic instance give the enemy an additional 20% boost
     InstanceMap* instanceMap = creature->GetMap()->ToInstanceMap();
-    if (instanceMap && (instanceMap->IsHeroic() || instanceMap->Is25ManRaid())) {
+    if (instanceMap && instanceMap->IsRaidOrHeroicDungeon()) {
         basehp *= 1.25f;
     }
 

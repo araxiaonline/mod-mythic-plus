@@ -10,6 +10,83 @@ public:
     MythicPlus_UnitScript() : UnitScript("MythicPlus_UnitScript", true) { }
 
 private:
+    /**
+     * Handles damage from non-creature sources (GameObjects, Players, etc.)
+     * @tparam DamageType Type of damage (int32/float)
+     * @param target Target of the damage
+     * @param attacker The non-creature attacker (passed by reference and may be modified)
+     * @param damage Reference to damage value (will be modified)
+     * @param spellInfo The spell being cast
+     * @param eventType Type of event (spell/melee/etc)
+     */
+    template<typename DamageType>
+    void HandleNonCreatureAttacker(Unit* target, Unit*& attacker, DamageType& damage,
+                                 SpellInfo const* spellInfo, MythicPlus::MP_UNIT_EVENT_TYPE eventType)
+    {
+        Map* map = target ? target->GetMap() : nullptr;
+        std::string attackerType = "nullptr";
+        std::string attackerName = "unknown";
+        uint32 entry = 0;
+
+        if (attacker) {
+            if (attacker->GetTypeId() == TYPEID_GAMEOBJECT) {
+                attackerType = "GameObject";
+                if (GameObject* go = attacker->ToGameObject()) {
+                    entry = go->GetEntry();
+                    if (GameObjectTemplate const* goInfo = go->GetGOInfo()) {
+                        attackerName = goInfo->name;
+                    }
+                }
+            } else if (attacker->GetTypeId() == TYPEID_PLAYER) {
+                attackerType = "Player";
+                attackerName = attacker->GetName();
+            } else if (attacker->GetTypeId() == TYPEID_UNIT) {
+                attackerType = "Unit (non-creature)";
+                attackerName = attacker->GetName();
+            } else {
+                attackerType = "Unknown Type";
+            }
+        }
+
+        // Try to find a creature attacker from target's attackers list if we have one use it for scaling
+        Unit::AttackerSet const& attackers = target ? target->getAttackers() : Unit::AttackerSet();
+        if (!attackers.empty()) {
+            attacker = *attackers.begin();
+            if (Creature* creatureAttacker = attacker->ToCreature()) {
+
+                   if (MpCreatureData* creatureData = sMpDataStore->GetCreatureData(creatureAttacker->GetGUID())) {
+                    damage = static_cast<DamageType>(modifyIncomingDmgHeal(eventType, target, creatureAttacker,
+                                                                         static_cast<uint32>(damage), spellInfo)) * sMythicPlus->nonCreatureSpellReducer;
+                    return;
+                }
+            } else {
+                MpLogger::debug("====== SPELL SCALING: Non-Creature attacker - Name: {}, Spell: {}({}), Damage: {}",
+                    attackerName,
+                    spellInfo ? spellInfo->SpellName[0] : "No Spell",
+                    spellInfo ? spellInfo->Id : 0,
+                    damage);
+
+                if (map) {
+                    if (MpInstanceData* instanceData = sMpDataStore->GetInstanceData(map->GetId(), map->GetInstanceId())) {
+                        damage = static_cast<DamageType>(damage * instanceData->creature.spell * sMythicPlus->nonCreatureSpellReducer);
+                        return;
+                    }
+                }
+            }
+        }
+        // Fallback to instance-based scaling if we can't find a nearest creature
+        else if (map) {
+            if (MpInstanceData* instanceData = sMpDataStore->GetInstanceData(map->GetId(), map->GetInstanceId())) {
+                damage = static_cast<DamageType>(damage * instanceData->creature.spell * sMythicPlus->nonCreatureSpellReducer);
+                return;
+            }
+        }
+
+
+        // Default scaling if no specific handler applied
+        return;
+    }
+
     // Helper function to determine if a spell scales with Attack Power
     bool IsAttackPowerScalingSpell(SpellInfo const* spellInfo) {
         if (!spellInfo || spellInfo->Effects.empty()) {
@@ -63,36 +140,10 @@ private:
             return;
         }
 
-        // Check if attacker is a GameObject (traps, totems, environmental hazards)
+        // If this is a special case where the attacker is not a creature
         if (!attacker || !attacker->ToCreature()) {
-            MpLogger::debug("SPELL SCALING: Attacker is not a creature (likely GameObject or null), skipping CalcValue reversal");
-            // Apply Mythic+ scaling to original damage without CalcValue reversal
-            damage = static_cast<DamageType>(modifyIncomingDmgHeal(eventType, target, attacker, static_cast<uint32>(damage), spellInfo));
-            return;
+            return HandleNonCreatureAttacker(target, attacker, damage, spellInfo, eventType);
         }
-
-        // Debug: Log spell effects to understand what we're dealing with
-        // if (spellInfo->Effects.size() > 0) {
-        //     auto mainEffect = spellInfo->Effects[0];
-
-        //     MpLogger::debug("{}: Incoming Damage: {} Spell {} (ID: {}) Family: {} has RealPointsPerLevel: {} and BasePoints: {} and DieSides: {} and School: {}", logPrefix,
-        //         damage,
-        //         spellInfo->SpellName[0],
-        //         spellInfo->Id,
-
-        //         mainEffect.RealPointsPerLevel,
-        //         mainEffect.BasePoints,
-        //         mainEffect.DieSides,
-        //         spellInfo->SchoolMask);
-        // } else {
-        //     MpLogger::debug("{}: Incoming Damage: {} Spell {} (ID: {}) has no effects and School: {}", logPrefix,
-        //         damage,
-        //         spellInfo->SpellName[0],
-        //         spellInfo->Id,
-        //         spellInfo->SchoolMask);
-
-        //     return;
-        // }
 
         Creature* creatureCaster = attacker->ToCreature();
         MpCreatureData* creatureData = sMpDataStore->GetCreatureData(creatureCaster->GetGUID());
@@ -115,14 +166,14 @@ private:
             if (spellInfo && !spellInfo->Effects.empty()) {
                 int32 baseEffect = spellInfo->Effects[0].CalcValue(attacker, nullptr, nullptr);
                 if (damage <= (baseEffect * 1.15f)) {
-                    MpLogger::debug(">>>> MELEE SPELL SCALING: Spell {} (ID: {}) is not scaled by AP damage: {} vs originalEffect: {}", 
-                        spellInfo->SpellName[0], spellInfo->Id, damage, baseEffect);
+                    // MpLogger::debug(">>>> MELEE SPELL SCALING: Spell {} (ID: {}) is not scaled by AP damage: {} vs originalEffect: {}",
+                    //     spellInfo->SpellName[0], spellInfo->Id, damage, baseEffect);
                     notScaledByAP = true;
                 }
             } else {
                 // If we can't determine the base effect, default to treating it as not AP-scaled
                 notScaledByAP = true;
-                MpLogger::debug(">>>> MELEE SPELL SCALING: Could not determine base effect for spell, defaulting to spell scaling");
+                // MpLogger::debug(">>>> MELEE SPELL SCALING: Could not determine base effect for spell, defaulting to spell scaling");
             }
 
             // if the effect type of the spell is not physical (aka not mitigated by armor/defense) then it needs to instead have the typical
@@ -132,7 +183,7 @@ private:
 
                 damage = modifyIncomingDmgHeal(MythicPlus::UNIT_EVENT_MELEE, target, attacker, meleeDamage);
 
-                MpLogger::debug(">>MELEE SPELL SCALING: {} hits with spell: {} ID: {} meleeDamage: {} damage: {}", attacker->GetName(), spellInfo->SpellName[0], spellInfo->Id, meleeDamage, damage);
+                // MpLogger::debug(">>MELEE SPELL SCALING: {} hits with spell: {} ID: {} meleeDamage: {} damage: {}", attacker->GetName(), spellInfo->SpellName[0], spellInfo->Id, meleeDamage, damage);
             } else {
 
                 // get the creatures original attack power
@@ -143,7 +194,7 @@ private:
                 uint32 apDmg = static_cast<uint32>(creatureData->originalStats->AttackPower * 0.10f);
                 uint32 finalDmg = spellDmg + apDmg;
 
-                MpLogger::debug(">> AP BASED DAMAGE Scaledown: origDamage: {} | spellDmg: {} | apDmg: {} | finalDmg: {}", static_cast<int32>(damage), spellDmg, apDmg, finalDmg);
+                // MpLogger::debug(">> AP BASED DAMAGE Scaledown: origDamage: {} | spellDmg: {} | apDmg: {} | finalDmg: {}", static_cast<int32>(damage), spellDmg, apDmg, finalDmg);
 
                 damage = modifyIncomingDmgHeal(MythicPlus::UNIT_EVENT_SPELL, target, attacker, finalDmg, spellInfo);
 
@@ -231,7 +282,7 @@ public:
         if (!target && !attacker) {
 
             if(spellInfo) {
-                MpLogger::info("ModifySpellDamageTaken: Target and attacker are null for spell: {} ID: {}", spellInfo->SpellName[0], spellInfo->Id);
+                // MpLogger::info("ModifySpellDamageTaken: Target and attacker are null for spell: {} ID: {}", spellInfo->SpellName[0], spellInfo->Id);
             }
 
             return;
@@ -244,12 +295,12 @@ public:
 
         if(!sMythicPlus->EligibleDamageTarget(target)) {
             if(spellInfo) {
-                MpLogger::info("ModifySpellDamageTaken: Target is not eligible for spell: {} ID: {}", spellInfo->SpellName[0], spellInfo->Id);
+                // MpLogger::info("ModifySpellDamageTaken: Target is not eligible for spell: {} ID: {}", spellInfo->SpellName[0], spellInfo->Id);
             }
             return;
         }
 
-        MpLogger::debug("ModifySpellDamageTaken: {} hits {} with spell: {} ID: {}", attacker ? attacker->GetName() : "[null]", target ? target->GetName() : "[null]", spellInfo ? spellInfo->SpellName[0] : "[no spell]", spellInfo ? spellInfo->Id : 0);
+        // MpLogger::debug("ModifySpellDamageTaken: {} hits {} with spell: {} ID: {}", attacker ? attacker->GetName() : "[null]", target ? target->GetName() : "[null]", spellInfo ? spellInfo->SpellName[0] : "[no spell]", spellInfo ? spellInfo->Id : 0);
 
         // Use the generic ProcessSpellDamage function
         ProcessSpellDamage(target, attacker, damage, spellInfo, MythicPlus::UNIT_EVENT_SPELL, "SPELL DAMAGE");
@@ -286,93 +337,9 @@ public:
         healing = modifyIncomingDmgHeal(MythicPlus::UNIT_EVENT_HEAL, target, healer, healing, spellInfo);
     }
 
-    void OnAuraApply(Unit* unit, Aura* aura) override {
-        if (!unit || !aura) {
-            return;
-        }
-
-        // Only scale auras for players
-        if (!unit->IsPlayer()) {
-            return;
-        }
-
-        #if defined(MOD_PRESENT_NPCBOTS)
-            if (unit->IsNPCBotOrPet()) {
-                return;
-            }
-        #endif
-
-        Map* map = unit->GetMap();
-        if (!sMythicPlus->IsMapEligible(map)) {
-            return;
-        }
-
-        // Get instance data for scaling factors
-        MpInstanceData* instanceData = sMpDataStore->GetInstanceData(map->GetId(), map->GetInstanceId());
-        if (!instanceData) {
-            return;
-        }
-
-        SpellInfo const* spellInfo = aura->GetSpellInfo();
-        if (!spellInfo) {
-            return;
-        }
-
-        Creature* creatureCaster = aura->GetCaster()->ToCreature();
-        if (!creatureCaster) {
-            return;
-        }
-
-        // MpLogger::debug("Aura Apply: {} applied to {} by {} Id: {}", spellInfo->SpellName[0], unit->GetName(), aura->GetCaster()->GetName(), aura->GetId());
-
-        // Scale aura effects based on creature type and instance difficulty
-        float scaleFactor = 1.0f;
-
-        if (creatureCaster->IsDungeonBoss() || creatureCaster->isWorldBoss()) {
-            scaleFactor = instanceData->boss.spell * 0.8f; // Reduce boss aura scaling slightly
-        } else {
-            scaleFactor = instanceData->creature.spell * 0.7f; // Reduce normal creature aura scaling
-        }
-
-        // Apply scaling to stat modifier effects only (damage auras handled elsewhere)
-        for (uint8 i = 0; i < MAX_SPELL_EFFECTS; ++i) {
-            AuraEffect* effect = aura->GetEffect(i);
-            if (!effect) {
-                continue;
-            }
-
-            auto amount = effect->GetAmount();
-            // MpLogger::debug("Aura Effect type: {} amount: {}", effect->GetAuraType(), amount);
-
-            // // Only scale stat modifiers and resistances (not damage/healing effects)
-            // if (effect->GetAuraType() == SPELL_AURA_MOD_STAT ||
-            //     effect->GetAuraType() == SPELL_AURA_MOD_TOTAL_STAT_PERCENTAGE ||
-            //     effect->GetAuraType() == SPELL_AURA_MOD_RESISTANCE ||
-            //     effect->GetAuraType() == SPELL_AURA_MOD_RESISTANCE_PCT ||
-            //     effect->GetAuraType() == SPELL_AURA_MOD_BASE_RESISTANCE_PCT ||
-            //     effect->GetAuraType() == SPELL_AURA_MOD_DAMAGE_DONE ||
-            //     effect->GetAuraType() == SPELL_AURA_MOD_DAMAGE_TAKEN ||
-            //     effect->GetAuraType() == SPELL_AURA_MOD_HEALING_DONE ||
-            //     effect->GetAuraType() == SPELL_AURA_MOD_HEALING_PCT ||
-            //     effect->GetAuraType() == SPELL_AURA_MOD_HEALING_TAKEN_PCT ||
-            //     effect->GetAuraType() == SPELL_AURA_MOD_ARMOR_PENETRATION_PCT ||
-            //     effect->GetAuraType() == SPELL_AURA_MOD_ATTACK_POWER ||
-            //     effect->GetAuraType() == SPELL_AURA_MOD_ATTACK_POWER_PCT ||
-            //     effect->GetAuraType() == SPELL_AURA_MOD_SPELL_POWER_PCT) {
-
-            //     int32 originalAmount = effect->GetAmount();
-            //     int32 newAmount = int32(originalAmount * scaleFactor);
-            //     effect->ChangeAmount(newAmount);
-
-            //     MpLogger::debug("AURA SCALING: Scaled {} stat modifier effect {} from {} to {} (factor: {:.2f})",
-            //                    spellInfo->SpellName[0], i, originalAmount, newAmount, scaleFactor);
-            // }
-        }
-    }
-
     uint32 modifyIncomingDmgHeal(MythicPlus::MP_UNIT_EVENT_TYPE eventType,Unit* target, Unit* attacker, uint32 damageOrHeal, SpellInfo const* spellInfo = nullptr) {
         if (!target && !attacker) {
-            MpLogger::info("modifyIncomingDmgHeal: Target and attacker are null for event {}", eventType);
+            // MpLogger::info("modifyIncomingDmgHeal: Target and attacker are null for event {}", eventType);
             return damageOrHeal;
         }
 
@@ -431,12 +398,20 @@ public:
              */
             switch (eventType) {
                 case MythicPlus::UNIT_EVENT_MELEE:
+
+                    // Damage that is not mitigated by armor needs to be debuffed as it hits too hard and without resists
+                    // it hits too hard give everyone a benefit of 30% armor reduction
+                    MpLogger::debug(">>> Modify Melee Damage: Creature Name: {} alteredDmgHeal: {} School Mask: {}", creature->GetName(), alteredDmgHeal, creature->GetMeleeDamageSchoolMask());
+                    if(creature->GetMeleeDamageSchoolMask() != SPELL_SCHOOL_MASK_NORMAL && creature->GetMeleeDamageSchoolMask() != SPELL_SCHOOL_MASK_NONE) {
+                        damageOrHeal = damageOrHeal * 0.50f;
+                    }
                     if(creature->IsDungeonBoss() || creature->isWorldBoss() || creature->GetEntry() == 23682) {
                         alteredDmgHeal = damageOrHeal * instanceData->boss.melee;
                     } else {
                         alteredDmgHeal = damageOrHeal * instanceData->creature.melee;
                     }
-                    // MpLogger::debug("Incoming Melee New Damage: {}({}) {} hits {}", alteredDmgHeal, damageOrHeal, attacker->GetName(), target->GetName());
+
+                    // MpLogger::debug(">>>>>>>>>>>> Incoming Melee New Damage: {}({}) {} hits {}", alteredDmgHeal, damageOrHeal, attacker->GetName(), target->GetName());
 
                     break;
                 case MythicPlus::UNIT_EVENT_DOT:

@@ -121,7 +121,7 @@ MythicPlus.Ascendant.ItemOffset = 22000000
 #   - The diminishing returns are based on the difficulty of the dungeon and the amount of damage that has been done to the target.
 ##########################################################
 
-MythicPlus.DiminishingExponent = 0.98
+MythicPlus.DiminishingExponent = 0.96
 MythicPlus.DiminishingThreshold.Mythic = 10000
 MythicPlus.DiminishingThreshold.Legendary = 20000
 MythicPlus.DiminishingThreshold.Ascendant = 40000
@@ -129,5 +129,6 @@ MythicPlus.DiminishingThreshold.Ascendant = 40000
 ##############
 # Scaling Adjusters
 #############
-MythicPlus.MeleeAttackPowerDampener = 800
-MythicPlus.MeleeAttackPowerStart = 3000
+MythicPlus.ElementalMeleeReducer = 0.50
+MythicPlus.NormalEnemyReducer = 0.50
+MythicPlus.NonCreatureSpellReducer = 0.50
