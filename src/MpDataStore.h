@@ -216,6 +216,7 @@ struct MpCreatureData
 {
     Creature* creature;
     bool scaled;
+    DeathState lastDeathState; // used to determine if a creature has been respawned
 
     // AttackPower calculated based on settings
     uint32 NewAttackPower;

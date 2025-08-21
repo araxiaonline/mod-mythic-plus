@@ -143,12 +143,10 @@ bool MythicPlus::IsCreatureEligible(Creature* creature)
     #if defined(MOD_PRESENT_NPCBOTS)
         // Safely check if the creature is an NPC Bot
         if (creature->IsNPCBot()) {
-            MpLogger::debug("Creature {} is an NPC Bot, do not scale", creature->GetName());
             return false;
         }
 
         if(creature->GetBotOwner()) {
-            MpLogger::debug("Creature is owned by a NPC Bot {} skip scaling creature: {}", creature->GetBotOwner()->GetName(), creature->GetName());
             return false;
         }
 
@@ -187,6 +185,10 @@ void MythicPlus::AddCreatureForScaling(Creature* creature)
 void MythicPlus::AddScaledCreature(Creature* creature, MpInstanceData* instanceData)
 {
     MpCreatureData creatureData = MpCreatureData(creature);
+    creatureData.SetScaled(true);
+    creatureData.SetDifficulty(instanceData->difficulty);
+    creatureData.lastDeathState = creature->getDeathState();
+
     sMpDataStore->AddCreatureData(creature->GetGUID(), creatureData);
 
     // allow small variance in level for non-boss creatures
@@ -203,24 +205,7 @@ void MythicPlus::AddScaledCreature(Creature* creature, MpInstanceData* instanceD
 
     // We know the creature is scaled and in the instance to fire the event.
     // sCreatureHooks->AddToInstance(creature);
-    std::string name = creature->GetName();
 
-    // Assign random affix for now.
-    if (roll_chance_i(50)) {
-        uint32 irand = urand(0, 2);
-
-        if(irand == 0) {
-            creature->AddAura(23341, creature);
-        } else if(irand == 1) {
-            creature->AddAura(34711, creature);
-
-        } else {
-            creature->AddAura(774, creature);
-        }
-    }
-
-    creatureData.SetScaled(true);
-    creatureData.SetDifficulty(instanceData->difficulty);
 
     // MpLogger::debug("Scaled Creature {} Entry {} Id {} level from {} to {}",
     //     creature->GetName(),
@@ -404,7 +389,7 @@ int32 MythicPlus::CalculateHealScaling(uint32 baseHeal, uint32 originalTargetHea
     return scaledHeal;
 }
 
-int32 MythicPlus::ScaleDamageSpell(SpellInfo const * spellInfo, uint32 damage, MpCreatureData* creatureData, Creature* creature, Unit* target, float damageMultiplier)
+int32 MythicPlus::ScaleDamageSpell(SpellInfo const * spellInfo, uint32 damage, MpCreatureData* creatureData, Creature* creature, Unit* /* target */, float damageMultiplier)
 {
     if (!spellInfo) {
         MpLogger::error("Invalid spell info ScaleDamageSpell()");
