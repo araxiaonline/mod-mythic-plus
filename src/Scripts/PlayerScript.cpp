@@ -7,6 +7,7 @@
 #include "ScriptMgr.h"
 #include "TaskScheduler.h"
 #include "AdvancementMgr.h"
+#include "Formulas.h"
 
 class MythicPlus_PlayerScript : public PlayerScript
 {
@@ -108,12 +109,96 @@ public:
                     //     // ChatHandler::BuildChatPacket(data, CHAT_MSG_RAID_BOSS_EMOTE, LANG_UNIVERSAL, nullptr, player, message);
                     //     // player->GetSession()->SendPacket(&data);
                     // }
-
-                // map->ToInstanceMap()->Reset(0);
-            // );
-    // }
     }
 
+    void OnBeforeLootMoney(Player* player, Loot* loot) override
+    {
+
+
+        if (!loot->sourceWorldObjectGUID.IsCreature()) return;
+
+        Creature* creature = player->GetMap()->GetCreature(loot->sourceWorldObjectGUID);
+        if (!creature) return;
+
+        #ifdef NPC_BOT
+            if(creature->IsNPCBotOrPet()) {
+                return;
+            }
+        #endif
+
+        // Check if this is a Mythic+ scaled creature
+        MpCreatureData* creatureData = sMpDataStore->GetCreatureData(creature->GetGUID());
+        if (!creatureData || !creatureData->IsScaled()) return;
+
+        // Different gold ranges based on creature rank
+        uint32 bossMinGold = 10000; 
+        uint32 bossMaxGold = 13500;
+        
+        uint32 minGold, maxGold;
+        
+        // Determine gold range based on creature rank
+        if (creature->isWorldBoss() || creature->IsDungeonBoss())
+        {
+            // Boss: full range
+            minGold = bossMinGold;
+            maxGold = bossMaxGold;
+        }
+        else if (creature->GetCreatureTemplate()->rank == CREATURE_ELITE_RARE || 
+                 creature->GetCreatureTemplate()->rank == CREATURE_ELITE_ELITE)
+        {
+            // Elite: 70% of boss range
+            minGold = uint32(bossMinGold * 0.7f);
+            maxGold = uint32(bossMaxGold * 0.7f);
+        }
+        else
+        {
+            // Normal: 40% of boss range
+            minGold = uint32(bossMinGold * 0.4f);
+            maxGold = uint32(bossMaxGold * 0.4f);
+        }
+        
+        // Generate random gold amount in appropriate range
+        uint32 newGold = urand(minGold, maxGold);
+
+        // Apply server money rate
+        newGold = uint32(newGold * sWorld->getRate(RATE_DROP_MONEY));
+
+        loot->gold = newGold;
+    }
+
+    void OnGiveXP(Player* player, uint32& amount, Unit* victim, uint8 xpSource) override
+    {
+        if (xpSource != XPSOURCE_KILL || !victim) return;
+
+        Creature* creature = victim->ToCreature();
+        if (!creature) return;
+
+        #ifdef NPC_BOT
+            if(creature->IsNPCBotOrPet()) {
+                return;
+            }
+        #endif
+
+        // Check if this is a Mythic+ scaled creature
+        MpCreatureData* creatureData = sMpDataStore->GetCreatureData(creature->GetGUID());
+        if (!creatureData || !creatureData->IsScaled()) return;
+
+        // Recalculate XP using scaled level instead of original level
+        uint32 newBaseXP = Acore::XP::BaseGain(
+            player->GetLevel(),
+            creature->GetLevel(), // This is now the scaled level
+            GetContentLevelsForMapAndZone(creature->GetMapId(), creature->GetZoneId())
+        );
+
+        // Apply same modifiers as original calculation
+        float xpMod = 1.0f;
+        if (creature->isElite()) {
+            xpMod *= creature->GetMap()->IsDungeon() ? 2.75f : 2.0f;
+        }
+        xpMod *= creature->GetCreatureTemplate()->ModExperience;
+
+        amount = uint32(newBaseXP * xpMod * 1.5f); // flat bonus modifier for mythic dungeons
+    }
     void OnLogin(Player* player) override
     {
         MpLogger::info("Player {} logged in", player->GetName());
