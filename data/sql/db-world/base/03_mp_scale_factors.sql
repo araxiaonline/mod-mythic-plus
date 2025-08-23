@@ -49,7 +49,7 @@ VALUES
     (543, 1.6, 1.4, 1.4, 4, 3),  -- Hellfire Ramparts
     (545, 1.6, 1.4, 1.4, 4, 3),  -- Coilfang Steamvaults
     (546, 1.6, 1.4, 1.4, 4, 3),  -- Coilfang Reservoir: The Underbog
-    (547, 1.6, 1.4, 1.4, 4, 3),  -- Coilfang Reservoir: The Underbog
+    (547, 1.6, 1.4, 1.4, 4, 3),  -- Coilfang Reservoir: The Slave Pens
     (557, 1.6, 1.4, 1.4, 4, 3),  -- Auchindoun: Mana-Tombs
     (558, 1.6, 1.4, 1.4, 4, 3),  -- Auchindoun: Auchenai Crypts
     (560, 1.6, 1.4, 1.4, 4, 3)   -- Caverns of Time: Old Hillsbrad Foothills
