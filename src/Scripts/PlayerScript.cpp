@@ -113,8 +113,6 @@ public:
 
     void OnBeforeLootMoney(Player* player, Loot* loot) override
     {
-
-
         if (!loot->sourceWorldObjectGUID.IsCreature()) return;
 
         Creature* creature = player->GetMap()->GetCreature(loot->sourceWorldObjectGUID);
@@ -131,11 +129,11 @@ public:
         if (!creatureData || !creatureData->IsScaled()) return;
 
         // Different gold ranges based on creature rank
-        uint32 bossMinGold = 10000; 
+        uint32 bossMinGold = 10000;
         uint32 bossMaxGold = 13500;
-        
+
         uint32 minGold, maxGold;
-        
+
         // Determine gold range based on creature rank
         if (creature->isWorldBoss() || creature->IsDungeonBoss())
         {
@@ -143,7 +141,7 @@ public:
             minGold = bossMinGold;
             maxGold = bossMaxGold;
         }
-        else if (creature->GetCreatureTemplate()->rank == CREATURE_ELITE_RARE || 
+        else if (creature->GetCreatureTemplate()->rank == CREATURE_ELITE_RARE ||
                  creature->GetCreatureTemplate()->rank == CREATURE_ELITE_ELITE)
         {
             // Elite: 70% of boss range
@@ -156,7 +154,7 @@ public:
             minGold = uint32(bossMinGold * 0.4f);
             maxGold = uint32(bossMaxGold * 0.4f);
         }
-        
+
         // Generate random gold amount in appropriate range
         uint32 newGold = urand(minGold, maxGold);
 
