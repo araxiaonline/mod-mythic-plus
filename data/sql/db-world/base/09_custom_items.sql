@@ -80,7 +80,7 @@ INSERT INTO `item_template` (`entry`, `class`, `subclass`, `SoundOverrideSubclas
 DELETE FROM `item_loot_template` WHERE (`Entry` = 911100);
 INSERT INTO `item_loot_template` (`Entry`, `Item`, `Reference`, `Chance`, `QuestRequired`, `LootMode`, `GroupId`, `MinCount`, `MaxCount`, `Comment`) VALUES
 (911100, 33447, 0, 20, 0, 1, 0, 1, 3, 'Runic Healing Potion'),
-(911100, 33448, 0, 20, 0, 1, 0, 1, 3, 'runic Mana Potion'),
+(911100, 33448, 0, 20, 0, 1, 0, 1, 3, 'Runic Mana Potion'),
 (911100, 910001, 0, 10, 0, 1, 0, 1, 2, 'Araxia Tokens'),
 (911100, 911000, 0, 10, 0, 1, 0, 1, 3, 'Ancient Dice'),
 (911100, 911003, 0, 0.5, 0, 1, 0, 1, 1, 'Fused Ore'),
