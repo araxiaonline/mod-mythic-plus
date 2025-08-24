@@ -2,11 +2,11 @@
 
 🚨 **This is not mythic like in retail.** 🚨
 
-This module started with the intention of creating a retail-like mythic plus system but has evolved into something unique. Instead, think of it as an **expansion of existing Wrath to Cataclysm content** that reuses much of the existing dungeons and creatures, overhauling them to much higher difficulties with new loot mechanics.
+This module started with the intention of creating a retail-like mythic plus system but has evolved into something unique. Instead, think of it as an **expansion of existing Wrath to new end game conte r** that reuses much of the existing dungeons and creatures, overhauling them to much higher difficulties with new loot mechanics.
 
 ## Overview
 
-The Mythic Plus module transforms existing World of Warcraft dungeons (Wrath of the Lich King to Cataclysm content) into challenging, scaled encounters with progressive difficulty levels, enhanced rewards, and unique gameplay mechanics that extend far beyond the original retail mythic plus concept.
+The Mythic Plus module transforms existing World of Warcraft dungeons (Wrath of the Lich King to add additional endgame content) into challenging, scaled encounters with progressive difficulty levels, enhanced rewards, and unique gameplay mechanics to extend gameplay experience.
 
 ## Features
 
@@ -66,9 +66,11 @@ The module supports multiple difficulty levels with configurable scaling:
 ## Installation
 
 ### Prerequisites
-- AzerothCore server (latest version recommended)
-- MySQL/MariaDB database
-- C++ compiler with C++17 support
+- AraxiaOnline 2025 core : araxia-main brance (latest version recommended)
+- MySQL database 8.4
+- C++ compiler with C++20 support
+- docker for most tested experience
+- companion lua scripts **more details coming here**
 
 ### Build Process
 
@@ -326,4 +328,5 @@ This project is licensed under the GPL-3.0 License - see the [LICENSE](LICENSE) 
 ---
 
 *Remember: This module significantly increases dungeon difficulty. Start with lower difficulties and work your way up to avoid frustration. The enhanced challenge is designed to provide engaging content for experienced players seeking greater difficulty than the original game provided.*
+
 
