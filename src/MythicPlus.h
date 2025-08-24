@@ -69,9 +69,19 @@ public:
     uint32 legendaryItemOffset;
     uint32 ascendantItemOffset;
 
-    // Scaling modifiers
+    // Scaling modifiers (Deprecated)
     uint32 meleeAttackPowerDampener;
     uint32 meleeAttackPowerStart;
+
+    // Spell Damage Diminishing Returns
+    float diminishingExponent;
+    std::unordered_map<MpDifficulty, uint32> diminishingThresholds;
+
+    // Specialized variables used in calculations
+    float elementalMeleeReducer;
+    float normalEnemyReducer;
+    float nonCreatureSpellReducer;
+
 
     enum MP_UNIT_EVENT_TYPE
     {
@@ -132,6 +142,12 @@ public:
     // This scales a heal spell up based on the how much % the original heal spell was
     int32 ScaleHealSpell(SpellInfo const * spellInfo, uint32 heal, MpCreatureData* creatureData, Creature* creature, Creature* target, float healMultiplier);
 
+    // Calculate spell damage based on player health pools
+    int32 CalculateSpellDamage(uint32 baseDamage, int originalLevel, int targetLevel);
+
+    // Calculate heal scaling based on creature health percentages
+    int32 CalculateHealScaling(uint32 baseHeal, uint32 originalHealth, uint32 currentMaxHealth);
+
     static bool IsFinalBoss(Creature* creature);
     static void GroupReset(Group* group, Map* map);
 
@@ -145,6 +161,8 @@ float GetTypeDamageModifier(int32 rank);
 float CalculateScaling(int levelDifference, float scaleFactor, float constant = 1.25f, float growthFactor = 20.0f);
 uint32 CalculateNewHealth(Creature* creature, CreatureTemplate const* cInfo, uint32 mapId, MpDifficulty difficulty, uint32 origHealth, float confHPMod);
 float CalculateNewBaseDamage(CreatureTemplate const* cInfo, uint32 mapId, MpDifficulty difficulty, float origDamage);
+
+
 
 #define sMythicPlus MythicPlus::instance()
 

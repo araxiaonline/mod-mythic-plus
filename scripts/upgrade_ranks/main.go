@@ -2,6 +2,7 @@ package main
 
 import (
 	"fmt"
+	"math"
 	"os"
 )
 
@@ -15,12 +16,79 @@ const (
 )
 
 const (
-	RESIST_FROST = iota
+	RESIST_ARCANE = iota
 	RESIST_FIRE
 	RESIST_NATURE
+	RESIST_FROST
 	RESIST_SHADOW
-	RESIST_ARCANE
 )
+
+// Return the itemEntry for a state item and based on quality (3 - rare, 4 - epic)
+func getStatItemEntry(statID int, quality int) int {
+	switch statID {
+	case STAT_INTELLECT:
+		if quality == 3 {
+			return 911005
+		}
+		return 911006
+	case STAT_SPIRIT:
+		if quality == 3 {
+			return 911009
+		}
+		return 911010
+	case STAT_STRENGTH:
+		if quality == 3 {
+			return 911003
+		}
+		return 911004
+	case STAT_AGILITY:
+		if quality == 3 {
+			return 911007
+		}
+		return 911008
+	case STAT_STAMINA:
+		if quality == 3 {
+			return 911011
+		}
+		return 911012
+
+	default:
+		return 0
+	}
+}
+
+func getResistItemEntry(resistID int, quality int) int {
+	switch resistID {
+	case RESIST_FROST:
+		if quality == 3 {
+			return 911015
+		}
+		return 911016
+	case RESIST_FIRE:
+		if quality == 3 {
+			return 911017
+		}
+		return 911018
+	case RESIST_NATURE:
+		if quality == 3 {
+			return 911023
+		}
+		return 911024
+	case RESIST_SHADOW:
+		if quality == 3 {
+			return 911021
+		}
+		return 911022
+	case RESIST_ARCANE:
+		if quality == 3 {
+			return 911019
+		}
+		return 911020
+
+	default:
+		return 0
+	}
+}
 
 func main() {
 	// Output file for the SQL script
@@ -40,9 +108,17 @@ func main() {
 		STAT_STAMINA:   "Stamina",
 	}
 
+	resistTypes := map[int]string{
+		RESIST_ARCANE: "Arcane",
+		RESIST_FIRE:   "Fire",
+		RESIST_NATURE: "Nature",
+		RESIST_FROST:  "Frost",
+		RESIST_SHADOW: "Shadow",
+	}
+
 	// Start writing the SQL script
 	fmt.Fprintln(outputFile, "-- SQL Script to Insert 50 Ranks for Each Stat")
-	fmt.Fprintln(outputFile, "INSERT INTO mp_upgrade_ranks (upgradeRank, advancementId, materialId1, materialCost1, materialId2, materialCost2, materialId3, materialCost3, minIncrease1, maxIncrease1, minIncrease2, maxIncrease2, minIncrease3, maxIncrease3, chanceCost1, chanceCost2, chanceCost3) VALUES")
+	fmt.Fprintln(outputFile, "INSERT INTO mp_upgrade_ranks (upgradeRank, advancementId, itemEntry1, itemCost1, itemEntry2, itemCost2, itemEntry3, itemCost3, minIncrease1, maxIncrease1, minIncrease2, maxIncrease2, minIncrease3, maxIncrease3, chanceCost1, chanceCost2, chanceCost3) VALUES")
 
 	// Iterate over stats
 	for statID := range stats {
@@ -59,6 +135,9 @@ func main() {
 				materialCost = 1000 + (rank-30)*18
 			}
 
+			// Make adjustment for new fusion core types
+			itemCost1 := int(math.Ceil(float64(materialCost) / 20))
+
 			// Stat growth
 			minIncrease1 := 1 + (rank-1)/10*2
 			maxIncrease1 := 10 + (rank-1)/10*2
@@ -74,47 +153,49 @@ func main() {
 			chanceCost3 := 75 + (rank-1)*3
 
 			// use material ids from the mp_material_types table material1 should be common stuff.
-			materialId1 := statID*2 + 1
+			itemEntry1 := getStatItemEntry(statID, 3)
 
 			// material2 should be rare stuff only required after rank 10 at growth rate of 5 per rank
-			materialId2, materialCost2 := 0, 0
+			itemEntry2, itemCost2 := 0, 0
 			if rank > 10 {
-				materialId2 = statID*2 + 2
-				materialCost2 = (rank - 11) * 10
+				itemEntry2 = getStatItemEntry(statID, 4)
+				itemCost2 = (rank - 11) * 10
 			}
 
-			materialId3, materialCost3 := 0, 0
+			// Adjust from old formula to new mythic fusion core types
+			itemCost2 = int(math.Ceil(float64(itemCost2) / 5))
+
+			itemEntry3, itemCost3 := 0, 0
 			if rank >= 30 {
-				materialId3 = 20 // Group lot of raid only items
-				materialCost3 = (rank - 29) * 3
+				itemEntry3 = 911002 // veilstones
+				itemCost3 = (rank - 29) * 3
+				if itemCost3 > 15 {
+					itemCost3 = 15
+				}
 			}
 
 			// Write SQL insert statement for this rank
 			sql := fmt.Sprintf(
 				"(%d, %d, %d, %d, %d, %d, %d, %d, %d, %d, %d, %d, %d, %d, %d, %d, %d)",
-				rank, statID, materialId1, materialCost, materialId2, materialCost2, materialId3, materialCost3,
+				rank, statID, itemEntry1, itemCost1, itemEntry2, itemCost2, itemEntry3, itemCost3,
 				minIncrease1, maxIncrease1, minIncrease2, maxIncrease1, minIncrease3, maxIncrease3,
 				chanceCost1, chanceCost2, chanceCost3,
 			)
 
 			// Add a comma for all but the last line
-			sql += ","
-			fmt.Fprintln(outputFile, sql)
+			isLastStat := statID == STAT_STAMINA && rank == 50
+			isLastResist := false
+			isLast := isLastStat && len(resistTypes) == 0 || isLastResist
 
+			if !isLast {
+				sql += ","
+			}
+			fmt.Fprintln(outputFile, sql)
 		}
 	}
 
-	resists := map[int]string{
-		RESIST_FROST:  "Frost",
-		RESIST_FIRE:   "Fire",
-		RESIST_NATURE: "Nature",
-		RESIST_SHADOW: "Shadow",
-		RESIST_ARCANE: "Arcane",
-	}
-
-	// Iterate over stats
-	for resistId := range resists {
-
+	// Iterate over resists
+	for resistId := range resistTypes {
 		resistIdbump := resistId + 5
 		for rank := 1; rank <= 50; rank++ {
 			// Material cost increases by 50 per rank
@@ -128,6 +209,9 @@ func main() {
 			if rank >= 30 {
 				materialCost = 700 + (rank-30)*18
 			}
+
+			// Make adjustment for new fusion core types
+			itemCost1 := int(math.Ceil(float64(materialCost) / 20))
 
 			// Stat growth
 			minIncrease1 := 1 + (rank-1)/5*2
@@ -145,31 +229,36 @@ func main() {
 			chanceCost3 := 75 + (rank-1)*3
 
 			// use material ids from the mp_material_types table material1 should be common stuff.
-			materialId1 := resistIdbump*2 + 1
+			itemEntry1 := getResistItemEntry(resistId, 3)
 
 			// material2 should be rare stuff only required after rank 10 at growth rate of 5 per rank
-			materialId2, materialCost2 := 0, 0
+			itemEntry2, itemCost2 := 0, 0
 			if rank > 10 {
-				materialId2 = resistIdbump*2 + 2
-				materialCost2 = (rank - 11) * 10
+				itemEntry2 = getResistItemEntry(resistId, 4)
+				itemCost2 = (rank - 11) * 10
 			}
 
-			materialId3, materialCost3 := 0, 0
+			// Adjust from old formula to new mythic fusion core types
+			itemCost2 = int(math.Ceil(float64(itemCost2) / 5))
+
+			itemEntry3, itemCost3 := 0, 0
 			if rank >= 30 {
-				materialId3 = 20 // Group lot of raid only items
-				materialCost3 = (rank - 29) * 3
+				itemEntry3 = 911002 // veilstones
+				itemCost3 = (rank - 29) * 3
 			}
 
 			// Write SQL insert statement for this rank
 			sql := fmt.Sprintf(
 				"(%d, %d, %d, %d, %d, %d, %d, %d, %d, %d, %d, %d, %d, %d, %d, %d, %d)",
-				rank, resistIdbump, materialId1, materialCost, materialId2, materialCost2, materialId3, materialCost3,
+				rank, resistIdbump, itemEntry1, itemCost1, itemEntry2, itemCost2, itemEntry3, itemCost3,
 				minIncrease1, maxIncrease1, minIncrease2, maxIncrease1, minIncrease3, maxIncrease3,
 				chanceCost1, chanceCost2, chanceCost3,
 			)
 
 			// Add a comma for all but the last line
-			if !(resistId == RESIST_ARCANE && rank == 50) {
+			isLast := resistId == RESIST_ARCANE && rank == 50
+
+			if !isLast {
 				sql += ","
 			}
 			fmt.Fprintln(outputFile, sql)

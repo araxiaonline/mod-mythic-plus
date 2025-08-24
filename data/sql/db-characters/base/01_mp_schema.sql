@@ -17,7 +17,7 @@ CREATE TABLE mp_player_instance_data (
     guid          INT UNSIGNED NOT NULL DEFAULT '0',
     difficulty    INT UNSIGNED NOT NULL DEFAULT '3',
     mapId         INT UNSIGNED NOT NULL,
-    instanceId    INT UNSIGNED,
+    instanceId    INT UNSIGNED NOT NULL DEFAULT '0',
     deaths        INT UNSIGNED NOT NULL,
 
     PRIMARY KEY (guid, mapId, instanceId)

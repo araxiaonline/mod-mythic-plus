@@ -4,12 +4,12 @@ DROP TABLE IF EXISTS mp_upgrade_ranks;
 CREATE TABLE mp_upgrade_ranks (
     upgradeRank     INT UNSIGNED NOT NULL,
     advancementId   INT UNSIGNED NOT NULL,
-    materialId1     INT UNSIGNED NOT NULL,
-    materialId2     INT UNSIGNED NOT NULL,
-    materialId3     INT UNSIGNED NOT NULL,
-    materialCost1   INT UNSIGNED NOT NULL,
-    materialCost2   INT UNSIGNED NOT NULL,
-    materialCost3   INT UNSIGNED NOT NULL,
+    itemEntry1      INT UNSIGNED NOT NULL,
+    itemEntry2      INT UNSIGNED NOT NULL,
+    itemEntry3      INT UNSIGNED NOT NULL,
+    itemCost1       INT UNSIGNED NOT NULL,
+    itemCost2       INT UNSIGNED NOT NULL,
+    itemCost3       INT UNSIGNED NOT NULL,
     minIncrease1    INT UNSIGNED NOT NULL,
     maxIncrease1    INT UNSIGNED NOT NULL,
     minIncrease2    INT UNSIGNED NOT NULL,
@@ -23,7 +23,7 @@ CREATE TABLE mp_upgrade_ranks (
     PRIMARY KEY (upgradeRank, advancementId)
 );
 
--- Used to allocate trade materials based on slot upgrades
+-- Used to allocate trade materials to a category for fusion into new tradeskills
 DROP TABLE IF EXISTS mp_material_types;
 CREATE TABLE mp_material_types (
     materialId  INT UNSIGNED NOT NULL,
@@ -38,11 +38,10 @@ CREATE TABLE mp_material_types (
 DROP TABLE IF EXISTS mp_scale_factors;
 CREATE TABLE mp_scale_factors (
     mapId         SMALLINT       NOT NULL,
-    dmg_bonus     INT            DEFAULT '100',
-    spell_bonus   INT            DEFAULT '100',
-    hp_bonus      INT            DEFAULT '100',
-    difficulty    INT            DEFAULT '100',
-    max           INT            DEFAULT '100',
-
+    melee_bonus   FLOAT          DEFAULT '1',
+    spell_bonus   FLOAT          DEFAULT '1',
+    heal_bonus    FLOAT          DEFAULT '1',
+    hp_bonus      FLOAT          DEFAULT '1',
+    difficulty    FLOAT          DEFAULT '1',
     PRIMARY KEY (mapId)
 );
