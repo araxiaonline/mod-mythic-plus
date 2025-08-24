@@ -1,5 +1,6 @@
 #include "CharacterDatabase.h"
 #include "MpDataStore.h"
+#include "Chat.h"
 #include "Group.h"
 #include "MpLogger.h"
 #include "Chat.h"
@@ -134,15 +135,13 @@ void MpDataStore::RemoveGroupData(Group *group) {
     MpLogger::debug("RemoveGroupData for group {}", group->GetGUID().GetCounter());
     _groupData->erase(group->GetGUID());
 
-    CharacterDatabase.Execute("DELETE FROM group_difficulty WHERE guid = {}) ", group->GetGUID().GetCounter());
+    CharacterDatabase.Execute("DELETE FROM group_difficulty WHERE guid = {}", group->GetGUID().GetCounter());
 }
 
+// Adds PlayerData related to MythicRun Status to map
 void MpDataStore::AddPlayerData(ObjectGuid guid, MpPlayerData* pd) {
-    MpLogger::debug("AddPlayerData for player {}", guid.GetCounter());
     _playerData->emplace(guid, pd);
 
-    // get the player
-    Player* player = ObjectAccessor::FindPlayer(guid);
 }
 
 void MpDataStore::RemovePlayerData(ObjectGuid guid) {
@@ -174,7 +173,7 @@ void MpDataStore::RemoveInstanceData(uint32 mapId, uint32 instanceId) {
 
 void MpDataStore::AddCreatureData(ObjectGuid guid, MpCreatureData creatureData) {
     // MpLogger::debug("AddInstanceCreatureData for creature {}", guid.GetCounter());
-    _instanceCreatureData->emplace(guid, creatureData);
+    _instanceCreatureData->insert_or_assign(guid, std::move(creatureData));
 }
 
 MpCreatureData* MpDataStore::GetCreatureData(ObjectGuid guid) {
@@ -221,45 +220,61 @@ MpScaleFactor MpDataStore::GetScaleFactor(int32 mapId, int32 difficulty) const {
         return _scaleFactors->at(key);
     }
 
+    // Just send back untouched bonus database will override.
     return MpScaleFactor{
-        .dmgBonus = 3,
-        .healthBonus = 2,
-        .maxDamageBonus = 30
+        .meleeBonus = 1.0f,
+        .spellBonus = 1.0f,
+        .healBonus = 1.0f,
+        .healthBonus = 1.0f
     };
 }
 
-int32 MpDataStore::GetHealthScaleFactor(int32 mapId, int32 difficulty) const {
+float MpDataStore::GetHealthScaleFactor(int32 mapId, int32 difficulty) const {
     return GetScaleFactor(mapId, difficulty).healthBonus;
 }
 
-int32 MpDataStore::GetDamageScaleFactor(int32 mapId, int32 difficulty) const {
-    return GetScaleFactor(mapId, difficulty).dmgBonus;
+float MpDataStore::GetMeleeScaleFactor(int32 mapId, int32 difficulty) const {
+    return GetScaleFactor(mapId, difficulty).meleeBonus;
 }
 
-int32 MpDataStore::GetSpellScaleFactor(int32 mapId, int32 difficulty) const {
+float MpDataStore::GetSpellScaleFactor(int32 mapId, int32 difficulty) const {
     return GetScaleFactor(mapId, difficulty).spellBonus;
 }
 
-int32 MpDataStore::GetMaxDamageScaleFactor(int32 mapId, int32 difficulty) const {
-    return GetScaleFactor(mapId, difficulty).maxDamageBonus;
+float MpDataStore::GetHealScaleFactor(int32 mapId, int32 difficulty) const {
+    return GetScaleFactor(mapId, difficulty).healBonus;
 }
 
-void MpDataStore::SetHealthScaleFactor(int32 mapId, int32 difficulty, int32 newValue) {
+uint32 MpDataStore::GetPlayerHealthAvg(uint32 level) const {
+    if (_playerHealthAvg.contains(level)) {
+        return _playerHealthAvg.at(level);
+    }
+    return 0;
+}
+
+void MpDataStore::SetHealScaleFactor(int32 mapId, int32 difficulty, float newValue) {
+    auto key = GetScaleFactorKey(mapId, difficulty);
+    if (_scaleFactors && _scaleFactors->contains(key)) {
+        _scaleFactors->at(key).healBonus = newValue;
+    }
+}
+
+void MpDataStore::SetHealthScaleFactor(int32 mapId, int32 difficulty, float newValue) {
     auto key = GetScaleFactorKey(mapId, difficulty);
     if (_scaleFactors && _scaleFactors->contains(key)) {
         _scaleFactors->at(key).healthBonus = newValue;
     }
 }
 
-void MpDataStore::SetDamageScaleFactor(int32 mapId, int32 difficulty, int32 newValue) {
+void MpDataStore::SetMeleeScaleFactor(int32 mapId, int32 difficulty, float newValue) {
     auto key = GetScaleFactorKey(mapId, difficulty);
 
     if (_scaleFactors && _scaleFactors->contains(key)) {
-        _scaleFactors->at(key).dmgBonus = newValue;
+        _scaleFactors->at(key).meleeBonus = newValue;
     }
 }
 
-void MpDataStore::SetSpellScaleFactor(int32 mapId, int32 difficulty, int32 newValue) {
+void MpDataStore::SetSpellScaleFactor(int32 mapId, int32 difficulty, float newValue) {
     auto key = GetScaleFactorKey(mapId, difficulty);
     if (_scaleFactors && _scaleFactors->contains(key)) {
         _scaleFactors->at(key).spellBonus = newValue;
@@ -270,7 +285,7 @@ int32 MpDataStore::LoadScaleFactors() {
     _scaleFactors->clear();
 
     //                                                 0       1          2              3        4        5
-    QueryResult result = WorldDatabase.Query("SELECT mapId, dmg_bonus, spell_bonus, hp_bonus, difficulty, max FROM mythic_plus_scale_factors");
+    QueryResult result = WorldDatabase.Query("SELECT mapId, melee_bonus, spell_bonus, heal_bonus, hp_bonus, difficulty FROM mp_scale_factors");
     if (!result) {
         MpLogger::error("Failed to load mythic scale factors from database");
         return 0;
@@ -279,17 +294,17 @@ int32 MpDataStore::LoadScaleFactors() {
     do {
         Field* fields = result->Fetch();
         uint32 mapId = fields[0].Get<uint32>();
-        int32 damageBonus = fields[1].Get<int32>();
-        int32 spellBonus = fields[2].Get<int32>();
-        int32 healthBonus = fields[3].Get<int32>();
-        int32 difficulty = fields[4].Get<int32>();
-        int32 maxDamageBonus = fields[5].Get<int32>();
+        float meleeBonus = fields[1].Get<float>();
+        float spellBonus = fields[2].Get<float>();
+        float healBonus = fields[3].Get<float>();
+        float healthBonus = fields[4].Get<float>();
+        int32 difficulty = fields[5].Get<int32>();
 
         MpScaleFactor scaleFactor = {
-            .dmgBonus = damageBonus,
-            .healthBonus = healthBonus,
+            .meleeBonus = meleeBonus,
             .spellBonus = spellBonus,
-            .maxDamageBonus = maxDamageBonus
+            .healBonus = healBonus,
+            .healthBonus = healthBonus
         };
 
         _scaleFactors->emplace(GetScaleFactorKey(mapId, difficulty), scaleFactor);
@@ -297,6 +312,45 @@ int32 MpDataStore::LoadScaleFactors() {
     } while (result->NextRow());
 
     return int32(_scaleFactors->size());
+}
+
+void MpDataStore::LoadPlayerHealthAvg() {
+    _playerHealthAvg.clear();
+
+    std::string_view query = R"(
+        SELECT
+            Level,
+            ROUND(CASE
+                WHEN Level BETWEEN 1  AND 30 THEN ((AVG(Stamina) - 20) * 10 + AVG(BaseHP) + 20) * 1.5
+                WHEN Level BETWEEN 31 AND 50 THEN ((AVG(Stamina) - 20) * 10 + AVG(BaseHP) + 20) * 1.7
+                WHEN Level BETWEEN 51 AND 59 THEN ((AVG(Stamina) - 20) * 10 + AVG(BaseHP) + 20) * 2.0
+                WHEN Level BETWEEN 60 AND 69 THEN ((AVG(Stamina) - 20) * 10 + AVG(BaseHP) + 20) * 2.3
+                WHEN Level BETWEEN 70 AND 79 THEN ((AVG(Stamina) - 20) * 10 + AVG(BaseHP) + 20) * 2.6
+                WHEN Level BETWEEN 80 AND 84 THEN ((AVG(Stamina) - 20) * 10 + AVG(BaseHP) + 20) * 3.0
+                WHEN Level >= 85           THEN ((AVG(Stamina) - 20) * 10 + AVG(BaseHP) + 20) * 4.0
+                ELSE                            ((AVG(Stamina) - 20) * 10 + AVG(BaseHP) + 20)
+            END) AS BaseHealth
+        FROM
+            player_class_stats
+        GROUP BY
+            Level
+        ORDER BY
+            Level;
+    )";
+
+    if (QueryResult result = WorldDatabase.Query(query.data())) {
+        do {
+            Field* fields = result->Fetch();
+            uint32 level = fields[0].Get<uint32>();
+            uint32 baseHealth = fields[1].Get<uint32>();
+
+            _playerHealthAvg[level] = baseHealth;
+
+        } while (result->NextRow());
+
+    } else {
+        MpLogger::error("Failed to load player health averages from database");
+    }
 }
 
 /**

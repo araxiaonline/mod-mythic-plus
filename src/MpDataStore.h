@@ -15,7 +15,8 @@
 #include <vector>
 #include <memory>
 
-enum MpDifficulty {
+enum MpDifficulty
+{
     MP_DIFFICULTY_NORMAL    = 0,
     MP_DIFFICULTY_HEROIC    = 1,
     MP_DIFFICULTY_EPIC      = 2,
@@ -26,7 +27,8 @@ enum MpDifficulty {
 
 class MpDataStore;
 
-struct MpPlayerInstanceData {
+struct MpPlayerInstanceData
+{
     uint32 deaths = 0;
 };
 
@@ -99,11 +101,6 @@ struct MpGroupData
     uint32 GetDeaths(uint32 mapId, uint32 instanceId) const {
         uint32 deaths = 0;
         for (const MpPlayerData* player : players) {
-
-            auto mapKey = std::make_pair(mapId, instanceId);
-            auto instanceData = player->instanceData;
-
-            MpLogger::info(">>>>>>>>>>> Player: {} has {} deaths", player->player->GetName(), player->GetDeaths(mapId, instanceId));
             deaths += player->GetDeaths(mapId, instanceId);
         }
         return deaths;
@@ -146,17 +143,22 @@ struct MpGroupData
 
 };
 
+/**
+ * @brief Struct used for internal scaling of mythic+ difficulty. Fine-tuned in
+ * database.
+ */
 struct MpScaleFactor
 {
-    int32 dmgBonus;
-    int32 healthBonus;
-    int32 spellBonus;
-    int32 maxDamageBonus;
+    float meleeBonus;
+    float spellBonus;
+    float healBonus;
+    float healthBonus;
 
     std::string ToString() const {
-        return "MpScaleFactor: { dmgBonus: " + std::to_string(dmgBonus) +
+        return "MpScaleFactor: { meleeBonus: " + std::to_string(meleeBonus) +
                ", healthBonus: " + std::to_string(healthBonus) +
-               ", spellBonus: " + std::to_string(spellBonus) + "}";
+               ", spellBonus: " + std::to_string(spellBonus) +
+               ", healBonus: " + std::to_string(healBonus) + "}";
     }
 
 };
@@ -214,6 +216,7 @@ struct MpCreatureData
 {
     Creature* creature;
     bool scaled;
+    DeathState lastDeathState; // used to determine if a creature has been respawned
 
     // AttackPower calculated based on settings
     uint32 NewAttackPower;
@@ -223,6 +226,7 @@ struct MpCreatureData
 
     // Original information about the creature that was altered.
     uint8 originalLevel;
+    uint32 originalInstanceHealth; // Health the creature would have in instance before Mythic+ scaling
 
     CreatureBaseStats const* originalStats;
     MpDifficulty difficulty;
@@ -232,7 +236,7 @@ struct MpCreatureData
     std::vector<std::string> affixes;
 
     MpCreatureData(Creature* creature)
-        : creature(creature), scaled(false)
+        : creature(creature), scaled(false), originalInstanceHealth(0)
     {
         if(creature) {
             originalLevel = creature->GetLevel();
@@ -240,6 +244,9 @@ struct MpCreatureData
                 originalLevel,
                 creature->GetCreatureTemplate()->unit_class
             );
+
+            originalInstanceHealth = creature->GetMaxHealth();
+
         }
 
         auras.reserve(3);
@@ -262,7 +269,7 @@ struct MpCreatureData
 
         std::string origStatsStr;
         if(originalStats) {
-            uint32 health = *originalStats->BaseHealth;
+            uint32 health = originalInstanceHealth;
             uint32 mana = originalStats->BaseMana;
             uint32 armor = originalStats->BaseArmor;
             uint32 ap = originalStats->AttackPower;
@@ -289,7 +296,8 @@ struct MpCreatureData
     /**@todo Add Affixes and Aura Spell methods */
 };
 
-class MpDataStore {
+class MpDataStore
+{
 private:
     MpDataStore()
     : _playerData(std::make_unique<std::unordered_map<ObjectGuid, MpPlayerData*>>()),
@@ -324,6 +332,10 @@ private:
 
     // use to mimic pattern normals scale to heroic  (loaded at server start)
     std::unique_ptr<std::map<std::pair<int32,int32>,MpScaleFactor>> _scaleFactors; // {mapId,difficulty}
+
+    // Player mapping of level to average amount of health for that level, this is used for scaling against
+    // percentages to more consistently scale damage from spells and healing from creatures.
+    std::unordered_map<uint32, uint32> _playerHealthAvg; // level -> avg health
 
     // Single creature multipliers used to scale creatures individually that may need tuned up or down.
     // std::unique_ptr<std::unordered_map<uint32, CreatureOverride>> _creatureOverrides;
@@ -379,15 +391,19 @@ public:
     std::vector<MpCreatureData*> GetUnscaledCreatures(uint32 mapId, uint32 instanceId);
 
     // Scale factors are used to determine a base bonus for enemies base on the instance difficulty
-    int32 GetHealthScaleFactor(int32 mapId, int32 difficulty) const;
-    int32 GetDamageScaleFactor(int32 mapId, int32 difficulty) const;
-    int32 GetMaxDamageScaleFactor(int32 mapId, int32 difficulty) const;
-    int32 GetSpellScaleFactor(int32 mapId, int32 difficulty) const;
+    float GetHealthScaleFactor(int32 mapId, int32 difficulty) const;
+    float GetMeleeScaleFactor(int32 mapId, int32 difficulty) const;
+    float GetSpellScaleFactor(int32 mapId, int32 difficulty) const;
+    float GetHealScaleFactor(int32 mapId, int32 difficulty) const;
     MpScaleFactor GetScaleFactor(int32 mapId, int32 difficulty) const;
 
-    void SetDamageScaleFactor(int32 mapId, int32 difficulty, int32 value);
-    void SetHealthScaleFactor(int32 mapId, int32 difficulty, int32 value);
-    void SetSpellScaleFactor(int32 mapId, int32 difficulty, int32 value);
+    void SetMeleeScaleFactor(int32 mapId, int32 difficulty, float value);
+    void SetHealthScaleFactor(int32 mapId, int32 difficulty, float value);
+    void SetSpellScaleFactor(int32 mapId, int32 difficulty, float value);
+    void SetHealScaleFactor(int32 mapId, int32 difficulty, float value);
+
+    // Retrieves the average players hp pool for a player level
+    uint32 GetPlayerHealthAvg(uint32 level) const;
 
     // Individual Creature Scaling Multipliers
     // void AddCreatureOverride(uint32 entry, CreatureOverride* override);
@@ -402,6 +418,9 @@ public:
 
     // Used at initial server load
     int32 LoadScaleFactors();
+
+    // Load the player health average from the database
+    void LoadPlayerHealthAvg();
 
     // Database API calls
     void DBUpdatePlayerInstanceData(ObjectGuid playerGuid, MpDifficulty difficulty, uint32 mapId = 0, uint32 instanceId = 0, uint32 deaths = 0);

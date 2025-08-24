@@ -1,5 +1,6 @@
 
 #include "Chat.h"
+#include "AdvancementMgr.h"
 #include "MpDataStore.h"
 #include "MythicPlus.h"
 #include "MpDataStore.h"
@@ -38,7 +39,8 @@ public:
             {"mp", commandTableMain},
             {"mythicplus", commandTableMain},
             {"mp debug", HandleDebug, SEC_PLAYER, Console::No},
-            {"mp reload", HandleReload, SEC_GAMEMASTER, Console::No}
+            {"mp reload", HandleReload, SEC_GAMEMASTER, Console::No},
+            {"advancement", HandleAdvancement, SEC_PLAYER, Console::No}
         };
 
         return commandTable;
@@ -155,7 +157,7 @@ public:
             group->SetDungeonDifficulty(DUNGEON_DIFFICULTY_NORMAL);
         }
         else {
-            handler->PSendSysMessage("|cFFFF0000 Invalid difficulty level. Expected values are 'mythic', 'legendary', or 'ascendant'.");
+            handler->PSendSysMessage("|cFFFF0000 Invalid difficulty level. Expected values are 'normal', 'heroic', 'mythic', 'legendary', or 'ascendant'.");
             return true;
         }
 
@@ -186,14 +188,11 @@ public:
         Map* map = player->GetMap();
         uint32 mapId = player->GetMapId();
 
-        std::string status = Acore::StringFormat(
-            "Mythic+ Status:\n"
-            "  Mythic+ Enabled: %s\n"
-            "  Mythic+ Item Rewards: %s\n"
-            "  Mythic+ DeathLimits: %s\n",
-            sMythicPlus->Enabled ? "Yes" : "No",
-            sMythicPlus->EnableItemRewards ? "Yes" : "No",
-            sMythicPlus->EnableDeathLimits ? "Yes" : "No");
+        std::string status = Acore::StringFormat("Mythic+ Status:\n Mythic+ Enabled: {}\n Mythic+ Item Rewards: {}\n Mythic+ DeathLimits: {}\n",
+            std::string((sMythicPlus->Enabled) ? "Yes" : "No"),
+            std::string((sMythicPlus->EnableItemRewards) ? "Yes" : "No"),
+            std::string((sMythicPlus->EnableDeathLimits) ? "Yes" : "No")
+        );
 
         if (player->GetGroup()) {
             auto groupData = sMpDataStore->GetGroupData(player->GetGroup()->GetGUID());
@@ -204,10 +203,7 @@ public:
                     scaleFactors = sMpDataStore->GetScaleFactor(mapId, groupData->difficulty);
                 }
 
-                status += Acore::StringFormat(
-                    "  Group Difficulty: %u\n"
-                    "  Group Deaths: %u\n"
-                    "  Scale FactorStr %s\n",
+                status += Acore::StringFormat("  Group Difficulty: {}\n Group Deaths: {}\n  Scale FactorStr {}\n",
                     (groupData->difficulty) ? groupData->difficulty : 0,
                     (groupData->GetDeaths(player->GetMapId(), player->GetInstanceId())),
                     scaleFactors.ToString()
@@ -315,9 +311,9 @@ public:
             auto groupData = sMpDataStore->GetGroupData(player->GetGroup()->GetGUID());
 
             if(groupData) {
-                uint32 value = std::stoi(args[0]);
-                sMpDataStore->SetDamageScaleFactor(player->GetMapId(), groupData->difficulty, value);
-                handler->PSendSysMessage(Acore::StringFormat("Melee scale factor set to: %u", value));
+                float value = std::stof(args[0]);
+                sMpDataStore->SetMeleeScaleFactor(player->GetMapId(), groupData->difficulty, value);
+                handler->PSendSysMessage(Acore::StringFormat("Melee scale factor set to: {}", value));
                 return true;
             }
         }
@@ -343,9 +339,9 @@ public:
             auto groupData = sMpDataStore->GetGroupData(player->GetGroup()->GetGUID());
 
             if(groupData) {
-                uint32 value = std::stoi(args[0]);
+                float value = std::stof(args[0]);
                 sMpDataStore->SetSpellScaleFactor(player->GetMapId(), groupData->difficulty, value);
-                handler->PSendSysMessage(Acore::StringFormat("Spell scale factor set to: %u", value));
+                handler->PSendSysMessage(Acore::StringFormat("Spell scale factor set to: {}", value));
                 return true;
             }
         }
@@ -371,14 +367,37 @@ public:
             auto groupData = sMpDataStore->GetGroupData(player->GetGroup()->GetGUID());
 
             if(groupData) {
-                uint32 value = std::stoi(args[0]);
+                float value = std::stof(args[0]);
                 sMpDataStore->SetHealthScaleFactor(player->GetMapId(), groupData->difficulty, value);
-                handler->PSendSysMessage(Acore::StringFormat("Health scale factor set to: %u", value));
+                handler->PSendSysMessage(Acore::StringFormat("Health scale factor set to: {}", value));
                 return true;
             }
         }
 
         handler->PSendSysMessage("|cFFFF0000 You must be in a group and mythic+ instance to set a melee scale factor.");
+        return true;
+    }
+
+    static bool HandleAdvancement(ChatHandler* handler)
+    {
+        Player* player = handler->GetSession()->GetPlayer();
+        std::string message = "";
+
+        for(int i =0; i < MpAdvancements::MP_ADV_MAX; i++) {
+            MpPlayerRank* playerRank = sAdvancementMgr->GetPlayerAdvancementRank(player, static_cast<MpAdvancements>(i));
+            if(!playerRank) {
+                continue;
+            }
+
+            message += Acore::StringFormat("Your Advancement Bonuses: \n {}: {} bonus: {}", MpAdvancementsToString(static_cast<MpAdvancements>(i)), playerRank->rank, playerRank->bonus);
+        }
+
+        if(message.empty()) {
+            message = "You have no advancements.";
+        }
+
+        handler->PSendSysMessage(message);
+
         return true;
     }
 
