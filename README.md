@@ -85,6 +85,8 @@ The module supports multiple difficulty levels with configurable scaling:
    ```
 
 3. **Install database changes**:
+   Database changes will be installed using azerothcores built in script, if it does not you can use the following commands below: 
+
    ```bash
    # Apply the SQL files from data/sql/ in the correct order
    # Note: This includes extensive item database additions (50,000+ items)
@@ -324,3 +326,4 @@ This project is licensed under the GPL-3.0 License - see the [LICENSE](LICENSE) 
 ---
 
 *Remember: This module significantly increases dungeon difficulty. Start with lower difficulties and work your way up to avoid frustration. The enhanced challenge is designed to provide engaging content for experienced players seeking greater difficulty than the original game provided.*
+
