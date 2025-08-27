@@ -5,7 +5,7 @@ REPLACE INTO `creature_template` (`entry`, `difficulty_entry_1`, `difficulty_ent
 
 DELETE FROM `creature_template_model` WHERE (`CreatureID` = 9500561);
 INSERT INTO `creature_template_model` (`CreatureID`, `Idx`, `CreatureDisplayID`, `DisplayScale`, `Probability`, `VerifiedBuild`) VALUES
-(9500561, 0, 9500561, 1, 1, 12340);
+(9500561, 0, 25594, 1, 1, 12340);
 
 DELETE FROM `creature_equip_template` WHERE (`CreatureID` = 9500561);
 INSERT INTO `creature_equip_template` (`CreatureID`, `ID`, `ItemID1`, `ItemID2`, `ItemID3`, `VerifiedBuild`) VALUES
@@ -131,20 +131,20 @@ VALUES (9500567, 0.35, 1.25, 1, 0);
 -- Agatha
 DELETE FROM `creature` WHERE (`id1` = 9500567);
 INSERT INTO `creature` (`guid`, `id1`, `id2`, `id3`, `map`, `zoneId`, `areaId`, `spawnMask`, `phaseMask`, `equipment_id`, `position_x`, `position_y`, `position_z`, `orientation`, `spawntimesecs`, `wander_distance`, `currentwaypoint`, `curhealth`, `curmana`, `MovementType`, `npcflag`, `unit_flags`, `dynamicflags`, `ScriptName`, `VerifiedBuild`, `CreateObject`, `Comment`) VALUES
-(9001011, 9500567, 0, 0, 530, 0, 0, 1, 1, 0, -1990.6, 5214.14, -44.0752, 0.978763, 300, 0, 0, 1333900, 0, 0, 0, 0, 0, '', NULL, 0, NULL),
-(9001014, 9500567, 0, 0, 571, 0, 0, 1, 1, 0, 5804.06, 639.865, 609.886, 5.98164, 300, 0, 0, 1333900, 0, 0, 0, 0, 0, '', NULL, 0, NULL);
+(9101011, 9500567, 0, 0, 530, 0, 0, 1, 1, 0, -1990.6, 5214.14, -44.0752, 0.978763, 300, 0, 0, 1333900, 0, 0, 0, 0, 0, '', NULL, 0, NULL),
+(9101014, 9500567, 0, 0, 571, 0, 0, 1, 1, 0, 5804.06, 639.865, 609.886, 5.98164, 300, 0, 0, 1333900, 0, 0, 0, 0, 0, '', NULL, 0, NULL);
 
 -- Vaeric
 DELETE FROM `creature` WHERE (`id1` = 9500566);
 INSERT INTO `creature` (`guid`, `id1`, `id2`, `id3`, `map`, `zoneId`, `areaId`, `spawnMask`, `phaseMask`, `equipment_id`, `position_x`, `position_y`, `position_z`, `orientation`, `spawntimesecs`, `wander_distance`, `currentwaypoint`, `curhealth`, `curmana`, `MovementType`, `npcflag`, `unit_flags`, `dynamicflags`, `ScriptName`, `VerifiedBuild`, `CreateObject`, `Comment`) VALUES
-(9001013, 9500566, 0, 0, 530, 0, 0, 1, 1, 1, -1989.96, 5225.28, -44.6008, 5.71627, 300, 0, 0, 1333900, 0, 0, 0, 0, 0, '', NULL, 0, NULL),
-(9001015, 9500566, 0, 0, 571, 0, 0, 1, 1, 1, 5826.64, 674.772, 609.885, 5.53385, 300, 0, 0, 1333900, 0, 0, 0, 0, 0, '', NULL, 0, NULL);
+(9101013, 9500566, 0, 0, 530, 0, 0, 1, 1, 1, -1989.96, 5225.28, -44.6008, 5.71627, 300, 0, 0, 1333900, 0, 0, 0, 0, 0, '', NULL, 0, NULL),
+(9101015, 9500566, 0, 0, 571, 0, 0, 1, 1, 1, 5826.64, 674.772, 609.885, 5.53385, 300, 0, 0, 1333900, 0, 0, 0, 0, 0, '', NULL, 0, NULL);
 
 -- Slyvia
 DELETE FROM `creature` WHERE (`id1` = 9500568);
 INSERT INTO `creature` (`guid`, `id1`, `id2`, `id3`, `map`, `zoneId`, `areaId`, `spawnMask`, `phaseMask`, `equipment_id`, `position_x`, `position_y`, `position_z`, `orientation`, `spawntimesecs`, `wander_distance`, `currentwaypoint`, `curhealth`, `curmana`, `MovementType`, `npcflag`, `unit_flags`, `dynamicflags`, `ScriptName`, `VerifiedBuild`, `CreateObject`, `Comment`) VALUES
-(9001010, 9500568, 0, 0, 530, 0, 0, 1, 1, 1, -1994.38, 5219.83, -44.2111, 0.597826, 300, 0, 0, 1333900, 0, 0, 0, 0, 0, '', NULL, 0, NULL),
-(9001016, 9500568, 0, 0, 571, 0, 0, 1, 1, 1, 5831.89, 678.204, 609.885, 5.0846, 300, 0, 0, 1333900, 0, 0, 0, 0, 0, '', NULL, 0, NULL);
+(9101010, 9500568, 0, 0, 530, 0, 0, 1, 1, 1, -1994.38, 5219.83, -44.2111, 0.597826, 300, 0, 0, 1333900, 0, 0, 0, 0, 0, '', NULL, 0, NULL),
+(9101016, 9500568, 0, 0, 571, 0, 0, 1, 1, 1, 5831.89, 678.204, 609.885, 5.0846, 300, 0, 0, 1333900, 0, 0, 0, 0, 0, '', NULL, 0, NULL);
 
 
 -- Gossip Texts
