@@ -127,6 +127,10 @@ VALUES (9500566, 0.35, 1.25, 0, 0);
 REPLACE INTO creature_model_info (DisplayID, BoundingRadius, CombatReach, Gender, DisplayID_Other_Gender)
 VALUES (9500567, 0.35, 1.25, 1, 0);
 
+REPLACE INTO acore_world.creature_model_info (DisplayID, BoundingRadius, CombatReach, Gender, DisplayID_Other_Gender)
+VALUES (9500568, 0.35, 1.25, 1, 0);
+
+
 -- Supporting Cast Spawns
 -- Agatha
 DELETE FROM `creature` WHERE (`id1` = 9500567);
