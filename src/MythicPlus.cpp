@@ -339,8 +339,6 @@ void MythicPlus::ScaleCreature(uint8 level, Creature* creature, MpMultipliers* m
 
     float updatedAp = creature->GetModifierValue(UNIT_MOD_ATTACK_POWER, BASE_VALUE);
     float updatedRangeAp = creature->GetModifierValue(UNIT_MOD_ATTACK_POWER_RANGED, BASE_VALUE);
-
-    MpLogger::debug("Updated Attack Powers: {} {}", updatedAp, updatedRangeAp);
 }
 
 int32 MythicPlus::CalculateSpellDamage(uint32 baseDamage, int originalLevel, int targetLevel) {

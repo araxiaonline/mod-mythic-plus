@@ -145,6 +145,12 @@ private:
             return HandleNonCreatureAttacker(target, attacker, damage, spellInfo, eventType);
         }
 
+    #if defined(MOD_PRESENT_NPCBOTS)
+        if (attacker && attacker->IsNPCBotOrPet()) {
+            return;
+        }
+    #endif
+
         Creature* creatureCaster = attacker->ToCreature();
         MpCreatureData* creatureData = sMpDataStore->GetCreatureData(creatureCaster->GetGUID());
 
@@ -248,7 +254,7 @@ private:
 public:
 
     void ModifyPeriodicDamageAurasTick(Unit* target, Unit* attacker, uint32& damage, SpellInfo const* spellInfo) override {
-        if (!target && !attacker) {
+        if (!target || !attacker) {
             return;
         }
 
@@ -279,12 +285,7 @@ public:
     }
 
     void ModifySpellDamageTaken(Unit* target, Unit* attacker, int32& damage, SpellInfo const* spellInfo) override {
-        if (!target && !attacker) {
-
-            if(spellInfo) {
-                // MpLogger::info("ModifySpellDamageTaken: Target and attacker are null for spell: {} ID: {}", spellInfo->SpellName[0], spellInfo->Id);
-            }
-
+        if (!target || !attacker) {
             return;
         }
 
@@ -311,7 +312,7 @@ public:
      * receive from mythic+ scaled enemies.
      */
     void ModifyMeleeDamage(Unit* target, Unit* attacker, uint32& damage) override {
-        if (!target && !attacker) {
+        if (!target || !attacker) {
             return;
         }
 
@@ -325,7 +326,7 @@ public:
 
     // When a healing spell hits a mythic+ enemy modify based on the modifiers for the difficulty
     void ModifyHealReceived(Unit* target, Unit* healer, uint32& healing, SpellInfo const* spellInfo) override {
-      if (!target && !healer) {
+      if (!target || !healer) {
             return;
         }
 
@@ -338,7 +339,7 @@ public:
     }
 
     uint32 modifyIncomingDmgHeal(MythicPlus::MP_UNIT_EVENT_TYPE eventType,Unit* target, Unit* attacker, uint32 damageOrHeal, SpellInfo const* spellInfo = nullptr) {
-        if (!target && !attacker) {
+        if (!target || !attacker) {
             // MpLogger::info("modifyIncomingDmgHeal: Target and attacker are null for event {}", eventType);
             return damageOrHeal;
         }
@@ -401,9 +402,8 @@ public:
 
                     // Damage that is not mitigated by armor needs to be debuffed as it hits too hard and without resists
                     // it hits too hard give everyone a benefit of 30% armor reduction
-                    MpLogger::debug(">>> Modify Melee Damage: Creature Name: {} alteredDmgHeal: {} School Mask: {}", creature->GetName(), alteredDmgHeal, creature->GetMeleeDamageSchoolMask());
                     if(creature->GetMeleeDamageSchoolMask() != SPELL_SCHOOL_MASK_NORMAL && creature->GetMeleeDamageSchoolMask() != SPELL_SCHOOL_MASK_NONE) {
-                        damageOrHeal = damageOrHeal * 0.50f;
+                        damageOrHeal = static_cast<uint32>(damageOrHeal * 0.50f);
                     }
                     if(creature->IsDungeonBoss() || creature->isWorldBoss() || creature->GetEntry() == 23682) {
                         alteredDmgHeal = damageOrHeal * instanceData->boss.melee;
@@ -411,7 +411,12 @@ public:
                         alteredDmgHeal = damageOrHeal * instanceData->creature.melee;
                     }
 
-                    // MpLogger::debug(">>>>>>>>>>>> Incoming Melee New Damage: {}({}) {} hits {}", alteredDmgHeal, damageOrHeal, attacker->GetName(), target->GetName());
+                    // Only log if damage was actually modified
+                    if(alteredDmgHeal != damageOrHeal) {
+                        std::string damageType = (creature->GetMeleeDamageSchoolMask() == SPELL_SCHOOL_MASK_NORMAL) ? "Melee Damage" : "Elemental Damage";
+                        MpLogger::debug(">>> Modify {}: Creature Name: {} originalDmg: {} alteredDmg: {} School Mask: {}",
+                            damageType, creature->GetName(), damageOrHeal, alteredDmgHeal, creature->GetMeleeDamageSchoolMask());
+                    }
 
                     break;
                 case MythicPlus::UNIT_EVENT_DOT:

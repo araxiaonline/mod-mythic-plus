@@ -118,7 +118,7 @@ public:
         Creature* creature = player->GetMap()->GetCreature(loot->sourceWorldObjectGUID);
         if (!creature) return;
 
-        #ifdef NPC_BOT
+        #if defined(MOD_PRESENT_NPCBOTS)
             if(creature->IsNPCBotOrPet()) {
                 return;
             }
@@ -171,7 +171,7 @@ public:
         Creature* creature = victim->ToCreature();
         if (!creature) return;
 
-        #ifdef NPC_BOT
+        #if defined(MOD_PRESENT_NPCBOTS)
             if(creature->IsNPCBotOrPet()) {
                 return;
             }
