@@ -11,62 +11,43 @@ The Mythic Plus module transforms existing World of Warcraft dungeons (Wrath of 
 ## Features
 
 ### Core Systems
-- **Progressive Difficulty Scaling**: Multiple tiers of difficulty that scale creature stats, abilities, and rewards
-- **Enhanced Creature AI**: Overhauled creature behaviors and mechanics for increased challenge  
-- **Comprehensive Achievement System**: Custom achievements for mythic plus progression, completion times, and special challenges
+- **Progressive Difficulty Scaling**: Multiple tiers of difficulty that scale creature stats, abilities, and rewards  
+- **Player Advancement System**: Custom advancements for mythic plus progression, completion times, and special challenges
 - **Voiced NPCs**: Enhanced immersion with voice acting for key NPCs and encounters
 - **Dynamic Loot System**: New loot mechanics with scaled rewards based on difficulty completed
 - **Death Penalty System**: Configurable death penalties that affect progression
-- **Time-Based Challenges**: Optional timed elements for additional rewards
+- **Time-Based Challenges**:
+- (In progress)
 
 ### Massive Content Expansion
 - **50,000+ New Items**: Completely new item database with scaled equipment for all difficulty tiers
 - **New Rare Materials**: Custom crafting materials and rare drops exclusive to mythic plus content
-- **Endgame Token System**: New currency and token systems for high-tier rewards and progression
 - **Reworked Tier Gear**: All expansion tier sets completely reworked and rebalanced for mythic plus scaling
-- **Cross-Expansion Integration**: Unified progression system spanning Vanilla through Cataclysm content
+- **Cross-Expansion Integration**: Unified progression system spanning Vanilla through Wrath
 
 ### Difficulty Tiers
 The module supports multiple difficulty levels with configurable scaling:
 
 - **Mythic Dungeons**: Base enhanced difficulty with improved creature stats and new rare material drops
-- **Legendary Dungeons**: Significantly increased challenge with additional mechanics and tier gear rewards
-- **Ascendant Dungeons**: Extreme difficulty with unique creature abilities, voiced encounters, and exclusive endgame tokens
-- **Custom Tiers**: Fully configurable additional difficulty levels with database-driven scaling per dungeon
+- **Legendary Dungeons**: In progress 
+- **Ascendant Dungeons**: In progress
 
 ### Per-Dungeon Customization
 - **Database-Driven Scaling**: Each dungeon can have unique scaling values configured through database tables
 - **Individual Encounter Tuning**: Specific creatures and bosses can have custom multipliers independent of global settings
 - **Dungeon-Specific Materials**: Unique rare materials and rewards exclusive to certain dungeons or difficulty combinations
-- **Custom Achievement Integration**: Dungeon-specific achievements with unique rewards and progression tracking
 
 ### Creature Enhancements
 - **Health & Damage Scaling**: Configurable multipliers for different difficulty tiers
-- **Enhanced AI Behaviors**: Improved creature spell rotations and tactical decision making
-- **Elite Transformations**: Regular creatures gain elite status with additional mechanics
-- **Selective Boss Overhauls**: While most encounters maintain original mechanics, key bosses receive significant enhancements
+
 - **Voiced Encounters**: Important NPCs and bosses feature voice acting for enhanced immersion
 
-### Massive Item & Reward Overhaul
-- **50,000+ New Items**: Complete item database expansion with mythic plus exclusive equipment
-- **Tiered Equipment Scaling**: Items scale appropriately with completed difficulty levels
-- **New Rare Materials**: Exclusive crafting components and rare materials for high-end content
-- **Endgame Token Economy**: New currency systems including mythic plus tokens for premium rewards
-- **Reworked Tier Sets**: All expansion tier gear completely rebalanced and rescaled for mythic plus progression
 - **Cross-Expansion Itemization**: Unified item progression that spans all supported expansions
-
-### Achievement System
-- **Comprehensive Achievement Integration**: Extensive achievement system tracking mythic plus progression
-- **Difficulty-Based Achievements**: Unique achievements for completing different tiers
-- **Speed Run Recognition**: Achievements for completing dungeons within time limits
-- **Perfect Run Rewards**: Special achievements for flawless completions without deaths
-- **Collection Achievements**: Rewards for acquiring rare materials and exclusive items
-- **Progressive Title System**: Unlock prestigious titles through mythic plus mastery
 
 ## Installation
 
 ### Prerequisites
-- AraxiaOnline 2025 core : araxia-main brance (latest version recommended)
+-- Trickerer Acore or Azerothcore 
 - MySQL database 8.4
 - C++ compiler with C++20 support
 - docker for most tested experience
@@ -174,16 +155,11 @@ The module enhances dungeons from multiple expansions:
 - Heroic and normal modes both supported
 - Enhanced creature abilities and mechanics
 
-### Cataclysm Content  
-- Dungeon encounters rebalanced for mythic scaling
-- New material types and reward structures
-- Enhanced boss mechanics
-
+###
 ### Cross-Expansion Features
 - Unified scaling system across all supported content
 - Consistent reward progression regardless of original expansion
-- Balanced challenge curve from entry-level to extreme difficulties
-
+- Balanced challenge curve from entry-level to extreme difficulti
 ## Commands
 
 ### Player Commands
@@ -328,5 +304,6 @@ This project is licensed under the GPL-3.0 License - see the [LICENSE](LICENSE) 
 ---
 
 *Remember: This module significantly increases dungeon difficulty. Start with lower difficulties and work your way up to avoid frustration. The enhanced challenge is designed to provide engaging content for experienced players seeking greater difficulty than the original game provided.*
+
 
 
