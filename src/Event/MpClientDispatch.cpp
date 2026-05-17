@@ -14,7 +14,7 @@
  */
 bool MpClientDispatcher::Dispatch(MpClientEvent event, Player* player, std::vector<std::string>& args)
 {
-    if(!MpClientEventNames.contains(event)) {
+    if(MpClientEventNames.find(event) == MpClientEventNames.end()) {
         MpLogger::warn("No event registered for event: {}", event);
         return false;
     }

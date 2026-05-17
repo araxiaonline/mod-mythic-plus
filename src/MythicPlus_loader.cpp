@@ -1,6 +1,5 @@
 #include "MpScheduler.h"
 #include "MpLogger.h"
-#include "Spells/AdvancmentSpells.cpp"
 
 // Creature Overrides
 enum {

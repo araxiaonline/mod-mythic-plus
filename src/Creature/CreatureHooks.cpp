@@ -43,7 +43,7 @@ void CreatureHooks::JustDied(Creature* creature, Unit* killer) {
 
 
     uint32 entry = creature->GetEntry();
-    if (_JustDiedHandlers->contains(entry)) {
+    if (_JustDiedHandlers->find(entry) != _JustDiedHandlers->end()) {
         for (auto& callback : _JustDiedHandlers->at(entry)) {
             MpLogger::debug("JustDied() called for creature: {}", entry);
             callback(creature, killer);
@@ -64,7 +64,7 @@ void CreatureHooks::JustSpawned(Creature* creature) {
         sMythicPlus->AddScaledCreature(creature, instanceData);
     }
 
-    if (_OnSpawnHandlers->contains(entry)) {
+    if (_OnSpawnHandlers->find(entry) != _OnSpawnHandlers->end()) {
         for (auto& callback : _OnSpawnHandlers->at(entry)) {
             callback(creature);
             MpLogger::debug("JustSpawned() called in CreatureHook: {}", entry);
@@ -75,7 +75,7 @@ void CreatureHooks::JustSpawned(Creature* creature) {
 void CreatureHooks::AddToInstance(Creature* creature) {
     uint32 entry = creature->GetEntry();
 
-    if (_OnAddToInstanceHandlers->contains(entry)) {
+    if (_OnAddToInstanceHandlers->find(entry) != _OnAddToInstanceHandlers->end()) {
         for (auto& callback : _OnAddToInstanceHandlers->at(entry)) {
             callback(creature);
             MpLogger::debug("AddedToInstance() called in CreatureHook: {}", entry);

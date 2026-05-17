@@ -7,6 +7,7 @@
 #include "Unit.h"
 #include "WorldPacket.h"
 #include "UpdateMask.h"
+#include "SharedDefines.h"
 #include "MpScriptAI.h"
 
 #include <algorithm>
@@ -272,7 +273,7 @@ void MythicPlus::ScaleCreature(uint8 level, Creature* creature, MpMultipliers* m
     creature->SetMaxHealth(health);
     creature->SetHealth(health);
     creature->ResetPlayerDamageReq();
-    creature->SetModifierValue(UNIT_MOD_HEALTH, BASE_VALUE, (float)health);
+    creature->SetStatFlatModifier(UNIT_MOD_HEALTH, BASE_VALUE, (float)health);
 
     /**
      * @TODO: Figure out mana later for unit_types 2 and 8
@@ -283,12 +284,12 @@ void MythicPlus::ScaleCreature(uint8 level, Creature* creature, MpMultipliers* m
     creature->SetMaxPower(POWER_MANA, mana);
     creature->SetPower(POWER_MANA, mana);
 
-    if(cInfo->unit_class == UNIT_CLASS_MAGE) {
-        creature->SetModifierValue(UNIT_MOD_MANA, BASE_VALUE, (float)mana * 10.0f);
+    if(cInfo->unit_class == 8 /* UNIT_CLASS_MAGE */) {
+        creature->SetStatFlatModifier(UNIT_MOD_MANA, BASE_VALUE, (float)mana * 10.0f);
     }
 
-    if(cInfo->unit_class == UNIT_CLASS_PALADIN) {
-        creature->SetModifierValue(UNIT_MOD_MANA, BASE_VALUE, (float)mana * 3.0f);
+    if(cInfo->unit_class == 2 /* UNIT_CLASS_PALADIN */) {
+        creature->SetStatFlatModifier(UNIT_MOD_MANA, BASE_VALUE, (float)mana * 3.0f);
     }
 
     MpInstanceData *instanceData = sMpDataStore->GetInstanceData(creature->GetMapId(), creature->GetInstanceId());
@@ -320,8 +321,8 @@ void MythicPlus::ScaleCreature(uint8 level, Creature* creature, MpMultipliers* m
     }
 
     // Set scaled attack power
-    creature->SetModifierValue(UNIT_MOD_ATTACK_POWER, BASE_VALUE, ap);
-    creature->SetModifierValue(UNIT_MOD_ATTACK_POWER_RANGED, BASE_VALUE, rangeAp);
+    creature->SetStatFlatModifier(UNIT_MOD_ATTACK_POWER, BASE_VALUE, ap);
+    creature->SetStatFlatModifier(UNIT_MOD_ATTACK_POWER_RANGED, BASE_VALUE, rangeAp);
 
     // set the base weapon damage
     creature->SetBaseWeaponDamage(BASE_ATTACK, MINDAMAGE, stats->BaseDamage[EXPANSION_WRATH_OF_THE_LICH_KING], 0);
@@ -337,8 +338,8 @@ void MythicPlus::ScaleCreature(uint8 level, Creature* creature, MpMultipliers* m
     uint32 armor = uint32(std::ceil(stats->BaseArmor * multipliers->armor * cInfo->ModArmor));
     creature->SetArmor(armor);
 
-    float updatedAp = creature->GetModifierValue(UNIT_MOD_ATTACK_POWER, BASE_VALUE);
-    float updatedRangeAp = creature->GetModifierValue(UNIT_MOD_ATTACK_POWER_RANGED, BASE_VALUE);
+    float updatedAp = creature->GetFlatModifierValue(UNIT_MOD_ATTACK_POWER, BASE_VALUE);
+    float updatedRangeAp = creature->GetFlatModifierValue(UNIT_MOD_ATTACK_POWER_RANGED, BASE_VALUE);
 
     MpLogger::debug("Updated Attack Powers: {} {}", updatedAp, updatedRangeAp);
 }

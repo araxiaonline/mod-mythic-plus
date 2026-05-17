@@ -49,10 +49,10 @@ struct MpPlayerData
     void AddDeath(uint32 mapId, uint32 instanceId) {
         auto key = std::make_pair(mapId, instanceId);
 
-        if(instanceData.contains(key)) {
+        if(instanceData.find(key) != instanceData.end()) {
             instanceData[key].deaths++;
         } else {
-            instanceData[key] = MpPlayerInstanceData{.deaths = 1};
+            instanceData[key] = MpPlayerInstanceData{1};
         }
 
         MpLogger::info("========= Player {} added death to instance data {}", player->GetName(), instanceData[key].deaths);
@@ -60,7 +60,7 @@ struct MpPlayerData
 
     uint32 GetDeaths(uint32 mapId, uint32 instanceId) const {
         auto key = std::make_pair(mapId, instanceId);
-        if(instanceData.contains(key)) {
+        if(instanceData.find(key) != instanceData.end()) {
             return instanceData.at(key).deaths;
         }
         return 0;
@@ -68,7 +68,7 @@ struct MpPlayerData
 
     void ResetDeathCount(uint32 mapId, uint32 instanceId) {
         auto key = std::make_pair(mapId, instanceId);
-        if(instanceData.contains(key)) {
+        if(instanceData.find(key) != instanceData.end()) {
             instanceData[key].deaths = 0;
         }
     }
@@ -356,7 +356,7 @@ public:
 
     MpGroupData* GetGroupData(ObjectGuid guid) {
 
-        if (_groupData->contains(guid)) {
+        if (_groupData->find(guid) != _groupData->end()) {
             return &_groupData->at(guid);
         } else {
             return nullptr;

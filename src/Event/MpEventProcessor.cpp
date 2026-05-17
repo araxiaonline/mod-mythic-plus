@@ -51,7 +51,7 @@ bool MpEventProcessor::ProcessMessage(Player* player, const std::string& msg) {
     }
 
     // If the event is not registered ignore it
-    if(!_eventHandlers.contains(event)) {
+    if(_eventHandlers.find(event) == _eventHandlers.end()) {
         MpLogger::info("No handler registered for event: {}", event);
         return false;
     }
@@ -65,7 +65,7 @@ void MpEventProcessor::RegisterHandler(MpEvent event, std::shared_ptr<MpEventInt
 
 // This fires the execution to the actual event.
 bool MpEventProcessor::Dispatch(MpEvent event, Player* player, std::vector<std::string>& args) {
-    if(!_eventHandlers.contains(event)) {
+    if(_eventHandlers.find(event) == _eventHandlers.end()) {
 
         // Send a client message back also to the player
         std::vector<std::string> clientError = { "Error", "No handler registered for event: " + std::to_string(static_cast<int>(event)) };

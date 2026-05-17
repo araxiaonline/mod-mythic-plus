@@ -55,7 +55,7 @@ struct MpAdvancementRank
 
     // Check if the map has an the item entry for the passed in material
     bool HasMaterial(uint32 itemEntry) {
-        return materialCost.contains(itemEntry);
+        return materialCost.find(itemEntry) != materialCost.end();
     }
 };
 

@@ -92,8 +92,8 @@ public:
             target->GetWeaponDamageRange(OFF_ATTACK, MINDAMAGE),
             target->GetWeaponDamageRange(OFF_ATTACK, MAXDAMAGE)
         );
-        handler->PSendSysMessage("Attack Power Main {}", target->GetModifierValue(UNIT_MOD_ATTACK_POWER, BASE_VALUE));
-        handler->PSendSysMessage("Attack Power Ranged {}", target->GetModifierValue(UNIT_MOD_ATTACK_POWER_RANGED, BASE_VALUE));
+        handler->PSendSysMessage("Attack Power Main {}", target->GetFlatModifierValue(UNIT_MOD_ATTACK_POWER, BASE_VALUE));
+        handler->PSendSysMessage("Attack Power Ranged {}", target->GetFlatModifierValue(UNIT_MOD_ATTACK_POWER_RANGED, BASE_VALUE));
         handler->PSendSysMessage("Armor {}", target->GetArmor());
         handler->PSendSysMessage("Damage Modifier on template {}",creatureTemplate->DamageModifier);
 

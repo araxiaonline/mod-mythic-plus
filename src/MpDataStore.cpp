@@ -39,7 +39,7 @@ void MpDataStore::AddGroupData(Group *group, MpGroupData groupData) {
     auto instance = map->ToInstanceMap();
 
     // if we already have data override it
-    if (_groupData->contains(guid)) {
+    if (_groupData->find(guid) != _groupData->end()) {
 
         MpGroupData existingData = _groupData->at(guid);
         if(groupData.difficulty == MP_DIFFICULTY_HEROIC || groupData.difficulty == MP_DIFFICULTY_NORMAL || groupData.difficulty != existingData.difficulty) {
@@ -122,7 +122,7 @@ void MpDataStore::PushGroupInstanceKey(Group *group, uint32 mapId, uint32 instan
         return;
     }
 
-    if (!_groupData->contains(guid)) {
+    if (_groupData->find(guid) == _groupData->end()) {
         MpLogger::error("PushGroupInstanceKey called with invalid group GUID");
         return;
     }
@@ -160,7 +160,7 @@ void MpDataStore::AddInstanceData(uint32 mapId, uint32 instanceId, MpInstanceDat
 
 MpInstanceData* MpDataStore::GetInstanceData(uint32 mapId, uint32 instanceId) {
 
-    if (!_instanceData->contains(GetInstanceDataKey(mapId, instanceId))) {
+    if (_instanceData->find(GetInstanceDataKey(mapId, instanceId)) == _instanceData->end()) {
         return nullptr;
     }
 
@@ -177,7 +177,7 @@ void MpDataStore::AddCreatureData(ObjectGuid guid, MpCreatureData creatureData) 
 }
 
 MpCreatureData* MpDataStore::GetCreatureData(ObjectGuid guid) {
-    if (!_instanceCreatureData->contains(guid)) {
+    if (_instanceCreatureData->find(guid) == _instanceCreatureData->end()) {
         return nullptr;
     }
 
@@ -216,7 +216,7 @@ void MpDataStore::RemoveCreatureData(ObjectGuid guid) {
 MpScaleFactor MpDataStore::GetScaleFactor(int32 mapId, int32 difficulty) const {
 
     auto key = GetScaleFactorKey(mapId, difficulty);
-    if (_scaleFactors->contains(key)) {
+    if (_scaleFactors->find(key) != _scaleFactors->end()) {
         return _scaleFactors->at(key);
     }
 
@@ -246,7 +246,7 @@ float MpDataStore::GetHealScaleFactor(int32 mapId, int32 difficulty) const {
 }
 
 uint32 MpDataStore::GetPlayerHealthAvg(uint32 level) const {
-    if (_playerHealthAvg.contains(level)) {
+    if (_playerHealthAvg.find(level) != _playerHealthAvg.end()) {
         return _playerHealthAvg.at(level);
     }
     return 0;
@@ -254,14 +254,14 @@ uint32 MpDataStore::GetPlayerHealthAvg(uint32 level) const {
 
 void MpDataStore::SetHealScaleFactor(int32 mapId, int32 difficulty, float newValue) {
     auto key = GetScaleFactorKey(mapId, difficulty);
-    if (_scaleFactors && _scaleFactors->contains(key)) {
+    if (_scaleFactors && _scaleFactors->find(key) != _scaleFactors->end()) {
         _scaleFactors->at(key).healBonus = newValue;
     }
 }
 
 void MpDataStore::SetHealthScaleFactor(int32 mapId, int32 difficulty, float newValue) {
     auto key = GetScaleFactorKey(mapId, difficulty);
-    if (_scaleFactors && _scaleFactors->contains(key)) {
+    if (_scaleFactors && _scaleFactors->find(key) != _scaleFactors->end()) {
         _scaleFactors->at(key).healthBonus = newValue;
     }
 }
@@ -269,14 +269,14 @@ void MpDataStore::SetHealthScaleFactor(int32 mapId, int32 difficulty, float newV
 void MpDataStore::SetMeleeScaleFactor(int32 mapId, int32 difficulty, float newValue) {
     auto key = GetScaleFactorKey(mapId, difficulty);
 
-    if (_scaleFactors && _scaleFactors->contains(key)) {
+    if (_scaleFactors && _scaleFactors->find(key) != _scaleFactors->end()) {
         _scaleFactors->at(key).meleeBonus = newValue;
     }
 }
 
 void MpDataStore::SetSpellScaleFactor(int32 mapId, int32 difficulty, float newValue) {
     auto key = GetScaleFactorKey(mapId, difficulty);
-    if (_scaleFactors && _scaleFactors->contains(key)) {
+    if (_scaleFactors && _scaleFactors->find(key) != _scaleFactors->end()) {
         _scaleFactors->at(key).spellBonus = newValue;
     }
 }

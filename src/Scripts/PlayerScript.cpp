@@ -111,7 +111,7 @@ public:
                     // }
     }
 
-    void OnBeforeLootMoney(Player* player, Loot* loot) override
+    void OnPlayerBeforeLootMoney(Player* player, Loot* loot) override
     {
         if (!loot->sourceWorldObjectGUID.IsCreature()) return;
 
@@ -164,7 +164,7 @@ public:
         loot->gold = newGold;
     }
 
-    void OnGiveXP(Player* player, uint32& amount, Unit* victim, uint8 xpSource) override
+    void OnPlayerGiveXP(Player* player, uint32& amount, Unit* victim, uint8 xpSource) override
     {
         if (xpSource != XPSOURCE_KILL || !victim) return;
 
@@ -197,7 +197,7 @@ public:
 
         amount = uint32(newBaseXP * xpMod * 1.5f); // flat bonus modifier for mythic dungeons
     }
-    void OnLogin(Player* player) override
+    void OnPlayerLogin(Player* player) override
     {
         MpLogger::info("Player {} logged in", player->GetName());
 
@@ -213,7 +213,7 @@ public:
     }
 
     // When a player is bound to an instance need to make sure they are saved in the data soure to retrieve later.
-    void OnBindToInstance(Player* player, Difficulty /*difficulty*/, uint32 mapId, bool /*permanent*/) override
+    void OnPlayerBindToInstance(Player* player, Difficulty /*difficulty*/, uint32 mapId, bool /*permanent*/) override
     {
         if(!player) {
             return;
@@ -250,9 +250,7 @@ public:
         data->AddPlayerData(playerData);
 
         auto mapKey = sMpDataStore->GetInstanceDataKey(mapId, player->GetInstanceId());
-        playerData->instanceData.emplace(mapKey, MpPlayerInstanceData{
-            .deaths = 0,
-        });
+        playerData->instanceData.emplace(mapKey, MpPlayerInstanceData{});
 
         sMpDataStore->DBUpdatePlayerInstanceData(player->GetGUID(), data->difficulty, map->GetId(), map->GetInstanceId());
         sMpDataStore->DBUpdateGroupData(group->GetGUID(), data->difficulty, map->GetId(), map->GetInstanceId(), 0);
