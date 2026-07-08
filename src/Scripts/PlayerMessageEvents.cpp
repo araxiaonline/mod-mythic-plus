@@ -30,17 +30,19 @@ public:
     /**
      * Listens to AddOn Chat channel for Mythic+ communication between UI and server mythic+ functionality
      */
-    void OnChat(Player* player, uint32 type, uint32 lang, std::string& msg, Player* receiver) override
+    // Core removed the void OnChat observer hooks; OnPlayerCanUseChat is the
+    // replacement with the same whisper parameters — observe and always allow.
+    bool OnPlayerCanUseChat(Player* player, uint32 /*type*/, uint32 lang, std::string& msg, Player* receiver) override
     {
         // All communication from the client should be a whisper to themselves over tha addon channel
         if(!player || !receiver) {
-            return;
+            return true;
         }
 
         if(lang == LANG_ADDON) {
             if(msg.empty()) {
                 MpLogger::info("Empty AddOn message received from player: {}", player->GetName());
-                return;
+                return true;
             }
 
             // if the message begins with our prefix for our data channel then process the event
@@ -48,6 +50,8 @@ public:
                 sMpEventProcessor->ProcessMessage(player, msg);
             }
         }
+
+        return true;
     }
 
     /**
